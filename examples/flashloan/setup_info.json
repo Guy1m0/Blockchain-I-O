@@ -1,0 +1,10 @@
+{
+  "Token1Address": "0x1377a9f3f7b5984d7653133be2955583f3858373",
+  "Token2Address": "0x3d3ea2baaf1f8cb9cd6167dd2a22eae692f6bc3c",
+  "Amm1Address": "0x7034fabec4344ac5fc76a918bbde2543c235434b",
+  "Amm2Address": "0x11285cbbdaee1f046460a387d9a5f0d2352ddaba",
+  "FabricTokenName": "token1",
+  "Exchange": "0xac5580ad28a3c0e044a52541785bfd34c753d3bf",
+  "Lender": "0xd0a73fe9d44184e9f1264ce2097064212e67ebfe",
+  "Arbitrageur": "0xd3cf32a24e4527cf84ef0c8d571f8a77f6481984"
+}
