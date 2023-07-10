@@ -13,9 +13,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Guy1m0/piechain-frontend/cclib"
-	"github.com/Guy1m0/piechain-frontend/contracts/eth_auction"
-	"github.com/Guy1m0/piechain-frontend/examples/auction"
+	"github.com/Guy1m0/Blockchain-I-O/cclib"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
+	"github.com/Guy1m0/Blockchain-I-O/examples/auction"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/rs/cors"

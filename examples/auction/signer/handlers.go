@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 
-	"github.com/Guy1m0/piechain-frontend/contracts/eth_auction"
-	"github.com/Guy1m0/piechain-frontend/examples/auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
+	"github.com/Guy1m0/Blockchain-I-O/examples/auction"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 )

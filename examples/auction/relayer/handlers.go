@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/Guy1m0/piechain-frontend/examples/auction"
+	"github.com/Guy1m0/Blockchain-I-O/examples/auction"
 )
 
 var mutex sync.Mutex

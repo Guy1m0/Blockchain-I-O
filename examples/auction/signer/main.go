@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Guy1m0/piechain-frontend/cclib"
-	"github.com/Guy1m0/piechain-frontend/examples/auction"
+	"github.com/Guy1m0/Blockchain-I-O/cclib"
+	"github.com/Guy1m0/Blockchain-I-O/examples/auction"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 

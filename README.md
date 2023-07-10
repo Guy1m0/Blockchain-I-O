@@ -11,6 +11,12 @@ driven approach.
 
 ## Setup
 
+### Go
+```bash
+go mod init github.com/Guy1m0/Blockchain-I-O
+sudo go mod tidy
+```
+
 ### Kafka
 Start Kafka with `docker-compose`.
 ```bash
@@ -76,7 +82,7 @@ sudo ./network.sh deployCC -ccn asset -ccp ../../contracts/fabric_asset/chaincod
 5. Run `relayer` crosschain service.
 ```bash
 cd examples/auction/relayer
-go build .
+sudo go build .
 ./relayer
 ```
 
@@ -96,10 +102,37 @@ go build .
 7. Run the `scenario` script.
 ```bash
 cd examples/auction/scenario
-go run .
+go build .
+sudo go run .
 ```
 
 8. Stop running Containers and Eth private networks
+
+Firstly, stop execution for each signers and relayer.
+
+Then, stop each running networks
+```bash
+# Raft
+cd ethereum/raft
+./stop.sh
+./remove.sh
+# Poa
+cd ../poa
+./stop.sh
+./remove.sh
+
+```
+Finally, stop running containers in Docker
+
+
+```bash
+cd fabric-samples/test-network
+./network.sh down
+cd ../..
+
+cd kafka
+docker-compose down
+```
 
 
 The scenario script will do the following steps.
