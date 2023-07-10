@@ -43,6 +43,7 @@ func NewAssetClient() *AssetClient {
 		log.Fatalf("Failed to populate wallet contents: %v", err)
 	}
 
+	// error: Failed to apply identity option
 	gw, err := gateway.Connect(
 		gateway.WithConfig(config.FromFile(filepath.Clean(ccpPath))),
 		gateway.WithIdentity(wallet, "appUser"),
@@ -130,7 +131,12 @@ func populateWallet(wallet *gateway.Wallet) error {
 	)
 
 	certPath := filepath.Join(credPath, "signcerts", "User1@org1.example.com-cert.pem")
+	if _, err := os.Stat(certPath); err != nil {
+		certPath = filepath.Join(credPath, "signcerts", "cert.pem")
+	}
+
 	// read the certificate pem
+	//log.Println("read the cert pem")
 	cert, err := ioutil.ReadFile(filepath.Clean(certPath))
 	if err != nil {
 		return err
@@ -138,6 +144,7 @@ func populateWallet(wallet *gateway.Wallet) error {
 
 	keyDir := filepath.Join(credPath, "keystore")
 	// there's a single file in this dir containing the private key
+	//log.Println("load keystore")
 	files, err := ioutil.ReadDir(keyDir)
 	if err != nil {
 		return err
@@ -147,6 +154,7 @@ func populateWallet(wallet *gateway.Wallet) error {
 	}
 	keyPath := filepath.Join(keyDir, files[0].Name())
 	key, err := ioutil.ReadFile(filepath.Clean(keyPath))
+	//log.Println("read keyPath")
 	if err != nil {
 		return err
 	}
