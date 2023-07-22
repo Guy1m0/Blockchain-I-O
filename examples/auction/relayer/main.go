@@ -26,8 +26,9 @@ func main() {
 
 	var err error
 
-	ccsvc, err = cclib.NewEventService(strings.Split(zkNodes, ","), "relayer")
+	ccsvc, err = cclib.NewEventService(strings.Split(zkNodes, ","), "relayer") //zookeeper node
 	check(err)
+	// Register("event_", event_handler)
 	ccsvc.Register(auction.SignedAuctionResultEvent, handleSignedAuctionResult)
 	err = ccsvc.Start(true)
 	check(err)

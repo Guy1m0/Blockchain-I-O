@@ -12,7 +12,7 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
-type Flashloan struct {
+type EComm struct {
 	LenderContract    string
 	ArbitrageContract string
 
@@ -29,9 +29,9 @@ type SmartContract struct {
 }
 
 const (
-	KeyFlashloan = "flashloan"
-	KeyLoanHash  = "loanHash"
-	KeyStatus    = "status"
+	KeyEComm    = "ecomm"
+	KeyLoanHash = "loanHash"
+	KeyStatus   = "status"
 
 	KeyAccount = "account"
 
@@ -41,7 +41,7 @@ const (
 func (sc *SmartContract) Setup(
 	ctx contractapi.TransactionContextInterface, fljson string, loanHash string,
 ) error {
-	err := ctx.GetStub().PutState(KeyFlashloan, []byte(fljson))
+	err := ctx.GetStub().PutState(KeyEComm, []byte(fljson))
 	if err != nil {
 		return err
 	}
@@ -56,12 +56,12 @@ func (sc *SmartContract) GetLoanHash(ctx contractapi.TransactionContextInterface
 	return string(b), nil
 }
 
-func (sc *SmartContract) GetFlashLoan(ctx contractapi.TransactionContextInterface) (*Flashloan, error) {
-	b, err := ctx.GetStub().GetState(KeyFlashloan)
+func (sc *SmartContract) GetEComm(ctx contractapi.TransactionContextInterface) (*EComm, error) {
+	b, err := ctx.GetStub().GetState(KeyEComm)
 	if err != nil {
 		return nil, err
 	}
-	var result Flashloan
+	var result EComm
 	err = json.Unmarshal(b, &result)
 	if err != nil {
 		return nil, err
@@ -94,12 +94,12 @@ func (sc *SmartContract) GetAccount(ctx contractapi.TransactionContextInterface)
 }
 
 func (sc *SmartContract) FeedLoan(ctx contractapi.TransactionContextInterface) error {
-	flashloan, err := sc.GetFlashLoan(ctx)
+	ecomm, err := sc.GetEComm(ctx)
 	if err != nil {
 		return err
 	}
 
-	err = sc.transferToken(ctx, Token1, flashloan.Exchange, flashloan.Arbitrage, flashloan.Loan)
+	err = sc.transferToken(ctx, Token1, ecomm.Exchange, ecomm.Arbitrage, ecomm.Loan)
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func (sc *SmartContract) Execute(
 	if err != nil {
 		return err
 	}
-	flashloan, err := sc.GetFlashLoan(ctx)
+	ecomm, err := sc.GetEComm(ctx)
 	if err != nil {
 		return err
 	}
@@ -122,38 +122,38 @@ func (sc *SmartContract) Execute(
 	// 	return err
 	// }
 
-	// err = VerifySignature(loanHash, lenderSig, flashloan.Lender)
+	// err = VerifySignature(loanHash, lenderSig, ecomm.Lender)
 	// if err != nil {
 	// 	return err
 	// }
 
-	// err = VerifySignature(loanHash, arbitSig, flashloan.Arbitrage)
+	// err = VerifySignature(loanHash, arbitSig, ecomm.Arbitrage)
 	// if err != nil {
 	// 	return err
 	// }
 
 	err = sc.transferToken(
-		ctx, Token1, myAccount, flashloan.Arbitrage,
-		flashloan.Loan,
+		ctx, Token1, myAccount, ecomm.Arbitrage,
+		ecomm.Loan,
 	)
 	if err != nil {
 		return err
 	}
-	token2Amount, err := sc.exchange(ctx, "amm1", flashloan.Arbitrage, 1, flashloan.Loan)
+	token2Amount, err := sc.exchange(ctx, "amm1", ecomm.Arbitrage, 1, ecomm.Loan)
 	if err != nil {
 		return err
 	}
-	token1Amount, err := sc.exchange(ctx, "amm2", flashloan.Arbitrage, 2, token2Amount)
+	token1Amount, err := sc.exchange(ctx, "amm2", ecomm.Arbitrage, 2, token2Amount)
 	if err != nil {
 		return err
 	}
-	if token1Amount < flashloan.Loan+flashloan.Intrest {
+	if token1Amount < ecomm.Loan+ecomm.Intrest {
 		return fmt.Errorf("not enough profit")
 	}
 
 	err = sc.transferToken(
-		ctx, Token1, flashloan.Arbitrage, flashloan.Exchange,
-		flashloan.Loan+flashloan.Intrest,
+		ctx, Token1, ecomm.Arbitrage, ecomm.Exchange,
+		ecomm.Loan+ecomm.Intrest,
 	)
 	if err != nil {
 		return err

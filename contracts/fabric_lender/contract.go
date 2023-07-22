@@ -12,7 +12,7 @@ import (
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
-type Flashloan struct {
+type EComm struct {
 	LenderContract    string
 	ArbitrageContract string
 
@@ -29,9 +29,9 @@ type SmartContract struct {
 }
 
 const (
-	KeyFlashloan = "flashloan"
-	KeyLoanHash  = "loanHash"
-	KeyStatus    = "status"
+	KeyEComm    = "ecomm"
+	KeyLoanHash = "loanHash"
+	KeyStatus   = "status"
 
 	Token1 = "token1"
 )
@@ -39,7 +39,7 @@ const (
 func (sc *SmartContract) Setup(
 	ctx contractapi.TransactionContextInterface, fljson string, loanHash string,
 ) error {
-	err := ctx.GetStub().PutState(KeyFlashloan, []byte(fljson))
+	err := ctx.GetStub().PutState(KeyEComm, []byte(fljson))
 	if err != nil {
 		return err
 	}
@@ -58,12 +58,12 @@ func (sc *SmartContract) GetLoanHash(ctx contractapi.TransactionContextInterface
 	return string(b), nil
 }
 
-func (sc *SmartContract) GetFlashLoan(ctx contractapi.TransactionContextInterface) (*Flashloan, error) {
-	b, err := ctx.GetStub().GetState(KeyFlashloan)
+func (sc *SmartContract) GetEComm(ctx contractapi.TransactionContextInterface) (*EComm, error) {
+	b, err := ctx.GetStub().GetState(KeyEComm)
 	if err != nil {
 		return nil, err
 	}
-	var result Flashloan
+	var result EComm
 	err = json.Unmarshal(b, &result)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (sc *SmartContract) GetStatus(ctx contractapi.TransactionContextInterface) 
 func (sc *SmartContract) Initialize(
 	ctx contractapi.TransactionContextInterface, lenderSig, arbSig string,
 ) error {
-	floan, err := sc.GetFlashLoan(ctx)
+	floan, err := sc.GetEComm(ctx)
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (sc *SmartContract) Initialize(
 func (sc *SmartContract) EndLoan(
 	ctx contractapi.TransactionContextInterface, success bool,
 ) error {
-	floan, err := sc.GetFlashLoan(ctx)
+	floan, err := sc.GetEComm(ctx)
 	if err != nil {
 		return err
 	}
