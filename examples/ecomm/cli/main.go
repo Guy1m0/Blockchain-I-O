@@ -101,12 +101,6 @@ func setup() {
 
 	ecomm.TransferToken(quoClient, quo_MDAI, rootT, bid2T.From, *big.NewInt(10000))
 
-	// ecomm.TransferToken(ethClient, instance, rootT, bid2T.From, 1000000)
-	// ecomm.TransferToken(ethClient, instance, rootT, aucT.From, 0)
-
-	//ecomm.PrintTokenBalance(instance, excT.From, "MDai", "excT")
-	//ecomm.PrintTokenBalance(instance, lenderT.From, "MDai", "LenderT")
-
 	fmt.Println("Fabric setup")
 	fabricToken := ecomm.NewChaincode(fabricTokenName)
 	fmt.Println("Initialize MDai ERC20 contract")
@@ -123,17 +117,6 @@ func setup() {
 	check(err)
 	_, err = fabricToken.SubmitTransaction("Transfer", aucT.From.Hex(), "10")
 	check(err)
-
-	// _, err = fabricToken.SubmitTransaction("SetBalance", bid1T.From.Hex(), "100")
-	// check(err)
-	// _, err = fabricToken.SubmitTransaction("SetBalance", bid2T.From.Hex(), "100")
-	// check(err)
-	// _, err = fabricToken.SubmitTransaction("SetBalance", aucT.From.Hex(), "0")
-	// check(err)
-	//fmt.Println(3 * time.Second)
-	//fmt.Println("Check Balance")
-	//ecomm.PrintFabricBalance(fabricToken, bid1T.From.Hex(), "Bidder 1")
-	//ecomm.PrintFabricBalance(fabricToken, lenderT.From.Hex(), "lender")
 
 	ecomm.WriteJsonFile(setupInfoFile, ecomm.SetupInfo{
 		Bidder1Address:   bid1T.From,
