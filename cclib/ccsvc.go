@@ -34,6 +34,7 @@ func NewEventService(zkNodes []string, serviceID string) (*CCService, error) {
 	return svc, nil
 }
 
+// （event, handler)
 func (svc *CCService) Register(event string, handler EventHandler) {
 	svc.handlers[event] = handler
 }

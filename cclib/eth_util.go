@@ -2,6 +2,7 @@ package cclib
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"os"
 	"time"
@@ -23,10 +24,17 @@ func WaitTx(client *ethclient.Client, hash common.Hash) (bool, error) {
 		if err != nil {
 			return false, err
 		}
+
+		// print the entire receipt
+		if r.Status != types.ReceiptStatusSuccessful {
+			fmt.Printf("Receipt: %+v\n", r)
+		}
+
 		return r.Status == types.ReceiptStatusSuccessful, nil
 	}
 }
 
+// Create a Eth User Object
 func NewTransactor(keyfile, password string) (*bind.TransactOpts, error) {
 	f, err := os.Open(keyfile)
 	if err != nil {

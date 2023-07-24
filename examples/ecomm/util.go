@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_arbitrage"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -32,25 +32,13 @@ func PrintFabricBalance(token *Chaincode, account string, label string) {
 	fmt.Printf("fabtic %s %s balance: %s\n", token.GetName(), label, string(b))
 }
 
-func TransferToken(client *ethclient.Client, token *eth_arbitrage.ERC20, auth *bind.TransactOpts, to common.Address, amount int64) {
+func TransferToken(client *ethclient.Client, token *eth_stable_coin.EthStableCoin, auth *bind.TransactOpts, to common.Address, amount int64) {
 	tx, err := token.Transfer(auth, to, big.NewInt(0).Mul(big.NewInt(amount), DecimalB))
 	check(err)
 	WaitTx(client, tx, "transfer token")
 }
 
-func PrintAMMRate(amm *eth_arbitrage.AMM, ammName string) {
-	r1B, err := amm.Rate1(&bind.CallOpts{})
-	check(err)
-	r2B, err := amm.Rate2(&bind.CallOpts{})
-	check(err)
-	fmt.Printf("%s rate token1 -> token2 : %s -> %s\n",
-		ammName,
-		r1B.String(),
-		r2B.String(),
-	)
-}
-
-func PrintTokenBalance(token *eth_arbitrage.ERC20, address common.Address, tokenName, accountName string) {
+func PrintTokenBalance(token *eth_stable_coin.EthStableCoin, address common.Address, tokenName, accountName string) {
 	valueB, err := token.BalanceOf(&bind.CallOpts{}, address)
 	check(err)
 	fmt.Printf("%s %s balance: %s\n",
@@ -58,7 +46,6 @@ func PrintTokenBalance(token *eth_arbitrage.ERC20, address common.Address, token
 		big.NewInt(0).Div(valueB, DecimalB).String(),
 	)
 }
-
 func WaitTx(client *ethclient.Client, tx *types.Transaction, label string) {
 	fmt.Println(label + "...")
 	success, err := cclib.WaitTx(client, tx.Hash())
