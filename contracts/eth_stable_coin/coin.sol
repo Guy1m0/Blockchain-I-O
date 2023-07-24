@@ -25,20 +25,20 @@ pragma solidity ^0.8.18;
 
 contract Coin {
     // --- Auth ---
-    // mapping (address => bool) public admins;
+    mapping (address => bool) public admins;
 
-    // modifier onlyAdmin {
-    //     require(admins[msg.sender], "Not authorized");
-    //     _;
-    // }
+    modifier onlyAdmin {
+        require(admins[msg.sender], "Not authorized");
+        _;
+    }
 
-    // function grantAdminRole(address addr) external onlyAdmin {
-    //     admins[addr] = true;
-    // }
+    function grantAdminRole(address addr) external onlyAdmin {
+        admins[addr] = true;
+    }
 
-    // function revokeAdminRole(address addr) external onlyAdmin {
-    //     admins[addr] = false;
-    // }
+    function revokeAdminRole(address addr) external onlyAdmin {
+        admins[addr] = false;
+    }
 
     // --- ERC20 Data ---
     string  public constant name     = "Multi-Dai Stablecoin";
@@ -62,19 +62,19 @@ contract Coin {
     }
 
     // --- EIP712 niceties ---
-    //bytes32 public DOMAIN_SEPARATOR;
+    bytes32 public DOMAIN_SEPARATOR;
     // bytes32 public constant PERMIT_TYPEHASH = keccak256("Permit(address holder,address spender,uint256 nonce,uint256 expiry,bool allowed)");
     bytes32 public constant PERMIT_TYPEHASH = 0xea2aa0a1be11a07ed86d755c93467f4f82362b452371d1ba94d1715123511acb;
 
     constructor(uint256 chainId_) {
-        //admins[msg.sender] = true;
-        // DOMAIN_SEPARATOR = keccak256(abi.encode(
-        //     keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
-        //     keccak256(bytes(name)),
-        //     keccak256(bytes(version)),
-        //     chainId_,
-        //     address(this)
-        // ));
+        admins[msg.sender] = true;
+        DOMAIN_SEPARATOR = keccak256(abi.encode(
+            keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+            keccak256(bytes(name)),
+            keccak256(bytes(version)),
+            chainId_,
+            address(this)
+        ));
     }
 
     // --- Token ---
@@ -94,7 +94,7 @@ contract Coin {
         emit Transfer(src, dst, wad);
         return true;
     }
-    function mint(address usr, uint wad) external  {
+    function mint(address usr, uint wad) external onlyAdmin(){
         balanceOf[usr] = add(balanceOf[usr], wad);
         totalSupply    = add(totalSupply, wad);
         emit Transfer(address(0), usr, wad);
