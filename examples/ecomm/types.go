@@ -7,6 +7,7 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
+// update later
 type EComm struct {
 	LenderContract    string
 	ArbitrageContract string
@@ -39,6 +40,7 @@ func (fl *EComm) Hash32() [32]byte {
 	return ret
 }
 
+// update later
 type CommitVote struct {
 	LoanHash     string
 	LenderSig    string
@@ -52,7 +54,6 @@ type SetupInfo struct {
 
 	FabricTokenName string
 
-	Exchange    common.Address
-	Lender      common.Address
-	Arbitrageur common.Address
+	EthERC20 common.Address
+	QuoERC20 common.Address
 }

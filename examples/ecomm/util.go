@@ -1,13 +1,13 @@
 package ecomm
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math/big"
 	"os"
 	"strings"
 
-	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -26,14 +26,20 @@ func NewEthClient() *ethclient.Client {
 	return client
 }
 
+func NewQuorumClient() *ethclient.Client {
+	client, err := ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
+	check(err)
+	return client
+}
+
 func PrintFabricBalance(token *Chaincode, account string, label string) {
 	b, err := token.EvaluateTransaction("BalanceOf", account)
 	check(err)
 	fmt.Printf("fabric ERC20 contract %s for account %s balance: %s\n", token.GetName(), label, string(b))
 }
 
-func TransferToken(client *ethclient.Client, token *eth_stable_coin.EthStableCoin, auth *bind.TransactOpts, to common.Address, amount int64) {
-	tx, err := token.Transfer(auth, to, big.NewInt(0).Mul(big.NewInt(amount), DecimalB))
+func TransferToken(client *ethclient.Client, token *eth_stable_coin.EthStableCoin, auth *bind.TransactOpts, to common.Address, amount big.Int) {
+	tx, err := token.Transfer(auth, to, &amount)
 	check(err)
 	WaitTx(client, tx, "transfer token")
 }
@@ -48,9 +54,11 @@ func PrintTokenBalance(token *eth_stable_coin.EthStableCoin, address common.Addr
 }
 func WaitTx(client *ethclient.Client, tx *types.Transaction, label string) {
 	fmt.Println(label + "...")
-	success, err := cclib.WaitTx(client, tx.Hash())
+	receipt, err := bind.WaitMined(context.Background(), client, tx)
+	//success, err := cclib.WaitTx(client, tx.Hash())
 	check(err)
-	PrintTxStatus(success)
+
+	fmt.Printf("Transaction mined in block: %d\n", receipt.BlockNumber)
 }
 
 func PrintTxStatus(success bool) {

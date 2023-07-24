@@ -4,8 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"math/big"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -32,6 +34,7 @@ var (
 	bid2T *bind.TransactOpts
 
 	ethClient *ethclient.Client
+	quoClient *ethclient.Client
 )
 
 func main() {
@@ -50,6 +53,7 @@ func main() {
 	check(err)
 
 	ethClient = ecomm.NewEthClient()
+	quoClient = ecomm.NewQuorumClient()
 
 	command := flag.String("c", "", "command")
 	flag.Parse()
@@ -74,20 +78,29 @@ func setup() {
 	//supply, _ := big.NewInt(0).SetString("1"+strings.Repeat("0", ecomm.Decimal+10), 10)
 
 	fmt.Println("Ethereum setup")
+	eth_MDAI_addr, tx, eth_MDAI, _ := eth_stable_coin.DeployEthStableCoin(rootT, ethClient, big.NewInt(1))
+	//fmt.Println("Eth address:", etheth_MDAI_addr.Hex())
+	ecomm.WaitTx(ethClient, tx, "deploy Eth Stable Coin")
 
-	//tokenAddr, tx, instance, err := eth_stable_coin.DeployEthStableCoin(rootT, ethClient, big.NewInt(1))
-	//_, tx, _, err := eth_arbitrage.DeployERC20(rootT, ethClient, supply)
+	tx, err := eth_MDAI.Mint(rootT, rootT.From, big.NewInt(10000))
+	check(err)
+	ecomm.WaitTx(ethClient, tx, "Mint Enough Coins")
 
-	// ecomm.WaitTx(ethClient, tx, "deploy Eth Stable Coin")
-	// check(err)
+	ecomm.TransferToken(ethClient, eth_MDAI, rootT, bid1T.From, *big.NewInt(10000))
 
-	// fmt.Println("MDai address: ", tokenAddr)
+	fmt.Println("Quorum setup")
+	quo_MDAI_addr, tx, quo_MDAI, _ := eth_stable_coin.DeployEthStableCoin(rootT, quoClient, big.NewInt(1))
+	ecomm.WaitTx(quoClient, tx, "deploy Quorum Stable Coin")
+	//_, err = bind.WaitMined(context.Background(), quoClient, tx)
+	//check(err)
+	//ecomm.WaitTx(ethClient, tx, "deploy Quorum Stable Coin")
 
-	// tx, err = instance.Mint(rootT, rootT.From, supply)
-	// check(err)
-	// ecomm.WaitTx(ethClient, tx, "Mint Enough Coins")
+	tx, err = quo_MDAI.Mint(rootT, rootT.From, big.NewInt(10000))
+	check(err)
+	ecomm.WaitTx(quoClient, tx, "deploy Quorum Stable Coin")
 
-	// ecomm.TransferToken(ethClient, instance, rootT, bid1T.From, 1000000)
+	ecomm.TransferToken(quoClient, quo_MDAI, rootT, bid2T.From, *big.NewInt(10000))
+
 	// ecomm.TransferToken(ethClient, instance, rootT, bid2T.From, 1000000)
 	// ecomm.TransferToken(ethClient, instance, rootT, aucT.From, 0)
 
@@ -96,12 +109,19 @@ func setup() {
 
 	fmt.Println("Fabric setup")
 	fabricToken := ecomm.NewChaincode(fabricTokenName)
-	_, err := fabricToken.SubmitTransaction("Initialize", "Multi-Dai Stablecoin", "MDAI", "18")
+	fmt.Println("Initialize MDai ERC20 contract")
+	_, err = fabricToken.SubmitTransaction("Initialize", "Multi-Dai Stablecoin", "MDAI", "18")
 	check(err)
 
-	_, err = fabricToken.SubmitTransaction("Mint", "100000000")
+	//fmt.Println("Mint token")
+	//_, err = fabricToken.SubmitTransaction("Mint", "0")
+	//check(err)
+	fmt.Println("Transfer tokens")
+	_, err = fabricToken.SubmitTransaction("Transfer", bid1T.From.Hex(), "10")
 	check(err)
-	_, err = fabricToken.SubmitTransaction("Transfer", bid1T.From.Hex(), "1000000")
+	_, err = fabricToken.SubmitTransaction("Transfer", bid2T.From.Hex(), "10")
+	check(err)
+	_, err = fabricToken.SubmitTransaction("Transfer", aucT.From.Hex(), "10")
 	check(err)
 
 	// _, err = fabricToken.SubmitTransaction("SetBalance", bid1T.From.Hex(), "100")
@@ -111,48 +131,49 @@ func setup() {
 	// _, err = fabricToken.SubmitTransaction("SetBalance", aucT.From.Hex(), "0")
 	// check(err)
 	//fmt.Println(3 * time.Second)
-	fmt.Println("Check Balance")
-	ecomm.PrintFabricBalance(fabricToken, bid1T.From.Hex(), "Bidder 1")
+	//fmt.Println("Check Balance")
+	//ecomm.PrintFabricBalance(fabricToken, bid1T.From.Hex(), "Bidder 1")
 	//ecomm.PrintFabricBalance(fabricToken, lenderT.From.Hex(), "lender")
 
-	// ecomm.WriteJsonFile(setupInfoFile, ecomm.SetupInfo{
-	// 	EthStableCoinAddress: tokenAddr,
-	// 	FabricTokenName:      fabricTokenName,
+	ecomm.WriteJsonFile(setupInfoFile, ecomm.SetupInfo{
+		Bidder1Address:   bid1T.From,
+		Bidder2Address:   bid2T.From,
+		AuctionerAddress: aucT.From,
 
-	// 	Exchange:    excT.From,
-	// 	Lender:      lenderT.From,
-	// 	Arbitrageur: arbT.From,
-	// })
+		FabricTokenName: fabricTokenName,
+
+		EthERC20: eth_MDAI_addr,
+		QuoERC20: quo_MDAI_addr,
+	})
 }
 
 func display() {
-	// var setupInfo ecomm.SetupInfo
-	// ecomm.ReadJsonFile(setupInfoFile, &setupInfo)
+	var setupInfo ecomm.SetupInfo
+	ecomm.ReadJsonFile(setupInfoFile, &setupInfo)
 
-	//token1, err := eth_arbitrage.NewERC20(setupInfo.Token1Address, ethClient)
-	//check(err)
+	eth_ERC20, err := eth_stable_coin.NewEthStableCoin(setupInfo.EthERC20, ethClient)
+	check(err)
 
-	//token2, err := eth_arbitrage.NewERC20(setupInfo.Token2Address, ethClient)
-	//check(err)
+	quo_ERC20, err := eth_stable_coin.NewEthStableCoin(setupInfo.QuoERC20, quoClient)
+	check(err)
 
-	//ecomm.PrintTokenBalance(token1, excT.From, "eth token1", "exchange")
-	//ecomm.PrintTokenBalance(token2, excT.From, "eth token2", "exchange")
+	fmt.Println("Check Balance in Eth")
+	ecomm.PrintTokenBalance(eth_ERC20, setupInfo.Bidder1Address, "MDai", "Bidder_1")
+	ecomm.PrintTokenBalance(eth_ERC20, setupInfo.Bidder2Address, "MDai", "Bidder_2")
+	ecomm.PrintTokenBalance(eth_ERC20, setupInfo.AuctionerAddress, "MDai", "Auctioner")
 
-	//ecomm.PrintTokenBalance(token1, arbT.From, "eth token1", "arbitrageur")
-	//ecomm.PrintTokenBalance(token2, arbT.From, "eth token2", "arbitrageur")
+	fmt.Println("Check Balance in Quorum")
+	ecomm.PrintTokenBalance(quo_ERC20, setupInfo.Bidder1Address, "MDai", "Bidder_1")
+	ecomm.PrintTokenBalance(quo_ERC20, setupInfo.Bidder2Address, "MDai", "Bidder_2")
+	ecomm.PrintTokenBalance(quo_ERC20, setupInfo.AuctionerAddress, "MDai", "Auctioner")
 
-	// _, err := eth_arbitrage.NewAMM(setupInfo.Amm1Address, ethClient)
-	// check(err)
-	// _, err = eth_arbitrage.NewAMM(setupInfo.Amm2Address, ethClient)
-	// check(err)
-
-	//ecomm.PrintAMMRate(amm1, "amm1")
-	//ecomm.PrintAMMRate(amm2, "amm2")
-
+	fmt.Println("Check Balance in Fabric")
 	fabricToken := ecomm.NewChaincode(fabricTokenName)
 
-	ecomm.PrintFabricBalance(fabricToken, aucT.From.Hex(), "auctioner")
-	ecomm.PrintFabricBalance(fabricToken, bid1T.From.Hex(), "bidder 1")
+	ecomm.PrintFabricBalance(fabricToken, setupInfo.Bidder1Address.Hex(), "Bidder_1")
+	ecomm.PrintFabricBalance(fabricToken, setupInfo.Bidder2Address.Hex(), "Bidder_2")
+	ecomm.PrintFabricBalance(fabricToken, setupInfo.AuctionerAddress.Hex(), "Auctioner")
+
 }
 
 func check(err error) {
