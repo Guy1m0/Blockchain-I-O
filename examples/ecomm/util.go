@@ -27,9 +27,9 @@ func NewEthClient() *ethclient.Client {
 }
 
 func PrintFabricBalance(token *Chaincode, account string, label string) {
-	b, err := token.EvaluateTransaction("GetBalance", account)
+	b, err := token.EvaluateTransaction("BalanceOf", account)
 	check(err)
-	fmt.Printf("fabtic %s %s balance: %s\n", token.GetName(), label, string(b))
+	fmt.Printf("fabric ERC20 contract %s for account %s balance: %s\n", token.GetName(), label, string(b))
 }
 
 func TransferToken(client *ethclient.Client, token *eth_stable_coin.EthStableCoin, auth *bind.TransactOpts, to common.Address, amount int64) {

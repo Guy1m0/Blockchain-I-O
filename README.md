@@ -143,6 +143,37 @@ The scenario script will do the following steps.
 4. End auction on `fabric` and print out the winner info and final asset owner on `fabric`.
 
 
+
+## Blockchain I/O
+
+1. Run Fabric.
+```bash
+cd fabric-samples/test-network
+./network.sh up createChannel -ca
+
+# to stop fabric after experiment
+./network.sh down
+```
+
+2. Run ethereum.
+```bash
+cd ethereum/poa
+./remove.sh
+./init.sh
+./start.sh
+
+# to stop ethereum after experiment
+./stop.sh
+```
+NOTE: Check `log.txt` file to ensure that ethereum is running.
+
+3. Deploy contracts `fabric_erc20` and `lender` on fabric.
+```bash
+cd fabric-samples/test-network
+./network.sh deployCC -ccn MDAI -ccp ../token-erc-20/chaincode-go/ -ccl go
+
+```
+
 # Note
 
 About the error 

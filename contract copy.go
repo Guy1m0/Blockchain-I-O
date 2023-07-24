@@ -599,7 +599,7 @@ func (s *SmartContract) Initialize(ctx contractapi.TransactionContextInterface, 
 		return false, fmt.Errorf("failed to get Name: %v", err)
 	}
 	if bytes != nil {
-		//return false, fmt.Errorf("contract options are already set, client is not authorized to change them")
+		return false, fmt.Errorf("contract options are already set, client is not authorized to change them")
 	}
 
 	err = ctx.GetStub().PutState(nameKey, []byte(name))

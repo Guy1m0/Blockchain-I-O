@@ -24,6 +24,7 @@ var (
 	excT      *bind.TransactOpts
 )
 
+// Eth to Kafka
 func main() {
 	flag.StringVar(&zkNodes, "zk", zkNodes, "comma separated zoolkeeper nodes")
 	flag.Parse()

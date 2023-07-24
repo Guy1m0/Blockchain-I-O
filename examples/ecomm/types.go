@@ -46,11 +46,9 @@ type CommitVote struct {
 }
 
 type SetupInfo struct {
-	Token1Address common.Address
-	Token2Address common.Address
-
-	Amm1Address common.Address
-	Amm2Address common.Address
+	Bidder1Address   common.Address
+	Bidder2Address   common.Address
+	AuctionerAddress common.Address
 
 	FabricTokenName string
 
