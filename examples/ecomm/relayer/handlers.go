@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"sync"
 
-	"github.com/Guy1m0/Blockchain-I-O/examples/auction"
+	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 )
 
 var mutex sync.Mutex
 
 func handleSignedAuctionResult(payload []byte) {
-	var result auction.SignedAuctionResult
+	var result ecomm.SignedAuctionResult
 	err := json.Unmarshal(payload, &result)
 	check(err)
 

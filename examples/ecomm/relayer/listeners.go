@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/Guy1m0/Blockchain-I-O/examples/auction"
+	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 )
 
 func runAuctionListener() {
@@ -14,19 +14,19 @@ func runAuctionListener() {
 	}
 }
 
-func onNewAuction(a *auction.Auction) {
-	auctionResults[a.ID] = &auction.FinalizeAuctionArgs{
+func onNewAuction(a *ecomm.Auction) {
+	auctionResults[a.ID] = &ecomm.FinalizeAuctionArgs{
 		AuctionID: a.ID,
 	}
 	onAuctionEnding(listenAuctionEnding(a))
 }
 
-func onAuctionEnding(a *auction.Auction) {
+func onAuctionEnding(a *ecomm.Auction) {
 	b, _ := json.Marshal(a)
-	ccsvc.Publish(auction.AuctionEndingEvent, b)
+	ccsvc.Publish(ecomm.AuctionEndingEvent, b)
 }
 
-func listenNewAuction() *auction.Auction {
+func listenNewAuction() *ecomm.Auction {
 	lastID, err := assetClient.GetLastAuctionID()
 	check(err)
 
@@ -42,7 +42,7 @@ func listenNewAuction() *auction.Auction {
 	}
 }
 
-func listenAuctionEnding(a *auction.Auction) *auction.Auction {
+func listenAuctionEnding(a *ecomm.Auction) *ecomm.Auction {
 	for {
 		time.Sleep(1 * time.Second)
 		auction, err := assetClient.GetAuction(a.ID)

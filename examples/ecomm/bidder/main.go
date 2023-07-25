@@ -1,131 +1,71 @@
 package main
 
 import (
-	"encoding/hex"
 	"flag"
 	"fmt"
-	"strconv"
-	"time"
+	"strings"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-)
-
-const (
-	lenderKey = "../../keys/key2"
-	password  = "password"
-
-	setupInfoFile  = "../setup_info.json"
-	ecommFile      = "../flash_loan.json"
-	commitVoteFile = "../commit_vote.json"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 var (
-	lenderS *cclib.Signer
+	zkNodes     = "localhost:2181"
+	ethEndpoint = "localhost:8545"
+	platform    = "ethereum"
+	signerID    = "1"
+	keyfile     = "../../keys/key1"
+	keypassword = "password"
+
+	ccsvc     *cclib.CCService
+	ethClient *ethclient.Client
+	signer    *cclib.Signer
+)
+
+const (
+	rootKey      = "../../keys/key0"
+	auctionerKey = "../../keys/key1"
+	bidder1Key   = "../../keys/key2"
+	bidder2Key   = "../../keys/key3"
+	password     = "password"
+
+	fabricTokenName = "MDAI1"
+
+	setupInfoFile = "../setup_info.json"
 )
 
 func main() {
-	var err error
+	createTopic := false
 
-	lenderS, err = cclib.NewSigner(lenderKey, password)
-	check(err)
-
-	command := flag.String("c", "", "command")
+	flag.StringVar(&zkNodes, "zk", zkNodes, "comma separated zoolkeeper nodes")
+	flag.StringVar(&ethEndpoint, "eth", ethEndpoint, "eth endpoint")
+	flag.StringVar(&platform, "p", platform, "platform")
+	flag.StringVar(&signerID, "id", signerID, "signer id")
+	flag.StringVar(&keyfile, "key", keyfile, "private key file")
+	flag.BoolVar(&createTopic, "t", createTopic, "create kafka topic")
 	flag.Parse()
 
-	switch *command {
-	case "sign":
-		sign()
-	case "verify":
-		verify()
-	case "initialize":
-		initialize()
+	var err error
 
-	default:
-		fmt.Println("command not found")
-	}
-}
-
-func sign() {
-	var commitVote ecomm.CommitVote
-	ecomm.ReadJsonFile(commitVoteFile, &commitVote)
-
-	hash, err := hex.DecodeString(commitVote.LoanHash)
-	check(err)
-	sig, err := lenderS.Sign(hash)
+	ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s", ethEndpoint))
 	check(err)
 
-	commitVote.LenderSig = hex.EncodeToString(sig)
-
-	ecomm.WriteJsonFile(commitVoteFile, commitVote)
-}
-
-func initialize() {
-	var setupInfo ecomm.SetupInfo
-	ecomm.ReadJsonFile(setupInfoFile, &setupInfo)
-
-	var floan ecomm.EComm
-	ecomm.ReadJsonFile(ecommFile, &floan)
-
-	var commitVote ecomm.CommitVote
-	ecomm.ReadJsonFile(commitVoteFile, &commitVote)
-
-	lenderCode := ecomm.NewChaincode(floan.LenderContract)
-
-	_, err := lenderCode.SubmitTransaction("Initialize", commitVote.LenderSig, commitVote.ArbitrageSig)
-	check(err)
-	fmt.Println("initialize lender contract...")
-	time.Sleep(3 * time.Second)
-
-	resp, err := lenderCode.EvaluateTransaction("GetStatus")
-	check(err)
-	status, err := strconv.Atoi(string(resp))
-	check(err)
-	if status == 2 {
-		fmt.Println("initialize successful")
-	}
-	fabricToken := ecomm.NewChaincode(setupInfo.FabricTokenName)
-	ecomm.PrintFabricBalance(fabricToken, lenderS.Address().Hex(), "lender")
-}
-
-func verify() {
-
-	var floan ecomm.EComm
-	ecomm.ReadJsonFile(ecommFile, &floan)
-
-	var commitVote ecomm.CommitVote
-	ecomm.ReadJsonFile(commitVoteFile, &commitVote)
-
-	err := verifySignature(commitVote.LoanHash, commitVote.LenderSig, floan.Lender)
+	signer, err = cclib.NewSigner(keyfile, keypassword)
 	check(err)
 
-	err = verifySignature(commitVote.LoanHash, commitVote.ArbitrageSig, floan.Arbitrageur)
+	ccsvc, err = cclib.NewEventService(
+		strings.Split(zkNodes, ","),
+		fmt.Sprintf("signer-%s-%s", platform, signerID),
+	)
 	check(err)
 
-	fmt.Println("Comit vote is valid")
-}
+	ccsvc.Register(ecomm.AuctionEndingEvent, handleAuctionEnding)
 
-func verifySignature(hash_, signature_, address_ string) error {
-	hash, err := hex.DecodeString(hash_)
-	if err != nil {
-		return nil
-	}
-	signature, err := hex.DecodeString(signature_)
-	if err != nil {
-		return nil
-	}
-	address := common.HexToAddress(address_)
-	pubkey, err := crypto.SigToPub(hash, signature)
-	if err != nil {
-		return err
-	}
-	recover := crypto.PubkeyToAddress(*pubkey)
-	if address.Hex() != recover.Hex() {
-		return fmt.Errorf("invalid signer address")
-	}
-	return nil
+	err = ccsvc.Start(createTopic)
+	check(err)
+
+	select {}
 }
 
 func check(err error) {
