@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
+// note: Not the best way to 'wait' transaction
 func WaitTx(client *ethclient.Client, hash common.Hash) (bool, error) {
 	for {
 		r, err := client.TransactionReceipt(context.Background(), hash)

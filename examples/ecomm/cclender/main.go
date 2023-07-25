@@ -22,6 +22,7 @@ var (
 	ccsvc *cclib.CCService
 )
 
+// Fabric to Kafka
 func main() {
 	flag.StringVar(&zkNodes, "zk", zkNodes, "comma separated zoolkeeper nodes")
 	flag.Parse()

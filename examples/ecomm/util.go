@@ -38,8 +38,8 @@ func PrintFabricBalance(token *Chaincode, account string, label string) {
 	fmt.Printf("fabric ERC20 contract %s for account %s balance: %s\n", token.GetName(), label, string(b))
 }
 
-func TransferToken(client *ethclient.Client, token *eth_stable_coin.EthStableCoin, auth *bind.TransactOpts, to common.Address, amount big.Int) {
-	tx, err := token.Transfer(auth, to, &amount)
+func TransferToken(client *ethclient.Client, token *eth_stable_coin.EthStableCoin, auth *bind.TransactOpts, to common.Address, amount int64) {
+	tx, err := token.Transfer(auth, to, big.NewInt(0).Mul(big.NewInt(amount), DecimalB))
 	check(err)
 	WaitTx(client, tx, "transfer token")
 }
@@ -58,7 +58,7 @@ func WaitTx(client *ethclient.Client, tx *types.Transaction, label string) {
 	//success, err := cclib.WaitTx(client, tx.Hash())
 	check(err)
 
-	fmt.Printf("Transaction mined in block: %d\n", receipt.BlockNumber)
+	fmt.Printf("Transaction mined in block: %d with status: %d\n", receipt.BlockNumber, receipt.Status)
 }
 
 func PrintTxStatus(success bool) {

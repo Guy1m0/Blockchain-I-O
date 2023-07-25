@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"math/big"
+	"strings"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
@@ -63,6 +66,10 @@ func main() {
 		setup()
 	case "display":
 		display()
+	case "init":
+		initialize()
+	case "mint":
+		mint_more()
 	// case "diffRate":
 	// 	diffRate()
 	// case "sameRate":
@@ -74,49 +81,85 @@ func main() {
 
 }
 
-func setup() {
-	//supply, _ := big.NewInt(0).SetString("1"+strings.Repeat("0", ecomm.Decimal+10), 10)
+func initialize() {
+	fabricToken := ecomm.NewChaincode(fabricTokenName)
 
-	fmt.Println("Ethereum setup")
+	fmt.Println("Initialize Fabric Stable Coin")
+	_, err := fabricToken.SubmitTransaction("Initialize", "Multi-Dai Stablecoin", "MDAI", "15")
+	check(err)
+
+}
+
+func mint_more() {
+	fabricToken := ecomm.NewChaincode(fabricTokenName)
+	fmt.Println("Mint more MDai on Frabic")
+	_, err := fabricToken.SubmitTransaction("Mint", "1000")
+	check(err)
+}
+
+func setup() {
+	supply, _ := big.NewInt(0).SetString("1"+strings.Repeat("0", ecomm.Decimal+10), 10)
+
+	fmt.Println("Deploy ERC20 contracts on Eth, Quorum and Fabric")
 	eth_MDAI_addr, tx, eth_MDAI, _ := eth_stable_coin.DeployEthStableCoin(rootT, ethClient, big.NewInt(1))
-	//fmt.Println("Eth address:", etheth_MDAI_addr.Hex())
 	ecomm.WaitTx(ethClient, tx, "deploy Eth Stable Coin")
 
-	tx, err := eth_MDAI.Mint(rootT, rootT.From, big.NewInt(10000))
+	tx, err := eth_MDAI.Mint(rootT, rootT.From, supply)
 	check(err)
-	ecomm.WaitTx(ethClient, tx, "Mint Enough Coins")
+	ecomm.WaitTx(ethClient, tx, "Mint Eth Stable Coin")
 
-	ecomm.TransferToken(ethClient, eth_MDAI, rootT, bid1T.From, *big.NewInt(10000))
+	//fmt.Println("Check if mint enough")
 
-	fmt.Println("Quorum setup")
+	tmp, err := eth_MDAI.TotalSupply(&bind.CallOpts{})
+	check(err)
+	fmt.Println("Mint: ", tmp.String())
+
 	quo_MDAI_addr, tx, quo_MDAI, _ := eth_stable_coin.DeployEthStableCoin(rootT, quoClient, big.NewInt(1))
 	ecomm.WaitTx(quoClient, tx, "deploy Quorum Stable Coin")
-	//_, err = bind.WaitMined(context.Background(), quoClient, tx)
-	//check(err)
-	//ecomm.WaitTx(ethClient, tx, "deploy Quorum Stable Coin")
 
-	tx, err = quo_MDAI.Mint(rootT, rootT.From, big.NewInt(10000))
+	tx, err = quo_MDAI.Mint(rootT, rootT.From, supply)
 	check(err)
-	ecomm.WaitTx(quoClient, tx, "deploy Quorum Stable Coin")
+	ecomm.WaitTx(quoClient, tx, "Mint Quorum Stable Coin")
 
-	ecomm.TransferToken(quoClient, quo_MDAI, rootT, bid2T.From, *big.NewInt(10000))
+	tmp, err = quo_MDAI.TotalSupply(&bind.CallOpts{})
+	check(err)
+	fmt.Println("Mint: ", tmp.String())
 
-	fmt.Println("Fabric setup")
+	fmt.Println("Check total Supply on Fabric")
 	fabricToken := ecomm.NewChaincode(fabricTokenName)
-	fmt.Println("Initialize MDai ERC20 contract")
-	_, err = fabricToken.SubmitTransaction("Initialize", "Multi-Dai Stablecoin", "MDAI", "18")
+	response, err := fabricToken.SubmitTransaction("TotalSupply")
 	check(err)
+	total_supply := new(big.Int)
+	err = json.Unmarshal(response, total_supply)
+	if err != nil {
+		log.Fatalf("Failed to decode response as int: %v", err)
+	}
+	check(err)
+	fmt.Printf("Fabirc total supply: %v \n", total_supply)
 
-	//fmt.Println("Mint token")
-	//_, err = fabricToken.SubmitTransaction("Mint", "0")
-	//check(err)
-	fmt.Println("Transfer tokens")
+	fmt.Println("Setup accounts in ETH")
+
+	ecomm.TransferToken(ethClient, eth_MDAI, rootT, bid1T.From, 100)
+	ecomm.PrintTokenBalance(eth_MDAI, bid1T.From, "MDAI", "Bidder 1")
+
+	fmt.Println("Setup accounts in Quorum")
+
+	ecomm.TransferToken(quoClient, quo_MDAI, rootT, bid2T.From, 100)
+
+	fmt.Println("Setup accounts in Fabirc")
+	// mint_more := big.NewInt(1000).Text(10)
+	// _, err = fabricToken.SubmitTransaction("Mint", mint_more)
+	// check(err)
+	// fmt.Println("Transfer tokens")
 	_, err = fabricToken.SubmitTransaction("Transfer", bid1T.From.Hex(), "10")
 	check(err)
 	_, err = fabricToken.SubmitTransaction("Transfer", bid2T.From.Hex(), "10")
 	check(err)
 	_, err = fabricToken.SubmitTransaction("Transfer", aucT.From.Hex(), "10")
 	check(err)
+
+	//fmt.Println("Remaining Minted Token")
+	//ecomm.PrintFabricBalance(fabricToken, rootT.From.Hex(), "Root")
 
 	ecomm.WriteJsonFile(setupInfoFile, ecomm.SetupInfo{
 		Bidder1Address:   bid1T.From,
@@ -128,6 +171,7 @@ func setup() {
 		EthERC20: eth_MDAI_addr,
 		QuoERC20: quo_MDAI_addr,
 	})
+
 }
 
 func display() {

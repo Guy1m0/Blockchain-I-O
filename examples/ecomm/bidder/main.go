@@ -30,7 +30,7 @@ const (
 	bidder2Key   = "../../keys/key3"
 	password     = "password"
 
-	fabricTokenName = "MDAI1"
+	fabricTokenName = "MDAI"
 
 	setupInfoFile = "../setup_info.json"
 )

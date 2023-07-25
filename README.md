@@ -167,10 +167,9 @@ cd ethereum/poa
 ```
 NOTE: Check `log.txt` file to ensure that ethereum is running.
 
-3. Deploy contracts `fabric_erc20` and `lender` on fabric.
+3. Go to folder `fabric-samples/test-network` and deploy contracts `fabric_erc20` and `lender` on fabric.
 ```bash
-cd fabric-samples/test-network
-./network.sh deployCC -ccn MDAI -ccp ../token-erc-20/chaincode-go/ -ccl go
+./network.sh deployCC -ccn MDai -ccp ../token-erc-20/chaincode-go/ -ccl go
 
 ```
 
