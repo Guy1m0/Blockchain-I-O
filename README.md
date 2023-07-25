@@ -185,3 +185,10 @@ It may be caused by the support of RSA, which was later removed during the devel
 It is worthy noting that v2.2.11 might be a alternative release also supports RSA key and cert.
 
 For M1 chip user, better use Fabric no later than v2.5.0 and Fabric-CA no later than v1.5.6
+
+For sarma error, use following bash code
+```bash
+go mod edit -replace github.com/Shopify/sarama=github.com/IBM/sarama@v1.40.0
+```
+
+Also change go.mod in fabric_asset folder from 1.16 to 1.18 at least

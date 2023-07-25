@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	zkNodes     = "localhost:2181"
-	ethEndpoint = "localhost:8545"
+	zkNodes = "localhost:2181"
+	//ethEndpoint = "localhost:8545"
 	platform    = "ethereum"
 	signerID    = "1"
 	keyfile     = "../../keys/key1"
@@ -20,7 +20,8 @@ var (
 
 	ccsvc     *cclib.CCService
 	ethClient *ethclient.Client
-	signer    *cclib.Signer
+	quoClient *ethclient.Client
+	//signer    *cclib.Signer
 )
 
 const (
@@ -38,6 +39,13 @@ const (
 func main() {
 	createTopic := false
 
+	var err error
+
+	ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s", "localhost:8545"))
+	check(err)
+	quoClient, err = ethclient.Dial(fmt.Sprintf("http://%s", "localhost:8546"))
+	check(err)
+
 	flag.StringVar(&zkNodes, "zk", zkNodes, "comma separated zoolkeeper nodes")
 	flag.StringVar(&ethEndpoint, "eth", ethEndpoint, "eth endpoint")
 	flag.StringVar(&platform, "p", platform, "platform")
@@ -46,12 +54,22 @@ func main() {
 	flag.BoolVar(&createTopic, "t", createTopic, "create kafka topic")
 	flag.Parse()
 
-	var err error
+	command := flag.String("c", "", "command")
+	flag.Parse()
 
-	ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s", ethEndpoint))
-	check(err)
+	switch *command {
+	case "init":
+		initialize()
+	case "add":
+		new_bidder()
+	default:
+		fmt.Println("command not found")
+	}
 
-	signer, err = cclib.NewSigner(keyfile, keypassword)
+}
+
+func initialize() {
+	_, err := cclib.NewSigner(bidder1Key, keypassword)
 	check(err)
 
 	ccsvc, err = cclib.NewEventService(
@@ -62,10 +80,14 @@ func main() {
 
 	ccsvc.Register(ecomm.AuctionEndingEvent, handleAuctionEnding)
 
-	err = ccsvc.Start(createTopic)
+	err = ccsvc.Start(true)
 	check(err)
 
 	select {}
+}
+
+func new_bidder() {
+
 }
 
 func check(err error) {

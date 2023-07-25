@@ -54,7 +54,7 @@ func main() {
 	quorumClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
 	check(err)
 
-	assetClient = ecomm.NewAssetClient()
+	assetClient = ecomm.NewAssetClient() // return Fabric asset contract
 
 	command := flag.String("c", "", "command")
 	asset := flag.String("a", "", "Asset name")
@@ -67,6 +67,14 @@ func main() {
 
 	}
 
+	fmt.Println("[ethereum] Bidding auction")
+	bidAuction(ethClient, myAuction.EthAddr, "../../keys/key1", 500)
+
+	fmt.Println("[quorum] Bidding auction")
+	bidAuction(quorumClient, myAuction.QuorumAddr, "../../keys/key2", 1000)
+
+	fmt.Println("[fabric] Ending auction")
+	endAuction(myAuction)
 }
 
 func create(asset_name string) {
@@ -84,14 +92,7 @@ func create(asset_name string) {
 	fmt.Println("[fabric] Creating auction")
 	myAuction = startAuction(asset.ID, ethAddr, quorumAddr)
 
-	fmt.Println("[ethereum] Bidding auction")
-	bidAuction(ethClient, myAuction.EthAddr, "../../keys/key1", 500)
-
-	fmt.Println("[quorum] Bidding auction")
-	bidAuction(quorumClient, myAuction.QuorumAddr, "../../keys/key2", 1000)
-
-	fmt.Println("[fabric] Ending auction")
-	endAuction(myAuction)
+	// till this part, no relayer involved yet
 }
 
 func addAsset(id string) *ecomm.Asset {
@@ -150,6 +151,7 @@ func endAuction(a *ecomm.Auction) {
 	}
 }
 
+// also no relayer involved, 'locally' make bid
 func bidAuction(client *ethclient.Client, addrHex, keyfile string, value int64) {
 	addr := common.HexToAddress(addrHex)
 	auctionSession := newAuctionSession(addr, client, keyfile)
