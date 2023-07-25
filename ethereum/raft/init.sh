@@ -3,4 +3,4 @@
 set -x
 
 quorum --datadir data init genesis.json
-cp data/nodekey data/geth
+cp nodekey data/geth

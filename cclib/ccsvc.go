@@ -21,6 +21,7 @@ type CCService struct {
 	handlers map[string]EventHandler
 }
 
+// creates a new instance of CCService, initializes the Kafka producer, and returns it.
 func NewEventService(zkNodes []string, serviceID string) (*CCService, error) {
 	svc := &CCService{
 		serviceID: serviceID,
@@ -34,11 +35,12 @@ func NewEventService(zkNodes []string, serviceID string) (*CCService, error) {
 	return svc, nil
 }
 
-// （event, handler)
+// adds a new event handler to the CCService's map of handlers.
 func (svc *CCService) Register(event string, handler EventHandler) {
 	svc.handlers[event] = handler
 }
 
+// sends a message (event and its payload) to the Kafka cluster.
 func (svc *CCService) Publish(event string, payload []byte) error {
 	message := &sarama.ProducerMessage{Topic: event}
 	message.Value = sarama.ByteEncoder(payload)
@@ -68,6 +70,10 @@ func (svc *CCService) setupKafkaProducer() error {
 	svc.kafkaProducer, err = sarama.NewSyncProducer(brokerList, config)
 	return err
 }
+
+// starts the CCService by creating a consumer that subscribes to the
+// Kafka topics associated with the registered events. If the createTopic
+// parameter is true, it attempts to create the topics in the Kafka cluster.
 
 func (svc *CCService) Start(createTopic bool) error {
 	config := consumergroup.NewConfig()
@@ -99,6 +105,9 @@ func (svc *CCService) Start(createTopic bool) error {
 	return nil
 }
 
+// create new topics in the Kafka cluster by sending an empty message to each topic.
+// Kafka automatically creates a topic if a message is produced to a non-existent
+// topic and the server is configured to allow it (which is the default configuration).
 func (svc *CCService) publishEmptyEventsToCreateTopics(topics []string) error {
 	for _, t := range topics {
 		// ignore error for the first time
@@ -114,6 +123,7 @@ func (svc *CCService) publishEmptyEventsToCreateTopics(topics []string) error {
 	return nil
 }
 
+// listens for the empty events sent by publishEmptyEventsToCreateTopics and commits them
 func (svc *CCService) listenAndCommitEmptyEvents(consumer *consumergroup.ConsumerGroup) {
 	timer := time.NewTimer(3 * time.Second)
 	defer timer.Stop()
@@ -128,6 +138,8 @@ func (svc *CCService) listenAndCommitEmptyEvents(consumer *consumergroup.Consume
 	}
 }
 
+// continuously listens for incoming messages from Kafka, handles each message by
+// calling the appropriate event handler, and commits the message.
 func (svc *CCService) listenKafkaConsumer(consumer *consumergroup.ConsumerGroup) {
 	for message := range consumer.Messages() {
 		handler, ok := svc.handlers[message.Topic]

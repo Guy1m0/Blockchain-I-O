@@ -9,7 +9,7 @@ import (
 
 func runAuctionListener() {
 	for {
-		a := listenNewAuction()
+		a := listenNewAuction() // listen new tx posted on auction contract
 		go onNewAuction(a)
 	}
 }
@@ -31,7 +31,7 @@ func listenNewAuction() *ecomm.Auction {
 	check(err)
 
 	for {
-		time.Sleep(1 * time.Second)
+		time.Sleep(1 * time.Second) // check auction list per second
 		auctionID, err := assetClient.GetLastAuctionID()
 		check(err)
 		if auctionID > lastID {

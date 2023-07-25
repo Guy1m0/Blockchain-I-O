@@ -107,6 +107,8 @@ func addAsset(id string) *ecomm.Asset {
 	return asset
 }
 
+// Auction Contract is already deployed in Fabric Network
+// Just create a asset/auction obj in one global variable stored in this
 func startAuction(assetID, ethAddr, quorumAddr string) *ecomm.Auction {
 	args := ecomm.StartAuctionArgs{
 		AssetID:    assetID,
@@ -175,6 +177,7 @@ func bidAuction(client *ethclient.Client, addrHex, keyfile string, value int64) 
 	fmt.Println("highest bid:", highestBid)
 }
 
+// this is only used for recording bid
 func deployCrossChainAuction(client *ethclient.Client) string {
 	auth, err := cclib.NewTransactor("../../keys/key0", "password")
 	check(err)
