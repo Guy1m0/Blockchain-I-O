@@ -147,10 +147,7 @@ func setup() {
 	ecomm.TransferToken(quoClient, quo_MDAI, rootT, bid2T.From, 100)
 
 	fmt.Println("Setup accounts in Fabirc")
-	// mint_more := big.NewInt(1000).Text(10)
-	// _, err = fabricToken.SubmitTransaction("Mint", mint_more)
-	// check(err)
-	// fmt.Println("Transfer tokens")
+
 	_, err = fabricToken.SubmitTransaction("Transfer", bid1T.From.Hex(), "10")
 	check(err)
 	_, err = fabricToken.SubmitTransaction("Transfer", bid2T.From.Hex(), "10")
