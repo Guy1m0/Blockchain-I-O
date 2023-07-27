@@ -1,30 +1,26 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"math/big"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 
-	//"github.com/Guy1m0/Blockchain-I-O/examples/ecomm/auction"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 const (
-	rootKey      = "../../keys/key0"
-	auctionerKey = "../../keys/key1"
-	bidder1Key   = "../../keys/key2"
-	bidder2Key   = "../../keys/key3"
-	password     = "password"
+	password = "password"
 
-	fabricTokenName = "MDAI1"
-
+	zkNodes       = "localhost:2181"
 	setupInfoFile = "../setup_info.json"
 )
 
@@ -38,14 +34,47 @@ var (
 	ethClient    *ethclient.Client
 	quorumClient *ethclient.Client
 	assetClient  *ecomm.AssetClient
+	ccsvc        *cclib.CCService
 
 	asset     *ecomm.Asset
 	myAuction *ecomm.Auction
+
+	eth_ERC20 common.Address
+	quo_ERC20 common.Address
 )
 
 func main() {
+	command := flag.String("c", "", "command")
+	asset := flag.String("n", "", "Asset name")
+	id := flag.String("i", "", "Asset ID")
+	flag.Parse()
+
+	switch *command {
+	case "init":
+		initialize()
+	case "create":
+		create(*asset)
+	case "end":
+		id_, _ := strconv.Atoi(*id)
+		endAuction(id_)
+	}
+
+	//fmt.Println("[ethereum] Bidding auction")
+	//bidAuction(ethClient, myAuction.EthAddr, "../../keys/key1", 500)
+
+	//fmt.Println("[quorum] Bidding auction")
+	//bidAuction(quorumClient, myAuction.QuorumAddr, "../../keys/key2", 1000)
+
+	//fmt.Println("[fabric] Ending auction")
+	//endAuction(myAuction)
+}
+
+func initialize() {
 	var setupInfo ecomm.SetupInfo
 	ecomm.ReadJsonFile(setupInfoFile, &setupInfo)
+
+	eth_ERC20 = setupInfo.EthERC20
+	quo_ERC20 = setupInfo.QuoERC20
 
 	var err error
 	ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
@@ -56,27 +85,19 @@ func main() {
 
 	assetClient = ecomm.NewAssetClient() // return Fabric asset contract
 
-	command := flag.String("c", "", "command")
-	asset := flag.String("a", "", "Asset name")
-	flag.Parse()
+	ccsvc, err := cclib.NewEventService(
+		strings.Split(zkNodes, ","),
+		fmt.Sprintf("auctioner"),
+	)
+	check(err)
 
-	switch *command {
-	case "create":
-		create(*asset)
-	case "end":
+	//ccsvc.Register(ecomm.AuctionCreatingEvent, handleAuctionEnding)
 
-	}
-
-	fmt.Println("[ethereum] Bidding auction")
-	bidAuction(ethClient, myAuction.EthAddr, "../../keys/key1", 500)
-
-	fmt.Println("[quorum] Bidding auction")
-	bidAuction(quorumClient, myAuction.QuorumAddr, "../../keys/key2", 1000)
-
-	fmt.Println("[fabric] Ending auction")
-	endAuction(myAuction)
+	err = ccsvc.Start(true)
+	check(err)
 }
 
+// Use key 1 as default auctioner
 func create(asset_name string) {
 
 	fmt.Println("[fabric] Adding asset")
@@ -84,19 +105,22 @@ func create(asset_name string) {
 
 	fmt.Println("Starting auction")
 	fmt.Println("[ethereum] Deploying auction")
-	ethAddr := deployCrossChainAuction(ethClient)
+	ethAddr := deployCrossChainAuction(ethClient, eth_ERC20)
 
 	fmt.Println("[quorum] Deploying auction")
-	quorumAddr := deployCrossChainAuction(quorumClient)
+	quorumAddr := deployCrossChainAuction(quorumClient, quo_ERC20)
 
 	fmt.Println("[fabric] Creating auction")
 	myAuction = startAuction(asset.ID, ethAddr, quorumAddr)
 
+	// publish
+	payload, _ := json.Marshal(myAuction)
 	// till this part, no relayer involved yet
 }
 
+// load ../../../keys/key1
 func addAsset(id string) *ecomm.Asset {
-	auth, err := cclib.NewTransactor("../../../keys/key1", "password")
+	auth, err := cclib.NewTransactor("../../keys/key1", "password")
 	check(err)
 	_, err = assetClient.AddAsset(id, auth.From.Hex())
 	check(err)
@@ -129,8 +153,11 @@ func startAuction(assetID, ethAddr, quorumAddr string) *ecomm.Auction {
 	return a
 }
 
-func endAuction(a *ecomm.Auction) {
-	_, err := assetClient.EndAuction(a.AssetID)
+func endAuction(auctionID int) {
+	a, err := assetClient.GetAuction(auctionID)
+	check(err)
+
+	_, err = assetClient.EndAuction(a.AssetID)
 	check(err)
 
 	for {
@@ -153,36 +180,13 @@ func endAuction(a *ecomm.Auction) {
 	}
 }
 
-// also no relayer involved, 'locally' make bid
-func bidAuction(client *ethclient.Client, addrHex, keyfile string, value int64) {
-	addr := common.HexToAddress(addrHex)
-	auctionSession := newAuctionSession(addr, client, keyfile)
-	auctionSession.TransactOpts.Value = big.NewInt(value)
-	tx, err := auctionSession.Bid()
-	check(err)
-	success, err := cclib.WaitTx(client, tx.Hash())
-	check(err)
-	printTxStatus(success)
-	if !success {
-		panic("failed to bid auction")
-	}
-	auctionSession.TransactOpts.Value = big.NewInt(0)
-
-	highestBidder, err := auctionSession.HighestBidder()
-	check(err)
-	fmt.Println("highest bidder:", highestBidder.Hex())
-
-	highestBid, err := auctionSession.HighestBid()
-	check(err)
-	fmt.Println("highest bid:", highestBid)
-}
-
 // this is only used for recording bid
-func deployCrossChainAuction(client *ethclient.Client) string {
+// Use key0 to deploy contract
+func deployCrossChainAuction(client *ethclient.Client, erc20 common.Address) string {
 	auth, err := cclib.NewTransactor("../../keys/key0", "password")
 	check(err)
 
-	addr, tx, _, err := eth_auction.DeployAuction(auth, client)
+	addr, tx, _, err := eth_auction.DeployEthAuction(auth, client, erc20)
 	check(err)
 
 	success, err := cclib.WaitTx(client, tx.Hash())
@@ -196,14 +200,14 @@ func deployCrossChainAuction(client *ethclient.Client) string {
 
 func newAuctionSession(
 	addr common.Address, eth *ethclient.Client, keyfile string,
-) *eth_auction.AuctionSession {
+) *eth_auction.EthAuctionSession {
 	auth, err := cclib.NewTransactor(keyfile, "password")
 	check(err)
 
-	cc, err := eth_auction.NewAuction(addr, eth)
+	cc, err := eth_auction.NewEthAuction(addr, eth)
 	check(err)
 
-	return &eth_auction.AuctionSession{
+	return &eth_auction.EthAuctionSession{
 		Contract:     cc,
 		TransactOpts: *auth,
 	}
@@ -221,4 +225,28 @@ func check(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// also no relayer involved, 'locally' make bid
+func bidAuction(addrHex, keyfile string, value int64) {
+	addr := common.HexToAddress(addrHex)
+	auctionSession := newAuctionSession(addr, client, keyfile)
+	auctionSession.TransactOpts.Value = big.NewInt(value)
+	tx, err := auctionSession.Bid(big.NewInt(value))
+	check(err)
+	success, err := cclib.WaitTx(client, tx.Hash())
+	check(err)
+	printTxStatus(success)
+	if !success {
+		panic("failed to bid auction")
+	}
+	auctionSession.TransactOpts.Value = big.NewInt(0)
+
+	highestBidder, err := auctionSession.HighestBidder()
+	check(err)
+	fmt.Println("highest bidder:", highestBidder.Hex())
+
+	highestBid, err := auctionSession.HighestBid()
+	check(err)
+	fmt.Println("highest bid:", highestBid)
 }

@@ -144,11 +144,13 @@ func (cc *SmartContract) FinalizeAuction(
 	return nil
 }
 
+// in other words, it only accepts bidder who uses following keys
+// So if want to improve scalability, need to modify this
 func (cc *SmartContract) ethAddrs() (addrs []string, min int) {
 	return []string{
-		"17dc6ca2e1c84ae4107975a48dfd05831b8addff",
-		"ac5580ad28a3c0e044a52541785bfd34c753d3bf",
-		"d0a73fe9d44184e9f1264ce2097064212e67ebfe",
+		"17dc6ca2e1c84ae4107975a48dfd05831b8addff", // key 0
+		"ac5580ad28a3c0e044a52541785bfd34c753d3bf", // key 1
+		"d0a73fe9d44184e9f1264ce2097064212e67ebfe", // key 2
 	}, 2
 }
 
@@ -160,6 +162,7 @@ func (cc *SmartContract) quorumAddrs() (addrs []string, min int) {
 	}, 2
 }
 
+// can add some mech to check if bidder has DID creditional
 func (cc *SmartContract) verifyAuctionResult(
 	trustedAddrs []string, majority int, result CrossChainAuctionResult,
 ) bool {

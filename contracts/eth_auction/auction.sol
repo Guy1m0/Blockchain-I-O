@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity >=0.4.22;
+pragma solidity ^0.8.18;
 
 interface IERC20 {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
@@ -8,7 +8,7 @@ interface IERC20 {
 }
 
 contract Auction {
-    address payable public beneficiary;
+    //address payable public beneficiary;
 
     // Current state of the auction.
     address public highestBidder;
@@ -28,37 +28,39 @@ contract Auction {
     IERC20 public token;
 
     constructor(IERC20 _token) {
-        beneficiary = payable(msg.sender);
+        //beneficiary = payable(msg.sender);
         token = _token;
     }
 
-    function bid(uint amount) public payable {
-        // If the bid is not higher, send the
-        // money back.
-        require(msg.value > highestBid, "There already is a higher bid.");
+    function bid(uint bidAmount) public {
+        // Check that the bid is higher than the current highest bid
+        require(bidAmount > highestBid, "There already is a higher bid.");
 
+        // Attempt to transfer the tokens from the bidder to the contract
+        bool transferSuccessful = token.transferFrom(msg.sender, address(this), bidAmount);
+        
+        // Check that the token transfer was successful
+        require(transferSuccessful, "Token transfer failed.");
+
+        // If there was a previous bid, allow the previous highest bidder to withdraw their bid
         if (highestBid != 0) {
             pendingReturns[highestBidder] += highestBid;
         }
-
+        
+        // Update the highest bid and highest bidder
         highestBidder = msg.sender;
-        highestBid = amount;
-        emit HighestBidIncreased(msg.sender, msg.value);
-
-        token.transferFrom(msg.sender, address(this), amount);
+        highestBid = bidAmount;
+        emit HighestBidIncreased(msg.sender, bidAmount);
     }
 
-    /// Withdraw a bid that was overbid.
+
+    // Withdraw a bid that was overbid.
     function withdraw() public returns (bool) {
         uint amount = pendingReturns[msg.sender];
         if (amount > 0) {
-            // It is important to set this to zero because the recipient
-            // can call this function again as part of the receiving call
-            // before `send` returns.
             pendingReturns[msg.sender] = 0;
 
-            if (!payable(msg.sender).send(amount)) {
-                // No need to call throw here, just reset the amount owing
+            if (!token.transferFrom(address(this), msg.sender, amount)) {
                 pendingReturns[msg.sender] = amount;
                 return false;
             }
@@ -66,22 +68,7 @@ contract Auction {
         return true;
     }
 
-    /// End the auction and send the highest bid
-    /// to the beneficiary.
     function endAuction() public {
-        // It is a good guideline to structure functions that interact
-        // with other contracts (i.e. they call functions or send Ether)
-        // into three phases:
-        // 1. checking conditions
-        // 2. performing actions (potentially changing conditions)
-        // 3. interacting with other contracts
-        // If these phases are mixed up, the other contract could call
-        // back into the current contract and modify the state or cause
-        // effects (ether payout) to be performed multiple times.
-        // If functions called internally include interaction with external
-        // contracts, they also have to be considered interaction with
-        // external contracts.
-
         // 1. Conditions
         require(!ended, "auctionEnd has already been called.");
 
@@ -90,6 +77,6 @@ contract Auction {
         emit AuctionEnded(highestBidder, highestBid);
 
         // 3. Interaction
-        beneficiary.transfer(highestBid);
+        token.burn(highestBid);
     }
 }
