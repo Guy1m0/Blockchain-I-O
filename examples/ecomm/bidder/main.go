@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 	"strconv"
-	"strings"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
@@ -92,19 +91,19 @@ func main() {
 	// endAuction(myAuction)
 }
 
-func initialize() {
-	ccsvc, err := cclib.NewEventService(
-		strings.Split(zkNodes, ","),
-		fmt.Sprintf("bidder"),
-	)
-	check(err)
+// func initialize() {
+// 	ccsvc, err := cclib.NewEventService(
+// 		strings.Split(zkNodes, ","),
+// 		fmt.Sprintf("bidder"),
+// 	)
+// 	check(err)
 
-	ccsvc.Register(ecomm.AuctionCreatingEvent, handleAuctionCreating)
-	ccsvc.Register(ecomm.AuctionEndingEvent, handleAuctionEnding)
+// 	ccsvc.Register(ecomm.AuctionCreatingEvent, handleAuctionCreating)
+// 	ccsvc.Register(ecomm.AuctionEndingEvent, handleAuctionEnding)
 
-	err = ccsvc.Start(true)
-	check(err)
-}
+// 	err = ccsvc.Start(true)
+// 	check(err)
+// }
 
 func load(platform string, key string) {
 	var setupInfo ecomm.SetupInfo
@@ -149,6 +148,7 @@ func bidAuction(id int, value *big.Int) {
 	// Get Auction Contract deployed on Eth/Quo
 	assetClient := ecomm.NewAssetClient() // return Fabric asset contract
 	a, err := assetClient.GetAuction(id)
+	check(err)
 
 	Auction_addr_ := a.EthAddr
 	if bidderInfo.Platform != "eth" {
@@ -157,8 +157,8 @@ func bidAuction(id int, value *big.Int) {
 	Auction_addr := common.HexToAddress(Auction_addr_)
 
 	// Approve amount of bid through ERC20 contract
-	MDAI, err := eth_stable_coin.NewEthStableCoin(bidderInfo.Erc20, client)
-	tx, err := MDAI.Approve(bidT, Auction_addr, value)
+	MDAI, _ := eth_stable_coin.NewEthStableCoin(bidderInfo.Erc20, client)
+	tx, _ := MDAI.Approve(bidT, Auction_addr, value)
 	ecomm.WaitTx(client, tx, "Approve Auction Contract's allowance")
 
 	Auction, err := eth_auction.NewEthAuction(Auction_addr, client)
