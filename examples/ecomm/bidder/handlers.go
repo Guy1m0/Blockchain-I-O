@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
@@ -26,7 +27,7 @@ func handleAuctionEnding(payload []byte) {
 		AuctionAddr:   addr,
 	}
 
-	contract, err := eth_auction.NewAuction(common.HexToAddress(addr), ethClient)
+	contract, err := eth_auction.NewAuction(common.HexToAddress(addr), client)
 	check(err)
 	opts := &bind.CallOpts{}
 
@@ -47,4 +48,27 @@ func handleAuctionEnding(payload []byte) {
 
 	b, _ := json.Marshal(signed)
 	ccsvc.Publish(ecomm.SignedAuctionResultEvent, b)
+}
+
+func handleAuctionCreating(payload []byte) {
+	fmt.Println("Handle Auction Creating")
+
+	var a ecomm.Auction
+	err := json.Unmarshal(payload, &a)
+	check(err)
+
+	var addr string
+	if platform == "eth" {
+		addr = a.EthAddr
+	} else {
+		addr = a.QuorumAddr
+	}
+	result := ecomm.AuctionResult{
+		Platform:      platform,
+		HostAuctionID: a.ID,
+		AuctionAddr:   addr,
+	}
+
+	fmt.Println("Auction Addr: ", result.AuctionAddr)
+
 }

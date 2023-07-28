@@ -170,12 +170,26 @@ NOTE: Check `log.txt` file to ensure that ethereum is running.
 3. Go to folder `fabric-samples/test-network` and deploy contracts `fabric_erc20` and `lender` on fabric.
 ```bash
 ./network.sh deployCC -ccn MDai -ccp ../token-erc-20/chaincode-go/ -ccl go
+```
 
+4. Go to folder `examples/ecomm/cli` and compile it
+```bash
+go build .
+```
+Then run command `init`, `setup` and `display` sequentially
+```bash
+./cli -c init
+./cli -c setup
+```
+
+and then show the result
+```bash
+./cli -c display
 ```
 
 # Note
 
-About the error 
+## Cert key error 
 ```bash
 Failed to connect to gateway: Failed to apply identity option: Invalid identity format: invalid character 'n' after top-level value
 ```
@@ -186,9 +200,16 @@ It is worthy noting that v2.2.11 might be a alternative release also supports RS
 
 For M1 chip user, better use Fabric no later than v2.5.0 and Fabric-CA no later than v1.5.6
 
+## Sarma Error
+
 For sarma error, use following bash code
 ```bash
 go mod edit -replace github.com/Shopify/sarama=github.com/IBM/sarama@v1.40.0
 ```
 
 Also change go.mod in fabric_asset folder from 1.16 to 1.18 at least
+
+## Total Supply
+Since fabric chaincode can not handle big.int natively, we set total supply in Eth and Quo as `10000000000000000000000000` and Fabric `10000000000` which to be intentionally 10^15 less as `Decimal = 15`
+
+May check back later to see if can really fix this difference.

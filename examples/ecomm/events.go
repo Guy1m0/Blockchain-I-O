@@ -7,8 +7,12 @@ const (
 )
 
 var (
-	SignedAuctionResultEvent = "auction.signed_result"
-	AuctionEndingEvent       = "auction.auction_ending"
+	SignedAuctionResultEvent = "signed_result"
+	AuctionEndingEvent       = "auction_ending"
+	AuctionCreatingEvent     = "auction_creating"
+
+	ProceedAuctionResultEvent = "prcd_result"
+	AbortAuctionResultEvent   = "abt_result"
 )
 
 type SignedAuctionResult struct {

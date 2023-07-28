@@ -2,7 +2,7 @@
   "Bidder1Address": "0xd0a73fe9d44184e9f1264ce2097064212e67ebfe",
   "Bidder2Address": "0xd3cf32a24e4527cf84ef0c8d571f8a77f6481984",
   "AuctionerAddress": "0xac5580ad28a3c0e044a52541785bfd34c753d3bf",
-  "FabricTokenName": "MDAI1",
-  "EthERC20": "0x9ed6d3eba6d1144751d0d6f9b9d532c522d8523f",
-  "QuoERC20": "0x1377a9f3f7b5984d7653133be2955583f3858373"
+  "FabricTokenName": "MDai",
+  "EthERC20": "0x11285cbbdaee1f046460a387d9a5f0d2352ddaba",
+  "QuoERC20": "0x11285cbbdaee1f046460a387d9a5f0d2352ddaba"
 }

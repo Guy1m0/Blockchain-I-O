@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -13,7 +12,6 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -25,7 +23,7 @@ const (
 	bidder2Key   = "../../keys/key3"
 	password     = "password"
 
-	fabricTokenName = "MDAI1"
+	fabricTokenName = "MDai"
 
 	setupInfoFile = "../setup_info.json"
 )
@@ -69,7 +67,7 @@ func main() {
 	case "init":
 		initialize()
 	case "mint":
-		mint_more()
+		mint_more("10000000000")
 	// case "diffRate":
 	// 	diffRate()
 	// case "sameRate":
@@ -88,12 +86,14 @@ func initialize() {
 	_, err := fabricToken.SubmitTransaction("Initialize", "Multi-Dai Stablecoin", "MDAI", "15")
 	check(err)
 
+	mint_more("10000000000")
+
 }
 
-func mint_more() {
+func mint_more(amount string) {
 	fabricToken := ecomm.NewChaincode(fabricTokenName)
 	fmt.Println("Mint more MDai on Frabic")
-	_, err := fabricToken.SubmitTransaction("Mint", "1000")
+	_, err := fabricToken.SubmitTransaction("Mint", amount)
 	check(err)
 }
 
@@ -206,21 +206,21 @@ func check(err error) {
 	}
 }
 
-func debugTransaction(tx *types.Transaction, client *ethclient.Client) error {
-	ctx := context.Background()
-	txHash := tx.Hash()
+// func debugTransaction(tx *types.Transaction, client *ethclient.Client) error {
+// 	ctx := context.Background()
+// 	txHash := tx.Hash()
 
-	// get the underlying RPC client from the ethclient.Client
-	rpcClient := client.Client()
+// 	// get the underlying RPC client from the ethclient.Client
+// 	rpcClient := client.c
 
-	var result interface{}
-	err := rpcClient.CallContext(ctx, &result, "debug_traceTransaction", txHash, nil)
+// 	var result interface{}
+// 	err := rpcClient.CallContext(ctx, &result, "debug_traceTransaction", txHash, nil)
 
-	if err != nil {
-		return fmt.Errorf("failed to call client.CallContext: %v", err)
-	}
+// 	if err != nil {
+// 		return fmt.Errorf("failed to call client.CallContext: %v", err)
+// 	}
 
-	fmt.Printf("Debug info for transaction: %s\n", txHash.Hex())
-	fmt.Printf("Result: %v\n", result)
-	return nil
-}
+// 	fmt.Printf("Debug info for transaction: %s\n", txHash.Hex())
+// 	fmt.Printf("Result: %v\n", result)
+// 	return nil
+// }

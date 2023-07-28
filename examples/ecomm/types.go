@@ -59,6 +59,16 @@ type SetupInfo struct {
 	QuoERC20 common.Address
 }
 
+type BidderInfo struct {
+	ZkNodes  string
+	Endpoint string
+
+	Keyfile  string
+	Platform string
+
+	Erc20 common.Address
+}
+
 type Asset struct {
 	ID               string
 	Owner            string

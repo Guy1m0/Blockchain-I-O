@@ -4,22 +4,25 @@ import (
 	"flag"
 	"fmt"
 	"math/big"
+	"strconv"
 	"strings"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 var (
-	zkNodes     = "localhost:2181"
-	Endpoint    = "localhost:8545"
-	platform    = "eth"
-	key_path    = "../../keys/"
-	keyfile     = "key2"
-	keypassword = "password"
+	zkNodes  = "localhost:2181"
+	Endpoint = "localhost:8545"
+	platform = "eth"
+	key_path = "../../keys/"
+	keyfile  = "key2"
+	//keypassword = "password"
 
 	ccsvc  *cclib.CCService
 	client *ethclient.Client
@@ -30,20 +33,21 @@ var (
 )
 
 const (
-	rootKey      = "../../keys/key0"
-	auctionerKey = "../../keys/key1"
-	bidder1Key   = "../../keys/key2"
-	bidder2Key   = "../../keys/key3"
-	password     = "password"
+	// rootKey      = "../../keys/key0"
+	// auctionerKey = "../../keys/key1"
+	// bidder1Key   = "../../keys/key2"
+	// bidder2Key   = "../../keys/key3"
+	//password = "password"
 
-	fabricTokenName = "MDAI"
+	// fabricTokenName = "MDAI"
 
-	setupInfoFile = "../setup_info.json"
+	setupInfoFile  = "../setup_info.json"
+	BidderInfoFile = "./bidder_info.json"
 )
 
 func main() {
-	var setupInfo ecomm.SetupInfo
-	ecomm.ReadJsonFile(setupInfoFile, &setupInfo)
+	//var setupInfo ecomm.SetupInfo
+	//ecomm.ReadJsonFile(setupInfoFile, &setupInfo)
 
 	// var err error
 	// ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
@@ -55,24 +59,26 @@ func main() {
 	//assetClient = ecomm.NewAssetClient() // return Fabric asset contract
 
 	command := flag.String("c", "", "command")
-	id := flag.String("a", "", "Asset ID")
+	id_ := flag.String("id", "", "Asset ID")
+	value_ := flag.String("v", "", "Bid value")
 
 	flag.StringVar(&platform, "p", platform, "platform")
-	flag.StringVar(&keyfile, "key", keyfile, "private key file")
+	flag.StringVar(&keyfile, "k", keyfile, "private key file")
 	//keyfile := flag.String("k", "", "private key file")
 
 	flag.Parse()
 
 	switch *command {
-	case "init":
-		initialize()
 	case "load":
 		load(platform, keyfile)
 	case "bid":
-		bidAuction(*id)
-	case "sign":
+		value := new(big.Int)
+		value.SetString(*value_, 10)
+		id, _ := strconv.Atoi(*id_)
+		bidAuction(id, value)
+		// case "sign":
 
-	case "abort":
+		// case "abort":
 
 	}
 
@@ -93,6 +99,7 @@ func initialize() {
 	)
 	check(err)
 
+	ccsvc.Register(ecomm.AuctionCreatingEvent, handleAuctionCreating)
 	ccsvc.Register(ecomm.AuctionEndingEvent, handleAuctionEnding)
 
 	err = ccsvc.Start(true)
@@ -100,44 +107,72 @@ func initialize() {
 }
 
 func load(platform string, key string) {
+	var setupInfo ecomm.SetupInfo
+	ecomm.ReadJsonFile(setupInfoFile, &setupInfo)
+
+	keyfile := fmt.Sprintf("%s%s", key_path, key)
+	erc20 := setupInfo.EthERC20
 	//err new(error)
 	if platform == "eth" {
 		Endpoint = fmt.Sprintf("http://%s:8545", "localhost")
-		//erc20 = setupInfoFile.
 	} else {
 		Endpoint = fmt.Sprintf("http://%s:8546", "localhost")
+		erc20 = setupInfo.QuoERC20
 	}
 
+	ecomm.WriteJsonFile(BidderInfoFile, ecomm.BidderInfo{
+		ZkNodes:  zkNodes,
+		Endpoint: Endpoint,
+		Keyfile:  keyfile,
+		Platform: platform,
+		Erc20:    erc20,
+	})
+
 	// not catch error
-	client, _ = ethclient.Dial(Endpoint)
-	signer, err := cclib.NewSigner(fmt.Sprintf("%s%s", key_path, keyfile), keypassword)
-	check(err)
+	//client, _ = ethclient.Dial(Endpoint)
+	//signer, _ = cclib.NewSigner(fmt.Sprintf("%s%s", key_path, keyfile), keypassword)
+	//check(err)
 
 }
 
 // also no relayer involved, 'locally' make bid
-func bidAuction(addrHex, keyfile string, value int64) {
+func bidAuction(id int, value *big.Int) {
+	var bidderInfo ecomm.BidderInfo
+	ecomm.ReadJsonFile(BidderInfoFile, &bidderInfo)
 
-	ecomm.AssetClient
+	client, err := ethclient.Dial(bidderInfo.Endpoint)
+	check(err)
 
-	addr := common.HexToAddress(addrHex)
-	auctionSession := newAuctionSession(addr, client, keyfile)
-	auctionSession.TransactOpts.Value = big.NewInt(value)
-	tx, err := auctionSession.Bid(big.NewInt(value))
+	bidT, err := cclib.NewTransactor(bidderInfo.Keyfile, "password")
 	check(err)
-	success, err := cclib.WaitTx(client, tx.Hash())
-	check(err)
-	printTxStatus(success)
-	if !success {
-		panic("failed to bid auction")
+
+	// Get Auction Contract deployed on Eth/Quo
+	assetClient := ecomm.NewAssetClient() // return Fabric asset contract
+	a, err := assetClient.GetAuction(id)
+
+	Auction_addr_ := a.EthAddr
+	if bidderInfo.Platform != "eth" {
+		Auction_addr_ = a.QuorumAddr
 	}
-	auctionSession.TransactOpts.Value = big.NewInt(0)
+	Auction_addr := common.HexToAddress(Auction_addr_)
 
-	highestBidder, err := auctionSession.HighestBidder()
+	// Approve amount of bid through ERC20 contract
+	MDAI, err := eth_stable_coin.NewEthStableCoin(bidderInfo.Erc20, client)
+	tx, err := MDAI.Approve(bidT, Auction_addr, value)
+	ecomm.WaitTx(client, tx, "Approve Auction Contract's allowance")
+
+	Auction, err := eth_auction.NewEthAuction(Auction_addr, client)
+	check(err)
+
+	tx, err = Auction.Bid(bidT, value)
+	check(err)
+	ecomm.WaitTx(client, tx, "Bid on Asset/Auction Contract")
+
+	highestBidder, err := Auction.HighestBidder(&bind.CallOpts{})
 	check(err)
 	fmt.Println("highest bidder:", highestBidder.Hex())
 
-	highestBid, err := auctionSession.HighestBid()
+	highestBid, err := Auction.HighestBid(&bind.CallOpts{})
 	check(err)
 	fmt.Println("highest bid:", highestBid)
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -44,10 +43,25 @@ var (
 )
 
 func main() {
+	var setupInfo ecomm.SetupInfo
+	ecomm.ReadJsonFile(setupInfoFile, &setupInfo)
+
+	eth_ERC20 = setupInfo.EthERC20
+	quo_ERC20 = setupInfo.QuoERC20
+
+	var err error
+	ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
+	check(err)
+
+	quorumClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
+	check(err)
+
 	command := flag.String("c", "", "command")
 	asset := flag.String("n", "", "Asset name")
 	id := flag.String("i", "", "Asset ID")
 	flag.Parse()
+
+	assetClient = ecomm.NewAssetClient()
 
 	switch *command {
 	case "init":
@@ -70,20 +84,6 @@ func main() {
 }
 
 func initialize() {
-	var setupInfo ecomm.SetupInfo
-	ecomm.ReadJsonFile(setupInfoFile, &setupInfo)
-
-	eth_ERC20 = setupInfo.EthERC20
-	quo_ERC20 = setupInfo.QuoERC20
-
-	var err error
-	ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
-	check(err)
-
-	quorumClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
-	check(err)
-
-	assetClient = ecomm.NewAssetClient() // return Fabric asset contract
 
 	ccsvc, err := cclib.NewEventService(
 		strings.Split(zkNodes, ","),
@@ -91,7 +91,7 @@ func initialize() {
 	)
 	check(err)
 
-	//ccsvc.Register(ecomm.AuctionCreatingEvent, handleAuctionEnding)
+	ccsvc.Register(ecomm.ProceedAuctionResultEvent, handleProceedingAuction)
 
 	err = ccsvc.Start(true)
 	check(err)
@@ -101,7 +101,7 @@ func initialize() {
 func create(asset_name string) {
 
 	fmt.Println("[fabric] Adding asset")
-	asset = addAsset(asset_name)
+	asset = addAsset("asset 1")
 
 	fmt.Println("Starting auction")
 	fmt.Println("[ethereum] Deploying auction")
@@ -114,14 +114,23 @@ func create(asset_name string) {
 	myAuction = startAuction(asset.ID, ethAddr, quorumAddr)
 
 	// publish
+	ccsvc, err := cclib.NewEventService(
+		strings.Split(zkNodes, ","),
+		fmt.Sprintf("auctioner"),
+	)
+	check(err)
+
 	payload, _ := json.Marshal(myAuction)
+	ccsvc.Publish(ecomm.AuctionCreatingEvent, payload)
 	// till this part, no relayer involved yet
 }
 
 // load ../../../keys/key1
 func addAsset(id string) *ecomm.Asset {
-	auth, err := cclib.NewTransactor("../../keys/key1", "password")
+	fmt.Println("New Tran")
+	auth, err := cclib.NewTransactor("../../keys/key0", "password")
 	check(err)
+	fmt.Println("Add asset")
 	_, err = assetClient.AddAsset(id, auth.From.Hex())
 	check(err)
 	time.Sleep(3 * time.Second)
@@ -228,25 +237,31 @@ func check(err error) {
 }
 
 // also no relayer involved, 'locally' make bid
-func bidAuction(addrHex, keyfile string, value int64) {
-	addr := common.HexToAddress(addrHex)
-	auctionSession := newAuctionSession(addr, client, keyfile)
-	auctionSession.TransactOpts.Value = big.NewInt(value)
-	tx, err := auctionSession.Bid(big.NewInt(value))
-	check(err)
-	success, err := cclib.WaitTx(client, tx.Hash())
-	check(err)
-	printTxStatus(success)
-	if !success {
-		panic("failed to bid auction")
-	}
-	auctionSession.TransactOpts.Value = big.NewInt(0)
+// func bidAuction(addrHex, keyfile string, value int64) {
+// 	addr := common.HexToAddress(addrHex)
+// 	auctionSession := newAuctionSession(addr, client, keyfile)
+// 	auctionSession.TransactOpts.Value = big.NewInt(value)
+// 	tx, err := auctionSession.Bid(big.NewInt(value))
+// 	check(err)
+// 	success, err := cclib.WaitTx(client, tx.Hash())
+// 	check(err)
+// 	printTxStatus(success)
+// 	if !success {
+// 		panic("failed to bid auction")
+// 	}
+// 	auctionSession.TransactOpts.Value = big.NewInt(0)
 
-	highestBidder, err := auctionSession.HighestBidder()
-	check(err)
-	fmt.Println("highest bidder:", highestBidder.Hex())
+// 	highestBidder, err := auctionSession.HighestBidder()
+// 	check(err)
+// 	fmt.Println("highest bidder:", highestBidder.Hex())
 
-	highestBid, err := auctionSession.HighestBid()
+// 	highestBid, err := auctionSession.HighestBid()
+// 	check(err)
+// 	fmt.Println("highest bid:", highestBid)
+// }
+
+func handleProceedingAuction(payload []byte) {
+	var a ecomm.Auction
+	err := json.Unmarshal(payload, &a)
 	check(err)
-	fmt.Println("highest bid:", highestBid)
 }
