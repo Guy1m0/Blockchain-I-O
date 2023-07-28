@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/big"
 	"strconv"
+	"strings"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
@@ -23,12 +24,9 @@ var (
 	keyfile  = "key2"
 	//keypassword = "password"
 
-	ccsvc  *cclib.CCService
-	client *ethclient.Client
-	//	quoClient *ethclient.Client
-	signer *cclib.Signer
-
-	erc20 common.Address
+	// ccsvc  *cclib.CCService
+	// client *ethclient.Client
+	// signer *cclib.Signer
 )
 
 const (
@@ -177,22 +175,25 @@ func bidAuction(id int, value *big.Int) {
 	fmt.Println("highest bid:", highestBid)
 }
 
-func newAuctionSession(
-	addr common.Address, eth *ethclient.Client, keyfile string,
-) *eth_auction.EthAuctionSession {
-	auth, err := cclib.NewTransactor(keyfile, "password")
+func load_ctcs() (*ethclient.Client, *bind.TransactOpts, *cclib.CCService, *cclib.Signer) {
+	var bidderInfo ecomm.BidderInfo
+	ecomm.ReadJsonFile(BidderInfoFile, &bidderInfo)
+
+	client, err := ethclient.Dial(bidderInfo.Endpoint)
 	check(err)
 
-	cc, err := eth_auction.NewEthAuction(addr, eth)
+	bidT, err := cclib.NewTransactor(bidderInfo.Keyfile, "password")
 	check(err)
 
-	return &eth_auction.EthAuctionSession{
-		Contract:     cc,
-		TransactOpts: *auth,
-	}
-}
+	signer, _ := cclib.NewSigner(fmt.Sprintf("%s%s", key_path, keyfile), "password")
 
-func new_bidder() {
+	ccsvc, err := cclib.NewEventService(
+		strings.Split(zkNodes, ","),
+		fmt.Sprintf("bidder"),
+	)
+	check(err)
+
+	return client, bidT, ccsvc, signer
 
 }
 
