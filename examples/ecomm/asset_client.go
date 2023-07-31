@@ -15,6 +15,7 @@ type AssetClient struct {
 	contract *gateway.Contract
 }
 
+// load identity
 func NewAssetClient() *AssetClient {
 	err := os.Setenv("DISCOVERY_AS_LOCALHOST", "true")
 	if err != nil {

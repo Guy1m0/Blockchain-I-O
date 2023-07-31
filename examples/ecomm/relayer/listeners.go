@@ -9,6 +9,8 @@ import (
 
 func runAuctionListener() {
 	for {
+		// listen each new creating auction
+		// and create a go route for each
 		a := listenNewAuction() // listen new tx posted on auction contract
 		go onNewAuction(a)
 	}

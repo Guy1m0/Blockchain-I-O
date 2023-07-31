@@ -34,7 +34,7 @@ var (
 	quoClient *ethclient.Client
 
 	assetClient *ecomm.AssetClient
-	ccsvc       *cclib.CCService
+	//ccsvc       *cclib.CCService
 
 	asset     *ecomm.Asset
 	myAuction *ecomm.Auction
@@ -131,10 +131,7 @@ func create(asset_name string) {
 	myAuction = startAuction(asset.ID, ethAddr, quoAddr)
 
 	// publish
-	ccsvc, err := cclib.NewEventService(
-		strings.Split(zkNodes, ","),
-		fmt.Sprintf("auctioner"),
-	)
+	ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
 	check(err)
 
 	payload, _ := json.Marshal(myAuction)
@@ -145,7 +142,7 @@ func create(asset_name string) {
 // Default use ../../../keys/key1
 func addAsset(id string) *ecomm.Asset {
 	fmt.Println("Load Auctioner")
-	aucT, err := cclib.NewTransactor("../../keys/key1", "password")
+	aucT, err := cclib.NewTransactor("../../keys/key1", password)
 	check(err)
 	fmt.Println("Create New Auction")
 	_, err = assetClient.AddAsset(id, aucT.From.Hex())
@@ -204,12 +201,19 @@ func endAuction(auctionID int) {
 			break
 		}
 	}
+
+	// publish
+	ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
+	check(err)
+
+	payload, _ := json.Marshal(a)
+	ccsvc.Publish(ecomm.AuctionEndingEvent, payload)
 }
 
 // this is only used for recording bid
 // Use Auctioner 1's key1 to deploy contract
 func deployCrossChainAuction(client *ethclient.Client, erc20 common.Address) string {
-	auth, err := cclib.NewTransactor("../../keys/key1", "password")
+	auth, err := cclib.NewTransactor("../../keys/key1", password)
 	check(err)
 
 	addr, tx, _, err := eth_auction.DeployEthAuction(auth, client, erc20)
@@ -227,7 +231,7 @@ func deployCrossChainAuction(client *ethclient.Client, erc20 common.Address) str
 func newAuctionSession(
 	addr common.Address, eth *ethclient.Client, keyfile string,
 ) *eth_auction.EthAuctionSession {
-	auth, err := cclib.NewTransactor(keyfile, "password")
+	auth, err := cclib.NewTransactor(keyfile, password)
 	check(err)
 
 	cc, err := eth_auction.NewEthAuction(addr, eth)
