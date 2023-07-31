@@ -1,5 +1,5 @@
 {
-  "FabricTokenName": "asset",
-  "EthERC20": "0xcd9bafc879b3e017ad48e6bcce977afc474471c5",
-  "QuoERC20": "0x37d7951c4f8ff6a97bcdb78299d2a18143121d98"
+  "FabricTokenName": "MDai",
+  "EthERC20": "0x4a09846e1f477771a237efce9cce71482708104e",
+  "QuoERC20": "0x6f517576f038e5baa5a511f390fdbe302806a979"
 }

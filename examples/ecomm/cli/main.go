@@ -265,20 +265,22 @@ func add_user(user_id string, platform string, amount string) {
 	userT, err := cclib.NewTransactor(user_key, password)
 	check(err)
 
-	ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
-		UserID:  user_id,
-		Address: userT.From,
-		KeyFile: user_key,
-	})
-
 	amt, _ := strconv.ParseInt(amount, 10, 64)
-	eth_ERC20, quo_ERC20, _ := load_ERC20()
+	eth_ERC20, quo_ERC20, fabric_ERC20 := load_ERC20()
 
 	if platform == "eth" {
 		ecomm.TransferToken(ethClient, eth_ERC20, rootT, userT.From, amt)
 	} else {
 		ecomm.TransferToken(quoClient, quo_ERC20, rootT, userT.From, amt)
 	}
+	_, err = fabric_ERC20.SubmitTransaction("Transfer", userT.From.Hex(), "0")
+	check(err)
+
+	ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
+		UserID:  user_id,
+		Address: userT.From,
+		KeyFile: user_key,
+	})
 }
 
 func load_ERC20() (*eth_stable_coin.EthStableCoin, *eth_stable_coin.EthStableCoin, *ecomm.Chaincode) {

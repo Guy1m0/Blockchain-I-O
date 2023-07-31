@@ -5,41 +5,6 @@
     "KeyFile": "../../keys/key1"
   },
   {
-    "UserID": "Auctioner 1",
-    "Address": "0xac5580ad28a3c0e044a52541785bfd34c753d3bf",
-    "KeyFile": "../../keys/key1"
-  },
-  {
-    "UserID": "Auctioner 1",
-    "Address": "0xac5580ad28a3c0e044a52541785bfd34c753d3bf",
-    "KeyFile": "../../keys/key1"
-  },
-  {
-    "UserID": "Auctioner 1",
-    "Address": "0xac5580ad28a3c0e044a52541785bfd34c753d3bf",
-    "KeyFile": "../../keys/key1"
-  },
-  {
-    "UserID": "Auctioner 1",
-    "Address": "0xac5580ad28a3c0e044a52541785bfd34c753d3bf",
-    "KeyFile": "../../keys/key1"
-  },
-  {
-    "UserID": "Auctioner 1",
-    "Address": "0xac5580ad28a3c0e044a52541785bfd34c753d3bf",
-    "KeyFile": "../../keys/key1"
-  },
-  {
-    "UserID": "Auctioner 1",
-    "Address": "0xac5580ad28a3c0e044a52541785bfd34c753d3bf",
-    "KeyFile": "../../keys/key1"
-  },
-  {
-    "UserID": "Auctioner 1",
-    "Address": "0xac5580ad28a3c0e044a52541785bfd34c753d3bf",
-    "KeyFile": "../../keys/key1"
-  },
-  {
     "UserID": "Bidder 1",
     "Address": "0xd0a73fe9d44184e9f1264ce2097064212e67ebfe",
     "KeyFile": "../../keys/key2"
@@ -48,5 +13,15 @@
     "UserID": "Bidder 2",
     "Address": "0xd3cf32a24e4527cf84ef0c8d571f8a77f6481984",
     "KeyFile": "../../keys/key3"
+  },
+  {
+    "UserID": "Bidder3",
+    "Address": "0x763a9766405878e73fa45f26c95fe6d43913ff44",
+    "KeyFile": "../../keys/key4"
+  },
+  {
+    "UserID": "bidder 4",
+    "Address": "0x0e88fa918b9dd6d1a11285864d7350e6d923de40",
+    "KeyFile": "../../keys/key5"
   }
 ]
