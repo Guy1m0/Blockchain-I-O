@@ -16,7 +16,6 @@ import (
 	"github.com/olekukonko/tablewriter"
 )
 
-// figure the users' action later
 const (
 	key_path = "../../keys/"
 	rootKey  = "../../keys/key0"
@@ -26,12 +25,8 @@ const (
 	bidder2Key   = "../../keys/key3"
 	password     = "password"
 
-	setupInfoFile = "../setup_info.json"
 	erc20InfoFile = "../erc20_info.json"
 	userInfoFile  = "../user_info.json"
-
-	// eth_endpoint = "localhost:8545"
-	// quo_endpoint = "localhost:8546"
 )
 
 var (
@@ -66,17 +61,12 @@ func main() {
 	case "add":
 		if len(parts) > 1 {
 			// Split the arguments by ","
+			// Use "" to include ' ' in args
 			args := strings.Split(parts[1], ",")
 			if len(args) == 3 {
 				add_user(args[0], args[1], args[2])
 			}
 		}
-	// case "mint":
-	// 	mint_more("10000000000")
-	// case "diffRate":
-	// 	diffRate()
-	// case "sameRate":
-	// 	sameRate()
 
 	default:
 		fmt.Println("command not found")
@@ -105,8 +95,6 @@ func initialize(token_name string) {
 	tx, err = eth_MDAI.Mint(rootT, rootT.From, supply)
 	check(err)
 	ecomm.WaitTx(ethClient, tx, "Mint ERC20 Stable Coin on Ethereum")
-
-	//fmt.Println("Check if mint enough")
 
 	// tmp, err := eth_MDAI.TotalSupply(&bind.CallOpts{})
 	// check(err)
@@ -180,40 +168,17 @@ func setup() {
 		Address: bid2T.From,
 		KeyFile: bidder2Key,
 	})
-
-	//fmt.Println("Remaining Minted Token")
-	//ecomm.PrintFabricBalance(fabricToken, rootT.From.Hex(), "Root")
-
-	// ecomm.WriteJsonFile(setupInfoFile, ecomm.SetupInfo{
-	// 	Bidder1Address:   bid1T.From,
-	// 	Bidder2Address:   bid2T.From,
-	// 	AuctionerAddress: aucT.From,
-
-	// 	FabricTokenName: fabricTokenName,
-
-	// 	EthERC20: eth_MDAI_addr,
-	// 	QuoERC20: quo_MDAI_addr,
-	// })
-
 }
 
 func display() {
 	DecimalB, _ := big.NewInt(0).SetString("1"+strings.Repeat("0", 15), 10)
-	var erc20_info ecomm.SetupInfo
+	var erc20_info ecomm.Erc20Info
 	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
 
 	users, err := ecomm.ReadUsersFromFile(userInfoFile)
 	check(err)
 
 	eth_ERC20, quo_ERC20, fabric_ERC20 := load_ERC20()
-
-	// eth_ERC20, err := eth_stable_coin.NewEthStableCoin(erc20_info.EthERC20, ethClient)
-	// check(err)
-
-	// quo_ERC20, err := eth_stable_coin.NewEthStableCoin(erc20_info.QuoERC20, quoClient)
-	// check(err)
-
-	// fabric_ERC20 := ecomm.NewChaincode(erc20_info.FabricTokenName)
 
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"User ID", "Ethereum", "Quorum", "Fabric"})
@@ -238,22 +203,6 @@ func display() {
 		//fmt.Println(user.UserID, user.Address, user.KeyFile)
 	}
 	table.Render()
-	// fmt.Println("Check Balance in Eth")
-	// ecomm.PrintTokenBalance(eth_ERC20, setupInfo.Bidder1Address, "MDai", "Bidder_1")
-	// ecomm.PrintTokenBalance(eth_ERC20, setupInfo.Bidder2Address, "MDai", "Bidder_2")
-	// ecomm.PrintTokenBalance(eth_ERC20, setupInfo.AuctionerAddress, "MDai", "Auctioner")
-
-	// fmt.Println("Check Balance in Quorum")
-	// ecomm.PrintTokenBalance(quo_ERC20, setupInfo.Bidder1Address, "MDai", "Bidder_1")
-	// ecomm.PrintTokenBalance(quo_ERC20, setupInfo.Bidder2Address, "MDai", "Bidder_2")
-	// ecomm.PrintTokenBalance(quo_ERC20, setupInfo.AuctionerAddress, "MDai", "Auctioner")
-
-	// fmt.Println("Check Balance in Fabric")
-
-	// ecomm.PrintFabricBalance(fabricToken, setupInfo.Bidder1Address.Hex(), "Bidder_1")
-	// ecomm.PrintFabricBalance(fabricToken, setupInfo.Bidder2Address.Hex(), "Bidder_2")
-	// ecomm.PrintFabricBalance(fabricToken, setupInfo.AuctionerAddress.Hex(), "Auctioner")
-
 }
 
 func add_user(user_id string, platform string, amount string) {

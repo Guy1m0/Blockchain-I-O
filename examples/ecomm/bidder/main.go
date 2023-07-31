@@ -38,7 +38,7 @@ const (
 
 	// fabricTokenName = "MDAI"
 
-	setupInfoFile  = "../setup_info.json"
+	//setupInfoFile  = "../setup_info.json"
 	erc20InfoFile  = "../erc20_info.json"
 	BidderInfoFile = "./bidder_info.json"
 )
@@ -105,17 +105,17 @@ func main() {
 // }
 
 func load(platform string, key string) {
-	var setupInfo ecomm.SetupInfo
-	ecomm.ReadJsonFile(setupInfoFile, &setupInfo)
+	var erc20_info ecomm.Erc20Info
+	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
 
 	keyfile := fmt.Sprintf("%s%s", key_path, key)
-	erc20 := setupInfo.EthERC20
+	erc20 := erc20_info.EthERC20
 	//err new(error)
 	if platform == "eth" {
 		Endpoint = fmt.Sprintf("http://%s:8545", "localhost")
 	} else {
 		Endpoint = fmt.Sprintf("http://%s:8546", "localhost")
-		erc20 = setupInfo.QuoERC20
+		erc20 = erc20_info.QuoERC20
 	}
 
 	ecomm.WriteJsonFile(BidderInfoFile, ecomm.BidderInfo{

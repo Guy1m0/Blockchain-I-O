@@ -20,7 +20,7 @@ const (
 	password = "password"
 
 	zkNodes       = "localhost:2181"
-	setupInfoFile = "../setup_info.json"
+	setupInfoFile = "../erc20_info.json"
 )
 
 type CreateAuctionRequest struct {
@@ -30,10 +30,11 @@ type CreateAuctionRequest struct {
 }
 
 var (
-	ethClient    *ethclient.Client
-	quorumClient *ethclient.Client
-	assetClient  *ecomm.AssetClient
-	ccsvc        *cclib.CCService
+	ethClient *ethclient.Client
+	quoClient *ethclient.Client
+
+	assetClient *ecomm.AssetClient
+	ccsvc       *cclib.CCService
 
 	asset     *ecomm.Asset
 	myAuction *ecomm.Auction
@@ -43,34 +44,50 @@ var (
 )
 
 func main() {
-	var setupInfo ecomm.SetupInfo
-	ecomm.ReadJsonFile(setupInfoFile, &setupInfo)
+	// var erc20_info ecomm.Erc20Info
+	// ecomm.ReadJsonFile(setupInfoFile, &erc20_info)
 
-	eth_ERC20 = setupInfo.EthERC20
-	quo_ERC20 = setupInfo.QuoERC20
+	// eth_ERC20 = erc20_info.EthERC20
+	// quo_ERC20 = erc20_info.QuoERC20
 
 	var err error
 	ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
 	check(err)
 
-	quorumClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
+	quoClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
 	check(err)
-
-	command := flag.String("c", "", "command")
-	asset := flag.String("n", "", "Asset name")
-	id := flag.String("i", "", "Asset ID")
-	flag.Parse()
 
 	assetClient = ecomm.NewAssetClient()
 
-	switch *command {
+	command := flag.String("c", "", "command")
+	//asset := flag.String("n", "", "Asset name")
+	//id := flag.String("i", "", "Asset ID")
+	flag.Parse()
+
+	parts := strings.Split(*command, ":")
+	cmd := parts[0]
+
+	switch cmd {
+
+	case "create":
+		if len(parts) > 1 {
+			args := strings.Split(parts[1], ",")
+			if len(args) == 1 {
+				create(args[0])
+			}
+		}
+	case "end":
+		if len(parts) > 1 {
+			args := strings.Split(parts[1], ",")
+			if len(args) == 1 {
+				id, _ := strconv.Atoi(args[0])
+				endAuction(id)
+			}
+		}
 	case "init":
 		initialize()
-	case "create":
-		create(*asset)
-	case "end":
-		id_, _ := strconv.Atoi(*id)
-		endAuction(id_)
+	default:
+		fmt.Println("command not found")
 	}
 
 	//fmt.Println("[ethereum] Bidding auction")
@@ -83,8 +100,8 @@ func main() {
 	//endAuction(myAuction)
 }
 
+// not need this i think
 func initialize() {
-
 	ccsvc, err := cclib.NewEventService(
 		strings.Split(zkNodes, ","),
 		fmt.Sprintf("auctioner"),
@@ -101,17 +118,17 @@ func initialize() {
 func create(asset_name string) {
 
 	fmt.Println("[fabric] Adding asset")
-	asset = addAsset("asset 1")
+	asset = addAsset(asset_name)
 
 	fmt.Println("Starting auction")
 	fmt.Println("[ethereum] Deploying auction")
 	ethAddr := deployCrossChainAuction(ethClient, eth_ERC20)
 
 	fmt.Println("[quorum] Deploying auction")
-	quorumAddr := deployCrossChainAuction(quorumClient, quo_ERC20)
+	quoAddr := deployCrossChainAuction(quoClient, quo_ERC20)
 
 	fmt.Println("[fabric] Creating auction")
-	myAuction = startAuction(asset.ID, ethAddr, quorumAddr)
+	myAuction = startAuction(asset.ID, ethAddr, quoAddr)
 
 	// publish
 	ccsvc, err := cclib.NewEventService(
@@ -125,18 +142,18 @@ func create(asset_name string) {
 	// till this part, no relayer involved yet
 }
 
-// load ../../../keys/key1
+// Default use ../../../keys/key1
 func addAsset(id string) *ecomm.Asset {
-	fmt.Println("New Tran")
-	auth, err := cclib.NewTransactor("../../keys/key0", "password")
+	fmt.Println("Load Auctioner")
+	aucT, err := cclib.NewTransactor("../../keys/key1", "password")
 	check(err)
-	fmt.Println("Add asset")
-	_, err = assetClient.AddAsset(id, auth.From.Hex())
+	fmt.Println("Create New Auction")
+	_, err = assetClient.AddAsset(id, aucT.From.Hex())
 	check(err)
 	time.Sleep(3 * time.Second)
 	asset, err := assetClient.GetAsset(id)
 	check(err)
-	fmt.Println("Asset added, owner: ", asset.Owner)
+	fmt.Println("Auction added on Fabric with owner: ", asset.Owner)
 	return asset
 }
 
@@ -190,9 +207,9 @@ func endAuction(auctionID int) {
 }
 
 // this is only used for recording bid
-// Use key0 to deploy contract
+// Use Auctioner 1's key1 to deploy contract
 func deployCrossChainAuction(client *ethclient.Client, erc20 common.Address) string {
-	auth, err := cclib.NewTransactor("../../keys/key0", "password")
+	auth, err := cclib.NewTransactor("../../keys/key1", "password")
 	check(err)
 
 	addr, tx, _, err := eth_auction.DeployEthAuction(auth, client, erc20)

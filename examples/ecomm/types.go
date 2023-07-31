@@ -48,21 +48,18 @@ type CommitVote struct {
 	ArbitrageSig string
 }
 
-type SetupInfo struct {
-	Bidder1Address   common.Address
-	Bidder2Address   common.Address
-	AuctionerAddress common.Address
-
-	FabricTokenName string
-
-	EthERC20 common.Address
-	QuoERC20 common.Address
-}
-
 type UserInfo struct {
 	UserID  string
 	Address common.Address
 	KeyFile string
+}
+
+// may not need
+type AuctionInfo struct {
+	AssetID    string
+	ID         int
+	EthAddress common.Address
+	QuoAddress common.Address
 }
 
 type Erc20Info struct {
@@ -78,7 +75,7 @@ type BidderInfo struct {
 	Keyfile  string
 	Platform string
 
-	Erc20 common.Address
+	ERC20 common.Address
 }
 
 type Asset struct {
