@@ -720,8 +720,8 @@ func checkInitialized(ctx contractapi.TransactionContextInterface) (bool, error)
 func sub(b int, q int) (int, error) {
 
 	// sub two number checking
-	if q <= 0 {
-		return 0, fmt.Errorf("Error: the subtraction number is %d, it should be greater than 0", q)
+	if q < 0 {
+		return 0, fmt.Errorf("Error: the subtraction number is %d, it should be greater or equal than 0", q)
 	}
 	if b < q {
 		return 0, fmt.Errorf("Error: the number %d is not enough to be subtracted by %d", b, q)

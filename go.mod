@@ -29,4 +29,5 @@ require (
 	github.com/wvanbergen/kafka v0.0.0-20171203153745-e2edea948ddf
 	github.com/wvanbergen/kazoo-go v0.0.0-20180202103751-f72d8611297a // indirect
 	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
+	github.com/olekukonko/tablewriter v0.0.5
 )

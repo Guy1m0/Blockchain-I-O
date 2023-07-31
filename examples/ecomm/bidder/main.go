@@ -39,6 +39,7 @@ const (
 	// fabricTokenName = "MDAI"
 
 	setupInfoFile  = "../setup_info.json"
+	erc20InfoFile  = "../erc20_info.json"
 	BidderInfoFile = "./bidder_info.json"
 )
 

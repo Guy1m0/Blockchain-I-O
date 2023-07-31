@@ -12,6 +12,7 @@ import (
 
 func handleAuctionEnding(payload []byte) {
 	client, _, ccsvc, signer := load_ctcs()
+
 	var a ecomm.Auction
 	err := json.Unmarshal(payload, &a)
 	check(err)

@@ -169,7 +169,7 @@ NOTE: Check `log.txt` file to ensure that ethereum is running.
 
 3. Go to folder `fabric-samples/test-network` and deploy contracts `fabric_erc20` and `lender` on fabric.
 ```bash
-./network.sh deployCC -ccn MDai -ccp ../token-erc-20/chaincode-go/ -ccl go
+sudo ./network.sh deployCC -ccn MDai -ccp ../../contracts/fabric_erc20/chaincode -ccl go
 ```
 
 4. Go to folder `examples/ecomm/cli` and compile it
