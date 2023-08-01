@@ -28,36 +28,23 @@ var (
 	_ = event.NewSubscription
 )
 
-// AuctionMetaData contains all meta data concerning the Auction contract.
-var AuctionMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"winner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"AuctionEnded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"HighestBidIncreased\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"beneficiary\",\"outputs\":[{\"internalType\":\"addresspayable\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"bid\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"endAuction\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"ended\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"highestBid\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"highestBidder\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"withdraw\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
-	Sigs: map[string]string{
-		"38af3eed": "beneficiary()",
-		"1998aeef": "bid()",
-		"fe67a54b": "endAuction()",
-		"12fa6feb": "ended()",
-		"d57bde79": "highestBid()",
-		"91f90157": "highestBidder()",
-		"3ccfd60b": "withdraw()",
-	},
-	Bin: "0x608060405234801561001057600080fd5b50600080546001600160a01b031916331790556103f1806100326000396000f3fe6080604052600436106100705760003560e01c80633ccfd60b1161004e5780633ccfd60b146100e657806391f90157146100fb578063d57bde791461011b578063fe67a54b1461013f57600080fd5b806312fa6feb146100755780631998aeef146100a457806338af3eed146100ae575b600080fd5b34801561008157600080fd5b5060045461008f9060ff1681565b60405190151581526020015b60405180910390f35b6100ac610154565b005b3480156100ba57600080fd5b506000546100ce906001600160a01b031681565b6040516001600160a01b03909116815260200161009b565b3480156100f257600080fd5b5061008f61023c565b34801561010757600080fd5b506001546100ce906001600160a01b031681565b34801561012757600080fd5b5061013160025481565b60405190815260200161009b565b34801561014b57600080fd5b506100ac6102a0565b60025434116101aa5760405162461bcd60e51b815260206004820152601e60248201527f546865726520616c7265616479206973206120686967686572206269642e000060448201526064015b60405180910390fd5b600254156101e5576002546001546001600160a01b0316600090815260036020526040812080549091906101df908490610395565b90915550505b600180546001600160a01b031916339081179091553460028190556040805192835260208301919091527ff4757a49b326036464bec6fe419a4ae38c8a02ce3e68bf0809674f6aab8ad300910160405180910390a1565b33600090815260036020526040812054801561029857336000818152600360205260408082208290555183156108fc0291849190818181858888f193505050506102985733600090815260036020526040812091909155919050565b600191505090565b60045460ff16156102ff5760405162461bcd60e51b815260206004820152602360248201527f61756374696f6e456e642068617320616c7265616479206265656e2063616c6c60448201526232b21760e91b60648201526084016101a1565b6004805460ff1916600190811790915554600254604080516001600160a01b03909316835260208301919091527fdaec4582d5d9595688c8c98545fdd1c696d41c6aeaeb636737e84ed2f5c00eda910160405180910390a1600080546002546040516001600160a01b039092169281156108fc029290818181858888f19350505050158015610392573d6000803e3d6000fd5b50565b600082198211156103b657634e487b7160e01b600052601160045260246000fd5b50019056fea2646970667358221220adfe73743230318c18ca0d4bc5dd626087639b5118d14a9cbc86f6b78cf86ab164736f6c634300080b0033",
+// EthAuctionMetaData contains all meta data concerning the EthAuction contract.
+var EthAuctionMetaData = &bind.MetaData{
+	ABI: "[{\"inputs\":[{\"internalType\":\"contractIERC20\",\"name\":\"_token\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"winner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"AuctionEnded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"bidder\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"HighestBidIncreased\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"src\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"dst\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"wad\",\"type\":\"uint256\"}],\"name\":\"Transfer\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"bidAmount\",\"type\":\"uint256\"}],\"name\":\"bid\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"endAuction\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"ended\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"highestBid\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"highestBidder\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"token\",\"outputs\":[{\"internalType\":\"contractIERC20\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"withdraw\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]",
+	Bin: "0x608060405234801561001057600080fd5b506040516105f73803806105f783398101604081905261002f9161005a565b600380546001600160a01b0390921661010002610100600160a81b031990921691909117905561008a565b60006020828403121561006c57600080fd5b81516001600160a01b038116811461008357600080fd5b9392505050565b61055e806100996000396000f3fe608060405234801561001057600080fd5b506004361061007d5760003560e01c806391f901571161005b57806391f90157146100c1578063d57bde79146100ec578063fc0c546a14610103578063fe67a54b1461011b57600080fd5b806312fa6feb146100825780633ccfd60b146100a4578063454a2ab3146100ac575b600080fd5b60035461008f9060ff1681565b60405190151581526020015b60405180910390f35b61008f610123565b6100bf6100ba3660046104bf565b6101f0565b005b6000546100d4906001600160a01b031681565b6040516001600160a01b03909116815260200161009b565b6100f560015481565b60405190815260200161009b565b6003546100d49061010090046001600160a01b031681565b6100bf61039f565b3360009081526002602052604081205480156101e857336000818152600260205260408082209190915560035490516323b872dd60e01b815230600482015260248101929092526044820183905261010090046001600160a01b0316906323b872dd906064016020604051808303816000875af11580156101a8573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906101cc91906104d8565b6101e85733600090815260026020526040812091909155919050565b600191505090565b60015481116102465760405162461bcd60e51b815260206004820152601e60248201527f546865726520616c7265616479206973206120686967686572206269642e000060448201526064015b60405180910390fd5b6003546040516323b872dd60e01b81523360048201523060248201526044810183905260009161010090046001600160a01b0316906323b872dd906064016020604051808303816000875af11580156102a3573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906102c791906104d8565b90508061030f5760405162461bcd60e51b81526020600482015260166024820152752a37b5b2b7103a3930b739b332b9103330b4b632b21760511b604482015260640161023d565b6001541561034857600154600080546001600160a01b031681526002602052604081208054909190610342908490610501565b90915550505b600080546001600160a01b03191633908117909155600183905560408051918252602082018490527ff4757a49b326036464bec6fe419a4ae38c8a02ce3e68bf0809674f6aab8ad300910160405180910390a15050565b60035460ff16156103fe5760405162461bcd60e51b815260206004820152602360248201527f61756374696f6e456e642068617320616c7265616479206265656e2063616c6c60448201526232b21760e91b606482015260840161023d565b6003805460ff191660019081179091556000549054604080516001600160a01b03909316835260208301919091527fdaec4582d5d9595688c8c98545fdd1c696d41c6aeaeb636737e84ed2f5c00eda910160405180910390a1600354600154604051630852cd8d60e31b815260048101919091526101009091046001600160a01b0316906342966c6890602401600060405180830381600087803b1580156104a557600080fd5b505af11580156104b9573d6000803e3d6000fd5b50505050565b6000602082840312156104d157600080fd5b5035919050565b6000602082840312156104ea57600080fd5b815180151581146104fa57600080fd5b9392505050565b8082018082111561052257634e487b7160e01b600052601160045260246000fd5b9291505056fea2646970667358221220f5d2907b529e74e40dd48826289984780688e37f48e2bb359981d8ad8b5076bb64736f6c63430008120033",
 }
 
-// AuctionABI is the input ABI used to generate the binding from.
-// Deprecated: Use AuctionMetaData.ABI instead.
-var AuctionABI = AuctionMetaData.ABI
+// EthAuctionABI is the input ABI used to generate the binding from.
+// Deprecated: Use EthAuctionMetaData.ABI instead.
+var EthAuctionABI = EthAuctionMetaData.ABI
 
-// Deprecated: Use AuctionMetaData.Sigs instead.
-// AuctionFuncSigs maps the 4-byte function signature to its string representation.
-var AuctionFuncSigs = AuctionMetaData.Sigs
+// EthAuctionBin is the compiled bytecode used for deploying new contracts.
+// Deprecated: Use EthAuctionMetaData.Bin instead.
+var EthAuctionBin = EthAuctionMetaData.Bin
 
-// AuctionBin is the compiled bytecode used for deploying new contracts.
-// Deprecated: Use AuctionMetaData.Bin instead.
-var AuctionBin = AuctionMetaData.Bin
-
-// DeployAuction deploys a new Ethereum contract, binding an instance of Auction to it.
-func DeployAuction(auth *bind.TransactOpts, backend bind.ContractBackend) (common.Address, *types.Transaction, *Auction, error) {
-	parsed, err := AuctionMetaData.GetAbi()
+// DeployEthAuction deploys a new Ethereum contract, binding an instance of EthAuction to it.
+func DeployEthAuction(auth *bind.TransactOpts, backend bind.ContractBackend, _token common.Address) (common.Address, *types.Transaction, *EthAuction, error) {
+	parsed, err := EthAuctionMetaData.GetAbi()
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
@@ -65,111 +52,111 @@ func DeployAuction(auth *bind.TransactOpts, backend bind.ContractBackend) (commo
 		return common.Address{}, nil, nil, errors.New("GetABI returned nil")
 	}
 
-	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(AuctionBin), backend)
+	address, tx, contract, err := bind.DeployContract(auth, *parsed, common.FromHex(EthAuctionBin), backend, _token)
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
-	return address, tx, &Auction{AuctionCaller: AuctionCaller{contract: contract}, AuctionTransactor: AuctionTransactor{contract: contract}, AuctionFilterer: AuctionFilterer{contract: contract}}, nil
+	return address, tx, &EthAuction{EthAuctionCaller: EthAuctionCaller{contract: contract}, EthAuctionTransactor: EthAuctionTransactor{contract: contract}, EthAuctionFilterer: EthAuctionFilterer{contract: contract}}, nil
 }
 
-// Auction is an auto generated Go binding around an Ethereum contract.
-type Auction struct {
-	AuctionCaller     // Read-only binding to the contract
-	AuctionTransactor // Write-only binding to the contract
-	AuctionFilterer   // Log filterer for contract events
+// EthAuction is an auto generated Go binding around an Ethereum contract.
+type EthAuction struct {
+	EthAuctionCaller     // Read-only binding to the contract
+	EthAuctionTransactor // Write-only binding to the contract
+	EthAuctionFilterer   // Log filterer for contract events
 }
 
-// AuctionCaller is an auto generated read-only Go binding around an Ethereum contract.
-type AuctionCaller struct {
+// EthAuctionCaller is an auto generated read-only Go binding around an Ethereum contract.
+type EthAuctionCaller struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// AuctionTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type AuctionTransactor struct {
+// EthAuctionTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type EthAuctionTransactor struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// AuctionFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type AuctionFilterer struct {
+// EthAuctionFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type EthAuctionFilterer struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// AuctionSession is an auto generated Go binding around an Ethereum contract,
+// EthAuctionSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
-type AuctionSession struct {
-	Contract     *Auction          // Generic contract binding to set the session for
+type EthAuctionSession struct {
+	Contract     *EthAuction       // Generic contract binding to set the session for
 	CallOpts     bind.CallOpts     // Call options to use throughout this session
 	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
-// AuctionCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// EthAuctionCallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
-type AuctionCallerSession struct {
-	Contract *AuctionCaller // Generic contract caller binding to set the session for
-	CallOpts bind.CallOpts  // Call options to use throughout this session
+type EthAuctionCallerSession struct {
+	Contract *EthAuctionCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts     // Call options to use throughout this session
 }
 
-// AuctionTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// EthAuctionTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
 // with pre-set transact options.
-type AuctionTransactorSession struct {
-	Contract     *AuctionTransactor // Generic contract transactor binding to set the session for
-	TransactOpts bind.TransactOpts  // Transaction auth options to use throughout this session
+type EthAuctionTransactorSession struct {
+	Contract     *EthAuctionTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts     // Transaction auth options to use throughout this session
 }
 
-// AuctionRaw is an auto generated low-level Go binding around an Ethereum contract.
-type AuctionRaw struct {
-	Contract *Auction // Generic contract binding to access the raw methods on
+// EthAuctionRaw is an auto generated low-level Go binding around an Ethereum contract.
+type EthAuctionRaw struct {
+	Contract *EthAuction // Generic contract binding to access the raw methods on
 }
 
-// AuctionCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type AuctionCallerRaw struct {
-	Contract *AuctionCaller // Generic read-only contract binding to access the raw methods on
+// EthAuctionCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type EthAuctionCallerRaw struct {
+	Contract *EthAuctionCaller // Generic read-only contract binding to access the raw methods on
 }
 
-// AuctionTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type AuctionTransactorRaw struct {
-	Contract *AuctionTransactor // Generic write-only contract binding to access the raw methods on
+// EthAuctionTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type EthAuctionTransactorRaw struct {
+	Contract *EthAuctionTransactor // Generic write-only contract binding to access the raw methods on
 }
 
-// NewAuction creates a new instance of Auction, bound to a specific deployed contract.
-func NewAuction(address common.Address, backend bind.ContractBackend) (*Auction, error) {
-	contract, err := bindAuction(address, backend, backend, backend)
+// NewEthAuction creates a new instance of EthAuction, bound to a specific deployed contract.
+func NewEthAuction(address common.Address, backend bind.ContractBackend) (*EthAuction, error) {
+	contract, err := bindEthAuction(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
 	}
-	return &Auction{AuctionCaller: AuctionCaller{contract: contract}, AuctionTransactor: AuctionTransactor{contract: contract}, AuctionFilterer: AuctionFilterer{contract: contract}}, nil
+	return &EthAuction{EthAuctionCaller: EthAuctionCaller{contract: contract}, EthAuctionTransactor: EthAuctionTransactor{contract: contract}, EthAuctionFilterer: EthAuctionFilterer{contract: contract}}, nil
 }
 
-// NewAuctionCaller creates a new read-only instance of Auction, bound to a specific deployed contract.
-func NewAuctionCaller(address common.Address, caller bind.ContractCaller) (*AuctionCaller, error) {
-	contract, err := bindAuction(address, caller, nil, nil)
+// NewEthAuctionCaller creates a new read-only instance of EthAuction, bound to a specific deployed contract.
+func NewEthAuctionCaller(address common.Address, caller bind.ContractCaller) (*EthAuctionCaller, error) {
+	contract, err := bindEthAuction(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &AuctionCaller{contract: contract}, nil
+	return &EthAuctionCaller{contract: contract}, nil
 }
 
-// NewAuctionTransactor creates a new write-only instance of Auction, bound to a specific deployed contract.
-func NewAuctionTransactor(address common.Address, transactor bind.ContractTransactor) (*AuctionTransactor, error) {
-	contract, err := bindAuction(address, nil, transactor, nil)
+// NewEthAuctionTransactor creates a new write-only instance of EthAuction, bound to a specific deployed contract.
+func NewEthAuctionTransactor(address common.Address, transactor bind.ContractTransactor) (*EthAuctionTransactor, error) {
+	contract, err := bindEthAuction(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &AuctionTransactor{contract: contract}, nil
+	return &EthAuctionTransactor{contract: contract}, nil
 }
 
-// NewAuctionFilterer creates a new log filterer instance of Auction, bound to a specific deployed contract.
-func NewAuctionFilterer(address common.Address, filterer bind.ContractFilterer) (*AuctionFilterer, error) {
-	contract, err := bindAuction(address, nil, nil, filterer)
+// NewEthAuctionFilterer creates a new log filterer instance of EthAuction, bound to a specific deployed contract.
+func NewEthAuctionFilterer(address common.Address, filterer bind.ContractFilterer) (*EthAuctionFilterer, error) {
+	contract, err := bindEthAuction(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
 	}
-	return &AuctionFilterer{contract: contract}, nil
+	return &EthAuctionFilterer{contract: contract}, nil
 }
 
-// bindAuction binds a generic wrapper to an already deployed contract.
-func bindAuction(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := abi.JSON(strings.NewReader(AuctionABI))
+// bindEthAuction binds a generic wrapper to an already deployed contract.
+func bindEthAuction(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := abi.JSON(strings.NewReader(EthAuctionABI))
 	if err != nil {
 		return nil, err
 	}
@@ -180,77 +167,46 @@ func bindAuction(address common.Address, caller bind.ContractCaller, transactor 
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Auction *AuctionRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _Auction.Contract.AuctionCaller.contract.Call(opts, result, method, params...)
+func (_EthAuction *EthAuctionRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _EthAuction.Contract.EthAuctionCaller.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_Auction *AuctionRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Auction.Contract.AuctionTransactor.contract.Transfer(opts)
+func (_EthAuction *EthAuctionRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _EthAuction.Contract.EthAuctionTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_Auction *AuctionRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _Auction.Contract.AuctionTransactor.contract.Transact(opts, method, params...)
+func (_EthAuction *EthAuctionRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _EthAuction.Contract.EthAuctionTransactor.contract.Transact(opts, method, params...)
 }
 
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_Auction *AuctionCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _Auction.Contract.contract.Call(opts, result, method, params...)
+func (_EthAuction *EthAuctionCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _EthAuction.Contract.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_Auction *AuctionTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Auction.Contract.contract.Transfer(opts)
+func (_EthAuction *EthAuctionTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _EthAuction.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_Auction *AuctionTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _Auction.Contract.contract.Transact(opts, method, params...)
-}
-
-// Beneficiary is a free data retrieval call binding the contract method 0x38af3eed.
-//
-// Solidity: function beneficiary() view returns(address)
-func (_Auction *AuctionCaller) Beneficiary(opts *bind.CallOpts) (common.Address, error) {
-	var out []interface{}
-	err := _Auction.contract.Call(opts, &out, "beneficiary")
-
-	if err != nil {
-		return *new(common.Address), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-
-	return out0, err
-
-}
-
-// Beneficiary is a free data retrieval call binding the contract method 0x38af3eed.
-//
-// Solidity: function beneficiary() view returns(address)
-func (_Auction *AuctionSession) Beneficiary() (common.Address, error) {
-	return _Auction.Contract.Beneficiary(&_Auction.CallOpts)
-}
-
-// Beneficiary is a free data retrieval call binding the contract method 0x38af3eed.
-//
-// Solidity: function beneficiary() view returns(address)
-func (_Auction *AuctionCallerSession) Beneficiary() (common.Address, error) {
-	return _Auction.Contract.Beneficiary(&_Auction.CallOpts)
+func (_EthAuction *EthAuctionTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _EthAuction.Contract.contract.Transact(opts, method, params...)
 }
 
 // Ended is a free data retrieval call binding the contract method 0x12fa6feb.
 //
 // Solidity: function ended() view returns(bool)
-func (_Auction *AuctionCaller) Ended(opts *bind.CallOpts) (bool, error) {
+func (_EthAuction *EthAuctionCaller) Ended(opts *bind.CallOpts) (bool, error) {
 	var out []interface{}
-	err := _Auction.contract.Call(opts, &out, "ended")
+	err := _EthAuction.contract.Call(opts, &out, "ended")
 
 	if err != nil {
 		return *new(bool), err
@@ -265,23 +221,23 @@ func (_Auction *AuctionCaller) Ended(opts *bind.CallOpts) (bool, error) {
 // Ended is a free data retrieval call binding the contract method 0x12fa6feb.
 //
 // Solidity: function ended() view returns(bool)
-func (_Auction *AuctionSession) Ended() (bool, error) {
-	return _Auction.Contract.Ended(&_Auction.CallOpts)
+func (_EthAuction *EthAuctionSession) Ended() (bool, error) {
+	return _EthAuction.Contract.Ended(&_EthAuction.CallOpts)
 }
 
 // Ended is a free data retrieval call binding the contract method 0x12fa6feb.
 //
 // Solidity: function ended() view returns(bool)
-func (_Auction *AuctionCallerSession) Ended() (bool, error) {
-	return _Auction.Contract.Ended(&_Auction.CallOpts)
+func (_EthAuction *EthAuctionCallerSession) Ended() (bool, error) {
+	return _EthAuction.Contract.Ended(&_EthAuction.CallOpts)
 }
 
 // HighestBid is a free data retrieval call binding the contract method 0xd57bde79.
 //
 // Solidity: function highestBid() view returns(uint256)
-func (_Auction *AuctionCaller) HighestBid(opts *bind.CallOpts) (*big.Int, error) {
+func (_EthAuction *EthAuctionCaller) HighestBid(opts *bind.CallOpts) (*big.Int, error) {
 	var out []interface{}
-	err := _Auction.contract.Call(opts, &out, "highestBid")
+	err := _EthAuction.contract.Call(opts, &out, "highestBid")
 
 	if err != nil {
 		return *new(*big.Int), err
@@ -296,23 +252,23 @@ func (_Auction *AuctionCaller) HighestBid(opts *bind.CallOpts) (*big.Int, error)
 // HighestBid is a free data retrieval call binding the contract method 0xd57bde79.
 //
 // Solidity: function highestBid() view returns(uint256)
-func (_Auction *AuctionSession) HighestBid() (*big.Int, error) {
-	return _Auction.Contract.HighestBid(&_Auction.CallOpts)
+func (_EthAuction *EthAuctionSession) HighestBid() (*big.Int, error) {
+	return _EthAuction.Contract.HighestBid(&_EthAuction.CallOpts)
 }
 
 // HighestBid is a free data retrieval call binding the contract method 0xd57bde79.
 //
 // Solidity: function highestBid() view returns(uint256)
-func (_Auction *AuctionCallerSession) HighestBid() (*big.Int, error) {
-	return _Auction.Contract.HighestBid(&_Auction.CallOpts)
+func (_EthAuction *EthAuctionCallerSession) HighestBid() (*big.Int, error) {
+	return _EthAuction.Contract.HighestBid(&_EthAuction.CallOpts)
 }
 
 // HighestBidder is a free data retrieval call binding the contract method 0x91f90157.
 //
 // Solidity: function highestBidder() view returns(address)
-func (_Auction *AuctionCaller) HighestBidder(opts *bind.CallOpts) (common.Address, error) {
+func (_EthAuction *EthAuctionCaller) HighestBidder(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _Auction.contract.Call(opts, &out, "highestBidder")
+	err := _EthAuction.contract.Call(opts, &out, "highestBidder")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -327,83 +283,114 @@ func (_Auction *AuctionCaller) HighestBidder(opts *bind.CallOpts) (common.Addres
 // HighestBidder is a free data retrieval call binding the contract method 0x91f90157.
 //
 // Solidity: function highestBidder() view returns(address)
-func (_Auction *AuctionSession) HighestBidder() (common.Address, error) {
-	return _Auction.Contract.HighestBidder(&_Auction.CallOpts)
+func (_EthAuction *EthAuctionSession) HighestBidder() (common.Address, error) {
+	return _EthAuction.Contract.HighestBidder(&_EthAuction.CallOpts)
 }
 
 // HighestBidder is a free data retrieval call binding the contract method 0x91f90157.
 //
 // Solidity: function highestBidder() view returns(address)
-func (_Auction *AuctionCallerSession) HighestBidder() (common.Address, error) {
-	return _Auction.Contract.HighestBidder(&_Auction.CallOpts)
+func (_EthAuction *EthAuctionCallerSession) HighestBidder() (common.Address, error) {
+	return _EthAuction.Contract.HighestBidder(&_EthAuction.CallOpts)
 }
 
-// Bid is a paid mutator transaction binding the contract method 0x1998aeef.
+// Token is a free data retrieval call binding the contract method 0xfc0c546a.
 //
-// Solidity: function bid() payable returns()
-func (_Auction *AuctionTransactor) Bid(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Auction.contract.Transact(opts, "bid")
+// Solidity: function token() view returns(address)
+func (_EthAuction *EthAuctionCaller) Token(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _EthAuction.contract.Call(opts, &out, "token")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
 }
 
-// Bid is a paid mutator transaction binding the contract method 0x1998aeef.
+// Token is a free data retrieval call binding the contract method 0xfc0c546a.
 //
-// Solidity: function bid() payable returns()
-func (_Auction *AuctionSession) Bid() (*types.Transaction, error) {
-	return _Auction.Contract.Bid(&_Auction.TransactOpts)
+// Solidity: function token() view returns(address)
+func (_EthAuction *EthAuctionSession) Token() (common.Address, error) {
+	return _EthAuction.Contract.Token(&_EthAuction.CallOpts)
 }
 
-// Bid is a paid mutator transaction binding the contract method 0x1998aeef.
+// Token is a free data retrieval call binding the contract method 0xfc0c546a.
 //
-// Solidity: function bid() payable returns()
-func (_Auction *AuctionTransactorSession) Bid() (*types.Transaction, error) {
-	return _Auction.Contract.Bid(&_Auction.TransactOpts)
+// Solidity: function token() view returns(address)
+func (_EthAuction *EthAuctionCallerSession) Token() (common.Address, error) {
+	return _EthAuction.Contract.Token(&_EthAuction.CallOpts)
+}
+
+// Bid is a paid mutator transaction binding the contract method 0x454a2ab3.
+//
+// Solidity: function bid(uint256 bidAmount) returns()
+func (_EthAuction *EthAuctionTransactor) Bid(opts *bind.TransactOpts, bidAmount *big.Int) (*types.Transaction, error) {
+	return _EthAuction.contract.Transact(opts, "bid", bidAmount)
+}
+
+// Bid is a paid mutator transaction binding the contract method 0x454a2ab3.
+//
+// Solidity: function bid(uint256 bidAmount) returns()
+func (_EthAuction *EthAuctionSession) Bid(bidAmount *big.Int) (*types.Transaction, error) {
+	return _EthAuction.Contract.Bid(&_EthAuction.TransactOpts, bidAmount)
+}
+
+// Bid is a paid mutator transaction binding the contract method 0x454a2ab3.
+//
+// Solidity: function bid(uint256 bidAmount) returns()
+func (_EthAuction *EthAuctionTransactorSession) Bid(bidAmount *big.Int) (*types.Transaction, error) {
+	return _EthAuction.Contract.Bid(&_EthAuction.TransactOpts, bidAmount)
 }
 
 // EndAuction is a paid mutator transaction binding the contract method 0xfe67a54b.
 //
 // Solidity: function endAuction() returns()
-func (_Auction *AuctionTransactor) EndAuction(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Auction.contract.Transact(opts, "endAuction")
+func (_EthAuction *EthAuctionTransactor) EndAuction(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _EthAuction.contract.Transact(opts, "endAuction")
 }
 
 // EndAuction is a paid mutator transaction binding the contract method 0xfe67a54b.
 //
 // Solidity: function endAuction() returns()
-func (_Auction *AuctionSession) EndAuction() (*types.Transaction, error) {
-	return _Auction.Contract.EndAuction(&_Auction.TransactOpts)
+func (_EthAuction *EthAuctionSession) EndAuction() (*types.Transaction, error) {
+	return _EthAuction.Contract.EndAuction(&_EthAuction.TransactOpts)
 }
 
 // EndAuction is a paid mutator transaction binding the contract method 0xfe67a54b.
 //
 // Solidity: function endAuction() returns()
-func (_Auction *AuctionTransactorSession) EndAuction() (*types.Transaction, error) {
-	return _Auction.Contract.EndAuction(&_Auction.TransactOpts)
+func (_EthAuction *EthAuctionTransactorSession) EndAuction() (*types.Transaction, error) {
+	return _EthAuction.Contract.EndAuction(&_EthAuction.TransactOpts)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x3ccfd60b.
 //
 // Solidity: function withdraw() returns(bool)
-func (_Auction *AuctionTransactor) Withdraw(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _Auction.contract.Transact(opts, "withdraw")
+func (_EthAuction *EthAuctionTransactor) Withdraw(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _EthAuction.contract.Transact(opts, "withdraw")
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x3ccfd60b.
 //
 // Solidity: function withdraw() returns(bool)
-func (_Auction *AuctionSession) Withdraw() (*types.Transaction, error) {
-	return _Auction.Contract.Withdraw(&_Auction.TransactOpts)
+func (_EthAuction *EthAuctionSession) Withdraw() (*types.Transaction, error) {
+	return _EthAuction.Contract.Withdraw(&_EthAuction.TransactOpts)
 }
 
 // Withdraw is a paid mutator transaction binding the contract method 0x3ccfd60b.
 //
 // Solidity: function withdraw() returns(bool)
-func (_Auction *AuctionTransactorSession) Withdraw() (*types.Transaction, error) {
-	return _Auction.Contract.Withdraw(&_Auction.TransactOpts)
+func (_EthAuction *EthAuctionTransactorSession) Withdraw() (*types.Transaction, error) {
+	return _EthAuction.Contract.Withdraw(&_EthAuction.TransactOpts)
 }
 
-// AuctionAuctionEndedIterator is returned from FilterAuctionEnded and is used to iterate over the raw logs and unpacked data for AuctionEnded events raised by the Auction contract.
-type AuctionAuctionEndedIterator struct {
-	Event *AuctionAuctionEnded // Event containing the contract specifics and raw log
+// EthAuctionAuctionEndedIterator is returned from FilterAuctionEnded and is used to iterate over the raw logs and unpacked data for AuctionEnded events raised by the EthAuction contract.
+type EthAuctionAuctionEndedIterator struct {
+	Event *EthAuctionAuctionEnded // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -417,7 +404,7 @@ type AuctionAuctionEndedIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *AuctionAuctionEndedIterator) Next() bool {
+func (it *EthAuctionAuctionEndedIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -426,7 +413,7 @@ func (it *AuctionAuctionEndedIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(AuctionAuctionEnded)
+			it.Event = new(EthAuctionAuctionEnded)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -441,7 +428,7 @@ func (it *AuctionAuctionEndedIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(AuctionAuctionEnded)
+		it.Event = new(EthAuctionAuctionEnded)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -457,19 +444,19 @@ func (it *AuctionAuctionEndedIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *AuctionAuctionEndedIterator) Error() error {
+func (it *EthAuctionAuctionEndedIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *AuctionAuctionEndedIterator) Close() error {
+func (it *EthAuctionAuctionEndedIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// AuctionAuctionEnded represents a AuctionEnded event raised by the Auction contract.
-type AuctionAuctionEnded struct {
+// EthAuctionAuctionEnded represents a AuctionEnded event raised by the EthAuction contract.
+type EthAuctionAuctionEnded struct {
 	Winner common.Address
 	Amount *big.Int
 	Raw    types.Log // Blockchain specific contextual infos
@@ -478,21 +465,21 @@ type AuctionAuctionEnded struct {
 // FilterAuctionEnded is a free log retrieval operation binding the contract event 0xdaec4582d5d9595688c8c98545fdd1c696d41c6aeaeb636737e84ed2f5c00eda.
 //
 // Solidity: event AuctionEnded(address winner, uint256 amount)
-func (_Auction *AuctionFilterer) FilterAuctionEnded(opts *bind.FilterOpts) (*AuctionAuctionEndedIterator, error) {
+func (_EthAuction *EthAuctionFilterer) FilterAuctionEnded(opts *bind.FilterOpts) (*EthAuctionAuctionEndedIterator, error) {
 
-	logs, sub, err := _Auction.contract.FilterLogs(opts, "AuctionEnded")
+	logs, sub, err := _EthAuction.contract.FilterLogs(opts, "AuctionEnded")
 	if err != nil {
 		return nil, err
 	}
-	return &AuctionAuctionEndedIterator{contract: _Auction.contract, event: "AuctionEnded", logs: logs, sub: sub}, nil
+	return &EthAuctionAuctionEndedIterator{contract: _EthAuction.contract, event: "AuctionEnded", logs: logs, sub: sub}, nil
 }
 
 // WatchAuctionEnded is a free log subscription operation binding the contract event 0xdaec4582d5d9595688c8c98545fdd1c696d41c6aeaeb636737e84ed2f5c00eda.
 //
 // Solidity: event AuctionEnded(address winner, uint256 amount)
-func (_Auction *AuctionFilterer) WatchAuctionEnded(opts *bind.WatchOpts, sink chan<- *AuctionAuctionEnded) (event.Subscription, error) {
+func (_EthAuction *EthAuctionFilterer) WatchAuctionEnded(opts *bind.WatchOpts, sink chan<- *EthAuctionAuctionEnded) (event.Subscription, error) {
 
-	logs, sub, err := _Auction.contract.WatchLogs(opts, "AuctionEnded")
+	logs, sub, err := _EthAuction.contract.WatchLogs(opts, "AuctionEnded")
 	if err != nil {
 		return nil, err
 	}
@@ -502,8 +489,8 @@ func (_Auction *AuctionFilterer) WatchAuctionEnded(opts *bind.WatchOpts, sink ch
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(AuctionAuctionEnded)
-				if err := _Auction.contract.UnpackLog(event, "AuctionEnded", log); err != nil {
+				event := new(EthAuctionAuctionEnded)
+				if err := _EthAuction.contract.UnpackLog(event, "AuctionEnded", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -527,18 +514,18 @@ func (_Auction *AuctionFilterer) WatchAuctionEnded(opts *bind.WatchOpts, sink ch
 // ParseAuctionEnded is a log parse operation binding the contract event 0xdaec4582d5d9595688c8c98545fdd1c696d41c6aeaeb636737e84ed2f5c00eda.
 //
 // Solidity: event AuctionEnded(address winner, uint256 amount)
-func (_Auction *AuctionFilterer) ParseAuctionEnded(log types.Log) (*AuctionAuctionEnded, error) {
-	event := new(AuctionAuctionEnded)
-	if err := _Auction.contract.UnpackLog(event, "AuctionEnded", log); err != nil {
+func (_EthAuction *EthAuctionFilterer) ParseAuctionEnded(log types.Log) (*EthAuctionAuctionEnded, error) {
+	event := new(EthAuctionAuctionEnded)
+	if err := _EthAuction.contract.UnpackLog(event, "AuctionEnded", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
 	return event, nil
 }
 
-// AuctionHighestBidIncreasedIterator is returned from FilterHighestBidIncreased and is used to iterate over the raw logs and unpacked data for HighestBidIncreased events raised by the Auction contract.
-type AuctionHighestBidIncreasedIterator struct {
-	Event *AuctionHighestBidIncreased // Event containing the contract specifics and raw log
+// EthAuctionHighestBidIncreasedIterator is returned from FilterHighestBidIncreased and is used to iterate over the raw logs and unpacked data for HighestBidIncreased events raised by the EthAuction contract.
+type EthAuctionHighestBidIncreasedIterator struct {
+	Event *EthAuctionHighestBidIncreased // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -552,7 +539,7 @@ type AuctionHighestBidIncreasedIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *AuctionHighestBidIncreasedIterator) Next() bool {
+func (it *EthAuctionHighestBidIncreasedIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -561,7 +548,7 @@ func (it *AuctionHighestBidIncreasedIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(AuctionHighestBidIncreased)
+			it.Event = new(EthAuctionHighestBidIncreased)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -576,7 +563,7 @@ func (it *AuctionHighestBidIncreasedIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(AuctionHighestBidIncreased)
+		it.Event = new(EthAuctionHighestBidIncreased)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -592,19 +579,19 @@ func (it *AuctionHighestBidIncreasedIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *AuctionHighestBidIncreasedIterator) Error() error {
+func (it *EthAuctionHighestBidIncreasedIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *AuctionHighestBidIncreasedIterator) Close() error {
+func (it *EthAuctionHighestBidIncreasedIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// AuctionHighestBidIncreased represents a HighestBidIncreased event raised by the Auction contract.
-type AuctionHighestBidIncreased struct {
+// EthAuctionHighestBidIncreased represents a HighestBidIncreased event raised by the EthAuction contract.
+type EthAuctionHighestBidIncreased struct {
 	Bidder common.Address
 	Amount *big.Int
 	Raw    types.Log // Blockchain specific contextual infos
@@ -613,21 +600,21 @@ type AuctionHighestBidIncreased struct {
 // FilterHighestBidIncreased is a free log retrieval operation binding the contract event 0xf4757a49b326036464bec6fe419a4ae38c8a02ce3e68bf0809674f6aab8ad300.
 //
 // Solidity: event HighestBidIncreased(address bidder, uint256 amount)
-func (_Auction *AuctionFilterer) FilterHighestBidIncreased(opts *bind.FilterOpts) (*AuctionHighestBidIncreasedIterator, error) {
+func (_EthAuction *EthAuctionFilterer) FilterHighestBidIncreased(opts *bind.FilterOpts) (*EthAuctionHighestBidIncreasedIterator, error) {
 
-	logs, sub, err := _Auction.contract.FilterLogs(opts, "HighestBidIncreased")
+	logs, sub, err := _EthAuction.contract.FilterLogs(opts, "HighestBidIncreased")
 	if err != nil {
 		return nil, err
 	}
-	return &AuctionHighestBidIncreasedIterator{contract: _Auction.contract, event: "HighestBidIncreased", logs: logs, sub: sub}, nil
+	return &EthAuctionHighestBidIncreasedIterator{contract: _EthAuction.contract, event: "HighestBidIncreased", logs: logs, sub: sub}, nil
 }
 
 // WatchHighestBidIncreased is a free log subscription operation binding the contract event 0xf4757a49b326036464bec6fe419a4ae38c8a02ce3e68bf0809674f6aab8ad300.
 //
 // Solidity: event HighestBidIncreased(address bidder, uint256 amount)
-func (_Auction *AuctionFilterer) WatchHighestBidIncreased(opts *bind.WatchOpts, sink chan<- *AuctionHighestBidIncreased) (event.Subscription, error) {
+func (_EthAuction *EthAuctionFilterer) WatchHighestBidIncreased(opts *bind.WatchOpts, sink chan<- *EthAuctionHighestBidIncreased) (event.Subscription, error) {
 
-	logs, sub, err := _Auction.contract.WatchLogs(opts, "HighestBidIncreased")
+	logs, sub, err := _EthAuction.contract.WatchLogs(opts, "HighestBidIncreased")
 	if err != nil {
 		return nil, err
 	}
@@ -637,8 +624,8 @@ func (_Auction *AuctionFilterer) WatchHighestBidIncreased(opts *bind.WatchOpts, 
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(AuctionHighestBidIncreased)
-				if err := _Auction.contract.UnpackLog(event, "HighestBidIncreased", log); err != nil {
+				event := new(EthAuctionHighestBidIncreased)
+				if err := _EthAuction.contract.UnpackLog(event, "HighestBidIncreased", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -662,9 +649,163 @@ func (_Auction *AuctionFilterer) WatchHighestBidIncreased(opts *bind.WatchOpts, 
 // ParseHighestBidIncreased is a log parse operation binding the contract event 0xf4757a49b326036464bec6fe419a4ae38c8a02ce3e68bf0809674f6aab8ad300.
 //
 // Solidity: event HighestBidIncreased(address bidder, uint256 amount)
-func (_Auction *AuctionFilterer) ParseHighestBidIncreased(log types.Log) (*AuctionHighestBidIncreased, error) {
-	event := new(AuctionHighestBidIncreased)
-	if err := _Auction.contract.UnpackLog(event, "HighestBidIncreased", log); err != nil {
+func (_EthAuction *EthAuctionFilterer) ParseHighestBidIncreased(log types.Log) (*EthAuctionHighestBidIncreased, error) {
+	event := new(EthAuctionHighestBidIncreased)
+	if err := _EthAuction.contract.UnpackLog(event, "HighestBidIncreased", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// EthAuctionTransferIterator is returned from FilterTransfer and is used to iterate over the raw logs and unpacked data for Transfer events raised by the EthAuction contract.
+type EthAuctionTransferIterator struct {
+	Event *EthAuctionTransfer // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *EthAuctionTransferIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(EthAuctionTransfer)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(EthAuctionTransfer)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *EthAuctionTransferIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *EthAuctionTransferIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// EthAuctionTransfer represents a Transfer event raised by the EthAuction contract.
+type EthAuctionTransfer struct {
+	Src common.Address
+	Dst common.Address
+	Wad *big.Int
+	Raw types.Log // Blockchain specific contextual infos
+}
+
+// FilterTransfer is a free log retrieval operation binding the contract event 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
+//
+// Solidity: event Transfer(address indexed src, address indexed dst, uint256 wad)
+func (_EthAuction *EthAuctionFilterer) FilterTransfer(opts *bind.FilterOpts, src []common.Address, dst []common.Address) (*EthAuctionTransferIterator, error) {
+
+	var srcRule []interface{}
+	for _, srcItem := range src {
+		srcRule = append(srcRule, srcItem)
+	}
+	var dstRule []interface{}
+	for _, dstItem := range dst {
+		dstRule = append(dstRule, dstItem)
+	}
+
+	logs, sub, err := _EthAuction.contract.FilterLogs(opts, "Transfer", srcRule, dstRule)
+	if err != nil {
+		return nil, err
+	}
+	return &EthAuctionTransferIterator{contract: _EthAuction.contract, event: "Transfer", logs: logs, sub: sub}, nil
+}
+
+// WatchTransfer is a free log subscription operation binding the contract event 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
+//
+// Solidity: event Transfer(address indexed src, address indexed dst, uint256 wad)
+func (_EthAuction *EthAuctionFilterer) WatchTransfer(opts *bind.WatchOpts, sink chan<- *EthAuctionTransfer, src []common.Address, dst []common.Address) (event.Subscription, error) {
+
+	var srcRule []interface{}
+	for _, srcItem := range src {
+		srcRule = append(srcRule, srcItem)
+	}
+	var dstRule []interface{}
+	for _, dstItem := range dst {
+		dstRule = append(dstRule, dstItem)
+	}
+
+	logs, sub, err := _EthAuction.contract.WatchLogs(opts, "Transfer", srcRule, dstRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(EthAuctionTransfer)
+				if err := _EthAuction.contract.UnpackLog(event, "Transfer", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseTransfer is a log parse operation binding the contract event 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef.
+//
+// Solidity: event Transfer(address indexed src, address indexed dst, uint256 wad)
+func (_EthAuction *EthAuctionFilterer) ParseTransfer(log types.Log) (*EthAuctionTransfer, error) {
+	event := new(EthAuctionTransfer)
+	if err := _EthAuction.contract.UnpackLog(event, "Transfer", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

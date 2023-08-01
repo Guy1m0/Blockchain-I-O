@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -20,7 +20,8 @@ const (
 	password = "password"
 
 	zkNodes       = "localhost:2181"
-	setupInfoFile = "../erc20_info.json"
+	userInfoFile  = "../user_info.json"
+	erc20InfoFile = "../erc20_info.json"
 )
 
 type CreateAuctionRequest struct {
@@ -34,6 +35,11 @@ var (
 	quoClient *ethclient.Client
 
 	assetClient *ecomm.AssetClient
+
+	aucT     *bind.TransactOpts
+	auc_name = "Auctioner 1"
+	auc_key  = "../../keys/key1"
+
 	//ccsvc       *cclib.CCService
 
 	asset     *ecomm.Asset
@@ -44,11 +50,11 @@ var (
 )
 
 func main() {
-	// var erc20_info ecomm.Erc20Info
-	// ecomm.ReadJsonFile(setupInfoFile, &erc20_info)
+	var erc20_info ecomm.Erc20Info
+	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
 
-	// eth_ERC20 = erc20_info.EthERC20
-	// quo_ERC20 = erc20_info.QuoERC20
+	eth_ERC20 = erc20_info.EthERC20
+	quo_ERC20 = erc20_info.QuoERC20
 
 	var err error
 	ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
@@ -60,32 +66,29 @@ func main() {
 	assetClient = ecomm.NewAssetClient()
 
 	command := flag.String("c", "", "command")
-	//asset := flag.String("n", "", "Asset name")
-	//id := flag.String("i", "", "Asset ID")
+	asset := flag.String("ast", "", "Asset name")
+	id := flag.String("id", "", "Auction ID")
+
+	flag.StringVar(&auc_name, "name", auc_name, "Load Auctioner Information")
 	flag.Parse()
 
-	parts := strings.Split(*command, ":")
-	cmd := parts[0]
+	fmt.Println("Load Auctioner: ", auc_name)
+	load_auctioner(auc_name)
+	aucT, err = cclib.NewTransactor(auc_key, password)
+	check(err)
+	// parts := strings.Split(*command, ":")
+	// cmd := parts[0]
 
-	switch cmd {
-
+	switch *command {
 	case "create":
-		if len(parts) > 1 {
-			args := strings.Split(parts[1], ",")
-			if len(args) == 1 {
-				create(args[0])
-			}
-		}
+		create(*asset)
 	case "end":
-		if len(parts) > 1 {
-			args := strings.Split(parts[1], ",")
-			if len(args) == 1 {
-				id, _ := strconv.Atoi(args[0])
-				endAuction(id)
-			}
-		}
-	case "init":
-		initialize()
+		id_, _ := strconv.Atoi(*id)
+		end(id_)
+	case "login":
+		login()
+	// case "init":
+	// 	initialize()
 	default:
 		fmt.Println("command not found")
 	}
@@ -101,18 +104,24 @@ func main() {
 }
 
 // not need this i think
-func initialize() {
-	ccsvc, err := cclib.NewEventService(
-		strings.Split(zkNodes, ","),
-		fmt.Sprintf("auctioner"),
-	)
-	check(err)
+// func initialize() {
+// 	ccsvc, err := cclib.NewEventService(
+// 		strings.Split(zkNodes, ","),
+// 		fmt.Sprintf("auctioner"),
+// 	)
+// 	check(err)
 
-	ccsvc.Register(ecomm.ProceedAuctionResultEvent, handleProceedingAuction)
+// 	ccsvc.Register(ecomm.ProceedAuctionResultEvent, handleProceedingAuction)
 
-	err = ccsvc.Start(true)
-	check(err)
-}
+// 	err = ccsvc.Start(true)
+// 	check(err)
+// }
+
+// Bidder/Auctioner has no idea of what happened on other platform
+
+// 1. Update Asset Contract deployed on Fabric
+// 2. Publish related event
+// 3. Relayer create corresponding tx based on received event
 
 // Use key 1 as default auctioner
 func create(asset_name string) {
@@ -139,44 +148,7 @@ func create(asset_name string) {
 	// till this part, no relayer involved yet
 }
 
-// Default use ../../../keys/key1
-func addAsset(id string) *ecomm.Asset {
-	fmt.Println("Load Auctioner")
-	aucT, err := cclib.NewTransactor("../../keys/key1", password)
-	check(err)
-	fmt.Println("Create New Auction")
-	_, err = assetClient.AddAsset(id, aucT.From.Hex())
-	check(err)
-	time.Sleep(3 * time.Second)
-	asset, err := assetClient.GetAsset(id)
-	check(err)
-	fmt.Println("Auction added on Fabric with owner: ", asset.Owner)
-	return asset
-}
-
-// Auction Contract is already deployed in Fabric Network
-// Just create a asset/auction obj in one global variable stored in this
-func startAuction(assetID, ethAddr, quorumAddr string) *ecomm.Auction {
-	args := ecomm.StartAuctionArgs{
-		AssetID:    assetID,
-		EthAddr:    ethAddr,
-		QuorumAddr: quorumAddr,
-	}
-	_, err := assetClient.StartAuction(args)
-	check(err)
-	time.Sleep(3 * time.Second)
-	fmt.Println("Started auction for asset")
-
-	auctionID, err := assetClient.GetLastAuctionID()
-	check(err)
-	fmt.Println("AuctionID: ", auctionID)
-
-	a, err := assetClient.GetAuction(auctionID)
-	check(err)
-	return a
-}
-
-func endAuction(auctionID int) {
+func end(auctionID int) {
 	a, err := assetClient.GetAuction(auctionID)
 	check(err)
 
@@ -184,6 +156,7 @@ func endAuction(auctionID int) {
 	check(err)
 
 	for {
+		// @wait
 		time.Sleep(1 * time.Second)
 		a, err = assetClient.GetAuction(a.ID)
 		check(err)
@@ -210,51 +183,8 @@ func endAuction(auctionID int) {
 	ccsvc.Publish(ecomm.AuctionEndingEvent, payload)
 }
 
-// this is only used for recording bid
-// Use Auctioner 1's key1 to deploy contract
-func deployCrossChainAuction(client *ethclient.Client, erc20 common.Address) string {
-	auth, err := cclib.NewTransactor("../../keys/key1", password)
-	check(err)
+func login() {
 
-	addr, tx, _, err := eth_auction.DeployEthAuction(auth, client, erc20)
-	check(err)
-
-	success, err := cclib.WaitTx(client, tx.Hash())
-	check(err)
-
-	printTxStatus(success)
-	fmt.Printf("Auction contract address: %s\n", addr.Hex())
-
-	return addr.Hex()
-}
-
-func newAuctionSession(
-	addr common.Address, eth *ethclient.Client, keyfile string,
-) *eth_auction.EthAuctionSession {
-	auth, err := cclib.NewTransactor(keyfile, password)
-	check(err)
-
-	cc, err := eth_auction.NewEthAuction(addr, eth)
-	check(err)
-
-	return &eth_auction.EthAuctionSession{
-		Contract:     cc,
-		TransactOpts: *auth,
-	}
-}
-
-func printTxStatus(success bool) {
-	if success {
-		fmt.Println("Transaction successful")
-	} else {
-		fmt.Println("Transaction failed")
-	}
-}
-
-func check(err error) {
-	if err != nil {
-		panic(err)
-	}
 }
 
 // also no relayer involved, 'locally' make bid
@@ -280,9 +210,3 @@ func check(err error) {
 // 	check(err)
 // 	fmt.Println("highest bid:", highestBid)
 // }
-
-func handleProceedingAuction(payload []byte) {
-	var a ecomm.Auction
-	err := json.Unmarshal(payload, &a)
-	check(err)
-}

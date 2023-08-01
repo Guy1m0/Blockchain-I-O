@@ -1,7 +1,0 @@
-{
-  "ZkNodes": "localhost:2181",
-  "Endpoint": "http://localhost:8545",
-  "Keyfile": "../../keys/key2",
-  "Platform": "eth",
-  "Erc20": "0x11285cbbdaee1f046460a387d9a5f0d2352ddaba"
-}

@@ -24,6 +24,7 @@ contract Auction {
     // Events that will be emitted on changes.
     event HighestBidIncreased(address bidder, uint amount);
     event AuctionEnded(address winner, uint amount);
+    event Transfer(address indexed src, address indexed dst, uint wad);
 
     IERC20 public token;
 

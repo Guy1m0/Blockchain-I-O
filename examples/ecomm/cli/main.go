@@ -36,6 +36,9 @@ var (
 
 	ethClient *ethclient.Client
 	quoClient *ethclient.Client
+
+	plt = "eth"
+	amt = "100"
 )
 
 func main() {
@@ -45,13 +48,16 @@ func main() {
 	quoClient = ecomm.NewQuorumClient()
 
 	command := flag.String("c", "", "command")
-	flag.StringVar(&token_name, "name", token_name, "platform")
+	usr := flag.String("name", "", "user name")
+	flag.StringVar(&token_name, "coin", token_name, "Stable coin token name")
+	flag.StringVar(&amt, "amt", amt, "Set new user initial balance")
+	flag.StringVar(&plt, "p", plt, "Platform for new user")
 	flag.Parse()
 
-	parts := strings.Split(*command, ":")
-	cmd := parts[0]
+	// parts := strings.Split(*command, ":")
+	// cmd := parts[0]
 
-	switch cmd {
+	switch *command {
 	case "init":
 		initialize(token_name)
 	case "setup":
@@ -59,15 +65,7 @@ func main() {
 	case "display":
 		display()
 	case "add":
-		if len(parts) > 1 {
-			// Split the arguments by ","
-			// Use "" to include ' ' in args
-			args := strings.Split(parts[1], ",")
-			if len(args) == 3 {
-				add_user(args[0], args[1], args[2])
-			}
-		}
-
+		add_user(*usr, plt, amt)
 	default:
 		fmt.Println("command not found")
 	}
@@ -214,16 +212,21 @@ func add_user(user_id string, platform string, amount string) {
 	userT, err := cclib.NewTransactor(user_key, password)
 	check(err)
 
-	amt, _ := strconv.ParseInt(amount, 10, 64)
+	amout_, _ := strconv.ParseInt(amount, 10, 64)
 	eth_ERC20, quo_ERC20, fabric_ERC20 := load_ERC20()
 
 	if platform == "eth" {
-		ecomm.TransferToken(ethClient, eth_ERC20, rootT, userT.From, amt)
+		ecomm.TransferToken(ethClient, eth_ERC20, rootT, userT.From, amout_)
+		_, err = fabric_ERC20.SubmitTransaction("Transfer", userT.From.Hex(), "0")
+		check(err)
+	} else if platform == "quo" {
+		ecomm.TransferToken(quoClient, quo_ERC20, rootT, userT.From, amout_)
+		_, err = fabric_ERC20.SubmitTransaction("Transfer", userT.From.Hex(), "0")
+		check(err)
 	} else {
-		ecomm.TransferToken(quoClient, quo_ERC20, rootT, userT.From, amt)
+		_, err = fabric_ERC20.SubmitTransaction("Transfer", userT.From.Hex(), amount)
+		check(err)
 	}
-	_, err = fabric_ERC20.SubmitTransaction("Transfer", userT.From.Hex(), "0")
-	check(err)
 
 	ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
 		UserID:  user_id,

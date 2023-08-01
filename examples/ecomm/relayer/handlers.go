@@ -30,3 +30,29 @@ func handleSignedAuctionResult(payload []byte) {
 		assetClient.FinalizeAuction(*merged)
 	}
 }
+
+func handleAuctionCreating(payload []byte) {
+	var result ecomm.Auction
+	err := json.Unmarshal(payload, &result)
+	check(err)
+
+	mutex.Lock()
+	defer mutex.Unlock()
+}
+
+func handleAuctionEnding(payload []byte) {
+	var result ecomm.Auction
+	err := json.Unmarshal(payload, &result)
+	check(err)
+
+	mutex.Lock()
+	defer mutex.Unlock()
+}
+
+func handleProceedingAuctionResult(payload []byte) {
+
+}
+
+func handleAbortAuctionResult(payload []byte) {
+
+}

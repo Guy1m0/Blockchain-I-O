@@ -13,15 +13,5 @@
     "UserID": "Bidder 2",
     "Address": "0xd3cf32a24e4527cf84ef0c8d571f8a77f6481984",
     "KeyFile": "../../keys/key3"
-  },
-  {
-    "UserID": "Bidder3",
-    "Address": "0x763a9766405878e73fa45f26c95fe6d43913ff44",
-    "KeyFile": "../../keys/key4"
-  },
-  {
-    "UserID": "bidder 4",
-    "Address": "0x0e88fa918b9dd6d1a11285864d7350e6d923de40",
-    "KeyFile": "../../keys/key5"
   }
 ]
