@@ -68,7 +68,6 @@ func main() {
 	command := flag.String("c", "", "command")
 	asset := flag.String("ast", "", "Asset name")
 	id := flag.String("id", "", "Auction ID")
-
 	flag.StringVar(&auc_name, "name", auc_name, "Load Auctioner Information")
 	flag.Parse()
 
@@ -155,12 +154,19 @@ func end(auctionID int) {
 	_, err = assetClient.EndAuction(a.AssetID)
 	check(err)
 
+	fmt.Println("auction ID:", auctionID, "AssetID:", a.AssetID)
+
+	time.Sleep(3 * time.Second)
+	a, _ = assetClient.GetAuction(auctionID)
+
+	fmt.Println("Check status:", a.Status)
+
 	for {
 		// @wait
 		time.Sleep(1 * time.Second)
-		a, err = assetClient.GetAuction(a.ID)
+		a, err = assetClient.GetAuction(auctionID)
 		check(err)
-		if a.Status == "Ended" {
+		if a.Status == "Ending" {
 
 			fmt.Println("Auction Ended")
 			fmt.Println("Highest Bidder: ", a.HighestBidder)

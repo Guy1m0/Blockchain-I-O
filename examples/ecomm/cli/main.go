@@ -109,8 +109,11 @@ func initialize(token_name string) {
 	// check(err)
 	// fmt.Println("Mint: ", tmp.String())
 
-	err = os.Remove(userInfoFile)
-	check(err)
+	if _, err := os.Stat(userInfoFile); err == nil {
+		// If no error is returned, the file exists and you can try to remove it
+		err = os.Remove(userInfoFile)
+		check(err)
+	}
 
 	ecomm.WriteJsonFile(erc20InfoFile, ecomm.Erc20Info{
 		FabricTokenName: token_name,
