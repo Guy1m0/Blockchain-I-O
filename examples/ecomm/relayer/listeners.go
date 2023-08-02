@@ -7,6 +7,8 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 )
 
+// Check if any auction's status is Ending,
+// Then publish related event
 func runAuctionListener() {
 	for {
 		// listen each new creating auction
@@ -25,6 +27,7 @@ func onNewAuction(a *ecomm.Auction) {
 
 func onAuctionEnding(a *ecomm.Auction) {
 	b, _ := json.Marshal(a)
+	// Notify relayer in Eth/Quo that one auction is ending
 	ccsvc.Publish(ecomm.AuctionEndingEvent, b)
 }
 

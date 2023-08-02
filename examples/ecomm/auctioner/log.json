@@ -1,0 +1,42 @@
+{
+  "Data": {
+    "ID": "NFT123",
+    "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
+    "PendingAuctionID": 0
+  },
+  "Event": "add_asset",
+  "PayloadMap": {
+    "ID": "NFT123",
+    "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
+    "PendingAuctionID": 0
+  },
+  "Time": "2023-08-02T16:37:49+08:00"
+}
+{
+  "Data": {
+    "ID": "NFT123",
+    "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
+    "PendingAuctionID": 0
+  },
+  "Event": "add_asset",
+  "PayloadMap": {
+    "ID": "NFT123",
+    "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
+    "PendingAuctionID": 0
+  },
+  "Time": "2023-08-02T16:38:21+08:00"
+}
+{
+  "Data": {
+    "ID": "NFT1234",
+    "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
+    "PendingAuctionID": 0
+  },
+  "Event": "add_asset",
+  "PayloadMap": {
+    "ID": "NFT1234",
+    "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
+    "PendingAuctionID": 0
+  },
+  "Time": "2023-08-02T16:42:17+08:00"
+}

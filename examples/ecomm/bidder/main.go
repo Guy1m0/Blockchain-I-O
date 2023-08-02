@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"math/big"
@@ -173,6 +174,17 @@ func bidAuction(auction_id int, amount *big.Int) {
 
 	Auction_addr := common.HexToAddress(Auction_addr_)
 
+	// log
+	payload, _ := json.Marshal(&ecomm.Bid{
+		Bidder:      bidT.From,
+		BidAmount:   *amount,
+		AuctionAddr: Auction_addr,
+		Platform:    platform,
+		AuctionID:   auction_id,
+		AssetID:     a.AssetID,
+	})
+	cclib.LogEventToFile(ecomm.BiddingAuctionEvent, payload)
+
 	// Approve amount of bid through ERC20 contract
 	MDAI, _ := eth_stable_coin.NewEthStableCoin(erc20_address, client)
 	tx, _ := MDAI.Approve(bidT, Auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
@@ -194,8 +206,15 @@ func bidAuction(auction_id int, amount *big.Int) {
 	//fmt.Printf("Bid on Auction ID: %d through contract: %s\n", a.ID, Auction_addr)
 	tx, err = Auction.Bid(bidT, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	check(err)
-	ecomm.WaitTx(client, tx, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, Auction_addr))
+	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, Auction_addr))
 	//debugTransaction(tx)
+	// log
+	payload, _ = json.Marshal(&ecomm.Tx{
+		Platform: platform,
+		Type:     "Bid",
+		Receipt:  receipt,
+	})
+	cclib.LogEventToFile(ecomm.TransactionMinedEvent, payload)
 
 	highestBidder, err := Auction.HighestBidder(&bind.CallOpts{})
 	check(err)

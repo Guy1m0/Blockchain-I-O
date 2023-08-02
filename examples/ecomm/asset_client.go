@@ -76,6 +76,9 @@ func (cc *AssetClient) StartAuction(args StartAuctionArgs) ([]byte, error) {
 	return cc.contract.SubmitTransaction("StartAuction", string(b))
 }
 
+// Not use same assetID!!!!
+// when auctioner tries to end one, which actually ends the latest Auction
+// with same assetID
 func (cc *AssetClient) EndAuction(assetID string) ([]byte, error) {
 	return cc.contract.SubmitTransaction("EndAuction", assetID)
 }

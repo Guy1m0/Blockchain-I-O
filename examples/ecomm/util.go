@@ -54,7 +54,7 @@ func PrintTokenBalance(token *eth_stable_coin.EthStableCoin, address common.Addr
 		big.NewInt(0).Div(valueB, DecimalB).String(),
 	)
 }
-func WaitTx(client *ethclient.Client, tx *types.Transaction, label string) {
+func WaitTx(client *ethclient.Client, tx *types.Transaction, label string) *types.Receipt {
 	fmt.Println(label + "...")
 	receipt, err := bind.WaitMined(context.Background(), client, tx)
 	check(err)
@@ -83,6 +83,7 @@ func WaitTx(client *ethclient.Client, tx *types.Transaction, label string) {
 	}
 
 	fmt.Printf("Transaction mined in block: %d with status: %s and cost: %d\n", receipt.BlockNumber, status, receipt.GasUsed)
+	return receipt
 }
 
 // Call this when necessary

@@ -1,13 +1,21 @@
 package cclib
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
+	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/Shopify/sarama"
 	kb "github.com/philipjkim/kafka-brokers-go"
 	"github.com/wvanbergen/kafka/consumergroup"
+)
+
+const (
+	logFile = "log.json"
 )
 
 type EventHandler func(payload []byte)
@@ -41,6 +49,7 @@ func (svc *CCService) Register(event string, handler EventHandler) {
 }
 
 // sends a message (event and its payload) to the Kafka cluster.
+// @todo Log each events
 func (svc *CCService) Publish(event string, payload []byte) error {
 	message := &sarama.ProducerMessage{Topic: event}
 	message.Value = sarama.ByteEncoder(payload)
@@ -48,8 +57,77 @@ func (svc *CCService) Publish(event string, payload []byte) error {
 	if err != nil {
 		return err
 	}
+
+	LogEventToFile(event, payload)
+	//data, err := unmarshalPayload(event, payload)
+
 	log.Printf("Published event: %s\n", event)
 	return nil
+}
+
+func unmarshalPayload(event string, payload []byte) (interface{}, error) {
+	var data interface{}
+
+	switch event {
+	case "auction_ending":
+		data = new(ecomm.Auction)
+	case "auction_creating":
+		data = new(ecomm.Auction)
+	case "add_asset":
+		data = new(ecomm.Asset)
+	case "bid_auc":
+		data = new(ecomm.Bid)
+	case "tx_mined":
+		data = new(ecomm.Tx)
+	// more cases...
+	default:
+		return nil, fmt.Errorf("unknown event: %s", event)
+	}
+
+	err := json.Unmarshal(payload, data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func LogEventToFile(event string, payload []byte) {
+	// Create new file or append to existing one
+	file, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	// Parse payload into a map
+	// var payloadMap interface{}
+	// err = json.Unmarshal(payload, &payloadMap)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	data, err := unmarshalPayload(event, payload)
+	if err != nil {
+		panic(err)
+	}
+
+	// Create new event
+	newEvent := map[string]interface{}{
+		"Event": event,
+		"Time":  time.Now().Format(time.RFC3339),
+		"Data":  data,
+	}
+
+	// Convert the event to JSON
+	eventJSON, err := json.MarshalIndent(newEvent, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+
+	// Write the event to the file, followed by a newline
+	if _, err := file.Write(append(eventJSON, '\n')); err != nil {
+		panic(err)
+	}
 }
 
 func (svc *CCService) setupKafkaProducer() error {

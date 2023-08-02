@@ -2,9 +2,11 @@ package ecomm
 
 import (
 	"fmt"
+	"math/big"
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -19,6 +21,10 @@ type EComm struct {
 
 	Loan    int64
 	Intrest int64
+}
+
+type logging struct {
+	Event string
 }
 
 func (fl *EComm) Hash() string {
@@ -97,6 +103,24 @@ type Auction struct {
 	HighestBidPlatform string
 }
 
+type Bid struct {
+	Bidder common.Address
+
+	BidAmount   big.Int
+	AuctionAddr common.Address
+	Platform    string
+
+	AuctionID int
+	AssetID   string
+}
+
+type Tx struct {
+	Platform string
+	Type     string
+	Receipt  *types.Receipt
+}
+
+// Struct used as input for creating new Auction
 type StartAuctionArgs struct {
 	AssetID    string
 	EthAddr    string

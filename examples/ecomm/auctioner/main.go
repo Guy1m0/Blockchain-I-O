@@ -88,6 +88,9 @@ func main() {
 		login()
 	// case "init":
 	// 	initialize()
+	case "check":
+		id_, _ := strconv.Atoi(*id)
+		check_status(id_)
 	default:
 		fmt.Println("command not found")
 	}
@@ -127,6 +130,8 @@ func create(asset_name string) {
 
 	fmt.Println("[fabric] Adding asset")
 	asset = addAsset(asset_name)
+	payload, _ := json.Marshal(asset)
+	cclib.LogEventToFile(ecomm.AddingAssetEvent, payload)
 
 	fmt.Println("Starting auction")
 	fmt.Println("[ethereum] Deploying auction")
@@ -142,7 +147,7 @@ func create(asset_name string) {
 	ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
 	check(err)
 
-	payload, _ := json.Marshal(myAuction)
+	payload, _ = json.Marshal(myAuction)
 	ccsvc.Publish(ecomm.AuctionCreatingEvent, payload)
 	// till this part, no relayer involved yet
 }
@@ -187,6 +192,14 @@ func end(auctionID int) {
 
 	payload, _ := json.Marshal(a)
 	ccsvc.Publish(ecomm.AuctionEndingEvent, payload)
+}
+
+func check_status(auctionID int) {
+	a, err := assetClient.GetAuction(auctionID)
+	check(err)
+
+	fmt.Println("auction ID:", auctionID, "AssetID:", a.AssetID, "Status: ", a.Status)
+
 }
 
 func login() {

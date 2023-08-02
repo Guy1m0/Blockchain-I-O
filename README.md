@@ -213,3 +213,14 @@ Also change go.mod in fabric_asset folder from 1.16 to 1.18 at least
 Since fabric chaincode can not handle big.int natively, we set total supply in Eth and Quo as `10000000000000000000000000` and Fabric `10000000000` which to be intentionally 10^15 less as `Decimal = 15`
 
 May check back later to see if can really fix this difference.
+
+## Remaining Problem
+
+1. Can not add same AssetID into asset Frabric contract
+
+If Auctioner end one auction based an asset using same assetID, only the most recent auction will be ended.
+
+
+2. Current Time 
+
+The way to log the current time for each event is not accurte since it is executed in the function. Use `defer` to replace later
