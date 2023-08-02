@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
@@ -45,6 +46,7 @@ const (
 	//setupInfoFile  = "../setup_info.json"
 	erc20InfoFile = "../erc20_info.json"
 	userInfoFile  = "../user_info.json"
+	logInfoFile   = "../log.json"
 	//BidderInfoFile = "./bidder_info.json"
 )
 
@@ -150,6 +152,10 @@ func bidAuction(auction_id int, amount *big.Int) {
 
 	//DecimalB, _ = big.NewInt(0).SetString("1"+strings.Repeat("0", 15), 10)
 
+	// Set start timer
+	t := time.Now()
+	cclib.LastEventTimestamp.Set(t)
+
 	var erc20_info ecomm.Erc20Info
 	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
 	erc20_address := erc20_info.EthERC20
@@ -183,7 +189,7 @@ func bidAuction(auction_id int, amount *big.Int) {
 		AuctionID:   auction_id,
 		AssetID:     a.AssetID,
 	})
-	cclib.LogEventToFile(ecomm.BiddingAuctionEvent, payload)
+	cclib.LogEventToFile(logInfoFile, ecomm.BiddingAuctionEvent, payload, t)
 
 	// Approve amount of bid through ERC20 contract
 	MDAI, _ := eth_stable_coin.NewEthStableCoin(erc20_address, client)
@@ -214,7 +220,10 @@ func bidAuction(auction_id int, amount *big.Int) {
 		Type:     "Bid",
 		Receipt:  receipt,
 	})
-	cclib.LogEventToFile(ecomm.TransactionMinedEvent, payload)
+
+	t = time.Now()
+	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t)
+	cclib.LastEventTimestamp.Set(time.Time{})
 
 	highestBidder, err := Auction.HighestBidder(&bind.CallOpts{})
 	check(err)

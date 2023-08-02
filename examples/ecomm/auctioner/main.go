@@ -22,6 +22,7 @@ const (
 	zkNodes       = "localhost:2181"
 	userInfoFile  = "../user_info.json"
 	erc20InfoFile = "../erc20_info.json"
+	logInfoFile   = "../log.json"
 )
 
 type CreateAuctionRequest struct {
@@ -127,11 +128,14 @@ func main() {
 
 // Use key 1 as default auctioner
 func create(asset_name string) {
-
 	fmt.Println("[fabric] Adding asset")
+
+	t := time.Now()
+	cclib.LastEventTimestamp.Set(t)
+
 	asset = addAsset(asset_name)
 	payload, _ := json.Marshal(asset)
-	cclib.LogEventToFile(ecomm.AddingAssetEvent, payload)
+	cclib.LogEventToFile(logInfoFile, ecomm.AddingAssetEvent, payload, t)
 
 	fmt.Println("Starting auction")
 	fmt.Println("[ethereum] Deploying auction")
@@ -146,9 +150,12 @@ func create(asset_name string) {
 	// publish
 	ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
 	check(err)
-
 	payload, _ = json.Marshal(myAuction)
 	ccsvc.Publish(ecomm.AuctionCreatingEvent, payload)
+
+	t = time.Now()
+	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t)
+	cclib.LastEventTimestamp.Set(time.Time{})
 	// till this part, no relayer involved yet
 }
 

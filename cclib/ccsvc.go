@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
@@ -18,6 +19,10 @@ const (
 	logFile = "log.json"
 )
 
+var (
+	LastEventTimestamp = &SafeTimestamp{}
+)
+
 type EventHandler func(payload []byte)
 
 type CCService struct {
@@ -27,6 +32,11 @@ type CCService struct {
 	kafkaProducer sarama.SyncProducer
 
 	handlers map[string]EventHandler
+}
+
+type SafeTimestamp struct {
+	timestamp time.Time
+	mu        sync.Mutex
 }
 
 // creates a new instance of CCService, initializes the Kafka producer, and returns it.
@@ -58,7 +68,7 @@ func (svc *CCService) Publish(event string, payload []byte) error {
 		return err
 	}
 
-	LogEventToFile(event, payload)
+	//LogEventToFile(event, payload)
 	//data, err := unmarshalPayload(event, payload)
 
 	log.Printf("Published event: %s\n", event)
@@ -91,31 +101,38 @@ func unmarshalPayload(event string, payload []byte) (interface{}, error) {
 	return data, nil
 }
 
-func LogEventToFile(event string, payload []byte) {
+func LogEventToFile(path string, event string, payload []byte, t time.Time) {
 	// Create new file or append to existing one
-	file, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 
 	// Parse payload into a map
-	// var payloadMap interface{}
-	// err = json.Unmarshal(payload, &payloadMap)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	data, err := unmarshalPayload(event, payload)
+	var payloadMap interface{}
+	err = json.Unmarshal(payload, &payloadMap)
 	if err != nil {
 		panic(err)
 	}
 
+	// data, err := unmarshalPayload(event, payload)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	elapsedTime := ""
+	lastEventTimestamp := LastEventTimestamp.Get()
+	if !lastEventTimestamp.IsZero() {
+		elapsedTime = t.Sub(lastEventTimestamp).String()
+	}
+
 	// Create new event
 	newEvent := map[string]interface{}{
-		"Event": event,
-		"Time":  time.Now().Format(time.RFC3339),
-		"Data":  data,
+		"Event":       event,
+		"Time":        t.Format(time.RFC3339), //time.Now().Format(time.RFC3339),
+		"Payload":     payloadMap,
+		"ElapsedTime": elapsedTime,
 	}
 
 	// Convert the event to JSON
@@ -236,4 +253,18 @@ func (svc *CCService) topics() []string {
 		result = append(result, event)
 	}
 	return result
+}
+
+// Update the timestamp in a thread-safe way
+func (st *SafeTimestamp) Set(t time.Time) {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+	st.timestamp = t
+}
+
+// Retrieve the timestamp in a thread-safe way
+func (st *SafeTimestamp) Get() time.Time {
+	st.mu.Lock()
+	defer st.mu.Unlock()
+	return st.timestamp
 }
