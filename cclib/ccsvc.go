@@ -123,9 +123,7 @@ func LogEventToFile(path string, event string, payload []byte, t time.Time) {
 
 	elapsedTime := ""
 	lastEventTimestamp := LastEventTimestamp.Get()
-	if !lastEventTimestamp.IsZero() {
-		elapsedTime = t.Sub(lastEventTimestamp).String()
-	}
+	elapsedTime = t.Sub(lastEventTimestamp).String()
 
 	// Create new event
 	newEvent := map[string]interface{}{

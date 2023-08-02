@@ -39,7 +39,7 @@ const (
 	// auctionerKey = "../../keys/key1"
 	// bidder1Key   = "../../keys/key2"
 	// bidder2Key   = "../../keys/key3"
-	//password = "password"
+	password = "password"
 
 	// fabricTokenName = "MDAI"
 	//default_name = "Bidder 1"
@@ -164,27 +164,23 @@ func bidAuction(auction_id int, amount *big.Int) {
 	bidT, err := cclib.NewTransactor(bid_key, "password")
 	check(err)
 
-	// Should read info from Kafka
-
 	// Get Auction Contract deployed on Eth/Quo
 	assetClient := ecomm.NewAssetClient() // return Fabric asset contract
 	a, err := assetClient.GetAuction(auction_id)
 	check(err)
 
-	Auction_addr_ := a.EthAddr
+	auction_addr := common.HexToAddress(a.EthAddr)
 	if platform != "eth" {
-		Auction_addr_ = a.QuorumAddr
+		auction_addr = common.HexToAddress(a.QuorumAddr)
 		client = quoClient
 		erc20_address = erc20_info.QuoERC20
 	}
-
-	Auction_addr := common.HexToAddress(Auction_addr_)
 
 	// log
 	payload, _ := json.Marshal(&ecomm.Bid{
 		Bidder:      bidT.From,
 		BidAmount:   *amount,
-		AuctionAddr: Auction_addr,
+		AuctionAddr: auction_addr,
 		Platform:    platform,
 		AuctionID:   auction_id,
 		AssetID:     a.AssetID,
@@ -193,24 +189,24 @@ func bidAuction(auction_id int, amount *big.Int) {
 
 	// Approve amount of bid through ERC20 contract
 	MDAI, _ := eth_stable_coin.NewEthStableCoin(erc20_address, client)
-	tx, _ := MDAI.Approve(bidT, Auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
+	tx, _ := MDAI.Approve(bidT, auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	ecomm.WaitTx(client, tx, "Approve Auction Contract's allowance")
 
-	alw, err := MDAI.Allowance(&bind.CallOpts{}, bidT.From, Auction_addr)
+	alw, err := MDAI.Allowance(&bind.CallOpts{}, bidT.From, auction_addr)
 	check(err)
 	fmt.Println("Check allowance: ", alw)
 
 	//fmt.Println("Load Auction obj")
 
-	Auction, err := eth_auction.NewEthAuction(Auction_addr, client)
+	auction_contract, err := eth_auction.NewEthAuction(auction_addr, client)
 	check(err)
 
-	eth_ERC20, _, _ := load_ERC20()
-	bal, _ := eth_ERC20.BalanceOf(&bind.CallOpts{}, bidT.From)
-	fmt.Println("Check Balance for Bidder: ", bal)
+	// eth_ERC20, _, _ := load_ERC20()
+	// bal, _ := eth_ERC20.BalanceOf(&bind.CallOpts{}, bidT.From)
+	// fmt.Println("Check Balance for Bidder: ", bal)
 
 	//fmt.Printf("Bid on Auction ID: %d through contract: %s\n", a.ID, Auction_addr)
-	tx, err = Auction.Bid(bidT, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
+	tx, err = auction_contract.Bid(bidT, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	check(err)
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, Auction_addr))
 	//debugTransaction(tx)
@@ -223,13 +219,40 @@ func bidAuction(auction_id int, amount *big.Int) {
 
 	t = time.Now()
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t)
-	cclib.LastEventTimestamp.Set(time.Time{})
+	//cclib.LastEventTimestamp.Set(time.Time{})
 
-	highestBidder, err := Auction.HighestBidder(&bind.CallOpts{})
+}
+
+func check_winner(auction_id int) {
+	client := ethClient
+	bidT, err := cclib.NewTransactor(bid_key, password)
 	check(err)
-	fmt.Println("highest bidder:", highestBidder.Hex())
 
-	highestBid, err := Auction.HighestBid(&bind.CallOpts{})
+	// Get Auction Contract deployed on Eth/Quo
+	assetClient := ecomm.NewAssetClient() // return Fabric asset contract
+	a, err := assetClient.GetAuction(auction_id)
+	check(err)
+
+	auction_addr := common.HexToAddress(a.EthAddr)
+	if platform != "eth" {
+		auction_addr = common.HexToAddress(a.QuorumAddr)
+		client = quoClient
+	}
+
+	auction_contract, err := eth_auction.NewEthAuction(auction_addr, client)
+	check(err)
+
+	// Check winner
+	highestBidder, err := auction_contract.HighestBidder(&bind.CallOpts{})
+	check(err)
+
+	if bidT.From == highestBidder {
+		fmt.Println("Waiting your response (abt/prcd) for Auction", auction_id)
+	} else {
+		fmt.Println("highest bidder:", highestBidder.Hex())
+	}
+
+	highestBid, err := auction_contract.HighestBid(&bind.CallOpts{})
 	check(err)
 	fmt.Println("highest bid:", highestBid)
 }

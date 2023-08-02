@@ -65,7 +65,7 @@ func startAuction(assetID, ethAddr, quorumAddr string) *ecomm.Auction {
 // this is only used for recording bid
 // Use Auctioner 1's key1 to deploy contract
 func deployCrossChainAuction(client *ethclient.Client, erc20 common.Address) string {
-	auth, err := cclib.NewTransactor("../../keys/key1", password)
+	auth, err := cclib.NewTransactor(root_key, password)
 	check(err)
 
 	addr, tx, _, err := eth_auction.DeployEthAuction(auth, client, erc20)

@@ -23,6 +23,8 @@ const (
 	userInfoFile  = "../user_info.json"
 	erc20InfoFile = "../erc20_info.json"
 	logInfoFile   = "../log.json"
+
+	root_key = "../../keys/key0"
 )
 
 type CreateAuctionRequest struct {
@@ -160,45 +162,59 @@ func create(asset_name string) {
 }
 
 func end(auctionID int) {
+	// Set start timer
+	t := time.Now()
+	cclib.LastEventTimestamp.Set(t)
+
+	//ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
+	//check(err)
+
 	a, err := assetClient.GetAuction(auctionID)
 	check(err)
+
+	if a.Status != "Started" {
+		cclib.LastEventTimestamp.Set(time.Time{})
+		fmt.Println("Auction status error!")
+		return
+	}
 
 	_, err = assetClient.EndAuction(a.AssetID)
 	check(err)
 
-	fmt.Println("auction ID:", auctionID, "AssetID:", a.AssetID)
+	//fmt.Println("auction ID:", auctionID, "AssetID:", a.AssetID)
 
-	time.Sleep(3 * time.Second)
+	// @wait
+	time.Sleep(1 * time.Second)
 	a, _ = assetClient.GetAuction(auctionID)
 
-	fmt.Println("Check status:", a.Status)
+	payload, _ := json.Marshal(a)
+	//ccsvc.Publish(ecomm.AuctionEndingEvent, payload)
+	cclib.LogEventToFile(logInfoFile, ecomm.AuctionEndingEvent, payload, t)
 
-	for {
-		// @wait
-		time.Sleep(1 * time.Second)
-		a, err = assetClient.GetAuction(auctionID)
-		check(err)
-		if a.Status == "Ending" {
+	// fmt.Println("Check status:", a.Status)
 
-			fmt.Println("Auction Ended")
-			fmt.Println("Highest Bidder: ", a.HighestBidder)
-			fmt.Println("Highest Bid: ", a.HighestBid)
-			fmt.Println("Highest Bid Platform: ", a.HighestBidPlatform)
+	// for {
+	// 	// @wait
+	// 	time.Sleep(1 * time.Second)
+	// 	a, err = assetClient.GetAuction(auctionID)
+	// 	check(err)
+	// 	if a.Status == "Ending" {
 
-			asset, err := assetClient.GetAsset(a.AssetID)
-			check(err)
-			fmt.Println("New Asset Owner: ", asset.Owner)
+	// 		fmt.Println("Auction Ended")
+	// 		fmt.Println("Highest Bidder: ", a.HighestBidder)
+	// 		fmt.Println("Highest Bid: ", a.HighestBid)
+	// 		fmt.Println("Highest Bid Platform: ", a.HighestBidPlatform)
 
-			break
-		}
-	}
+	// 		asset, err := assetClient.GetAsset(a.AssetID)
+	// 		check(err)
+	// 		fmt.Println("New Asset Owner: ", asset.Owner)
+
+	// 		break
+	// 	}
+	// }
 
 	// publish
-	ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
-	check(err)
 
-	payload, _ := json.Marshal(a)
-	ccsvc.Publish(ecomm.AuctionEndingEvent, payload)
 }
 
 func check_status(auctionID int) {
