@@ -5,23 +5,27 @@ import (
 	"flag"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 const (
-	//password = "password"
+	password = "password"
 
 	zkNodes       = "localhost:2181"
 	userInfoFile  = "../user_info.json"
 	erc20InfoFile = "../erc20_info.json"
 	logInfoFile   = "../log.json"
+	timeInfoFile  = "../timer"
 
-	// root_key = "../../keys/key0"
+	root_key = "../../keys/key0"
 )
 
 type CreateAuctionRequest struct {
@@ -31,8 +35,8 @@ type CreateAuctionRequest struct {
 }
 
 var (
-	// ethClient *ethclient.Client
-	// quoClient *ethclient.Client
+	ethClient *ethclient.Client
+	quoClient *ethclient.Client
 
 	assetClient *ecomm.AssetClient
 
@@ -45,23 +49,23 @@ var (
 	asset *ecomm.Asset
 	// myAuction *ecomm.Auction
 
-	// eth_ERC20 common.Address
-	// quo_ERC20 common.Address
+	eth_ERC20 common.Address
+	quo_ERC20 common.Address
 )
 
 func main() {
 	var erc20_info ecomm.Erc20Info
 	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
 
-	// eth_ERC20 = erc20_info.EthERC20
-	// quo_ERC20 = erc20_info.QuoERC20
+	eth_ERC20 = erc20_info.EthERC20
+	quo_ERC20 = erc20_info.QuoERC20
 
-	// var err error
-	// ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
-	// check(err)
+	var err error
+	ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
+	check(err)
 
-	// quoClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
-	// check(err)
+	quoClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
+	check(err)
 
 	assetClient = ecomm.NewAssetClient()
 
@@ -73,7 +77,8 @@ func main() {
 
 	fmt.Println("Load Auctioner: ", auc_name)
 	load_auctioner(auc_name)
-	// aucT, err := cclib.NewTransactor(auc_key, password)
+
+	aucT, _ = cclib.NewTransactor(auc_key, password)
 	// check(err)
 	// parts := strings.Split(*command, ":")
 	// cmd := parts[0]
@@ -131,11 +136,51 @@ func create(asset_name string) {
 
 	// @reset timer
 	t := time.Now()
-	cclib.LastEventTimestamp.Set(t)
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	asset = addAsset(asset_name)
+
+	fmt.Println("[fabric] Creating auction")
 	payload, _ := json.Marshal(asset)
-	cclib.LogEventToFile(logInfoFile, ecomm.AuctionCreatingEvent, payload, t)
+	cclib.LogEventToFile(logInfoFile, ecomm.AuctionCreatingEvent, payload, t, timeInfoFile)
+
+	fmt.Println("Starting auction")
+	fmt.Println("[ethereum] Deploying auction")
+	ethAddr, receipt_eth := deployCrossChainAuction(ethClient, eth_ERC20)
+	payload, err := json.Marshal(&ecomm.Tx{
+		Platform: "eth",
+		Type:     "newAuction",
+		Receipt:  receipt_eth,
+	})
+	check(err)
+
+	t = time.Now()
+	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+
+	fmt.Println("[quorum] Deploying auction")
+	quoAddr, receipt_quo := deployCrossChainAuction(quoClient, quo_ERC20)
+	payload, err = json.Marshal(&ecomm.Tx{
+		Platform: "quo",
+		Type:     "newAuction",
+		Receipt:  receipt_quo,
+	})
+	check(err)
+
+	t = time.Now()
+	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+
+	fmt.Println("[fabric] Creating auction")
+	// a.EthAddr = ethAddr
+	// a.QuorumAddr = quoAddr
+	// _, err = assetClient.SetAuction(a)
+	// check(err)
+	myAuction := startAuction(asset.ID, ethAddr, quoAddr)
+
+	// publish
+	ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
+	check(err)
+	payload, _ = json.Marshal(myAuction)
+	ccsvc.Publish(ecomm.AuctionCreatingEvent, payload)
 
 	// fmt.Println("Starting auction")
 	// fmt.Println("[ethereum] Deploying auction")
@@ -162,7 +207,7 @@ func create(asset_name string) {
 func end(auctionID int) {
 	// @reset timer
 	t := time.Now()
-	cclib.LastEventTimestamp.Set(t)
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	//ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
 	//check(err)
@@ -171,7 +216,7 @@ func end(auctionID int) {
 	check(err)
 
 	if a.Status != "Started" {
-		cclib.LastEventTimestamp.Set(time.Time{})
+		//cclib.LastEventTimestamp.Set(time.Time{})
 		fmt.Println("Auction status error!")
 		return
 	}
@@ -187,7 +232,7 @@ func end(auctionID int) {
 
 	payload, _ := json.Marshal(a)
 	//ccsvc.Publish(ecomm.AuctionEndingEvent, payload)
-	cclib.LogEventToFile(logInfoFile, ecomm.AuctionEndingEvent, payload, t)
+	cclib.LogEventToFile(logInfoFile, ecomm.AuctionEndingEvent, payload, t, timeInfoFile)
 
 	// fmt.Println("Check status:", a.Status)
 

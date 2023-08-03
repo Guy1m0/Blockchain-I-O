@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
@@ -11,8 +10,10 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
+)
+
+const (
+	timeInfoFile = "../timer"
 )
 
 // Check if any auction's status is Ending,
@@ -22,6 +23,7 @@ func runAuctionListener() {
 		// listen each new creating auction
 		// and create a go route for each
 		a := listenNewAuction() // listen new tx posted on auction contract
+		//fmt.Println("Find New Auction!")
 		onNewAuction(a)
 	}
 }
@@ -30,13 +32,19 @@ func listenNewAuction() *ecomm.Auction {
 	lastID, err := assetClient.GetLastAuctionID()
 	check(err)
 
+	//fmt.Println("Trying to find new Auction")
 	for {
 		time.Sleep(1 * time.Second) // check auction list per second
 		auctionID, err := assetClient.GetLastAuctionID()
+		//fmt.Println("find auction ID: ", auctionID)
 		check(err)
 		if auctionID > lastID {
+			t := time.Now()
 			auction, err := assetClient.GetAuction(auctionID)
 			check(err)
+
+			payload, _ := json.Marshal(auction)
+			cclib.LogEventToFile(logInfoFile, ecomm.ReceivedEvent, payload, t, timeInfoFile)
 			return auction
 		}
 	}
@@ -50,40 +58,6 @@ func onNewAuction(a *ecomm.Auction) {
 		AuctionID: a.ID,
 	}
 	auctionResultsMu.Unlock()
-
-	fmt.Println("Starting auction")
-	fmt.Println("[ethereum] Deploying auction")
-	ethAddr, receipt_eth := deployCrossChainAuction(ethClient, common.HexToAddress(a.EthAddr))
-	payload, err := json.Marshal(&ecomm.Tx{
-		Platform: "eth",
-		Type:     "newAuction",
-		Receipt:  receipt_eth,
-	})
-	check(err)
-
-	t := time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t)
-
-	fmt.Println("[quorum] Deploying auction")
-	quoAddr, receipt_quo := deployCrossChainAuction(quoClient, common.HexToAddress(a.QuorumAddr))
-	payload, err = json.Marshal(&ecomm.Tx{
-		Platform: "quo",
-		Type:     "newAuction",
-		Receipt:  receipt_quo,
-	})
-	check(err)
-
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t)
-
-	fmt.Println("[fabric] Creating auction")
-	myAuction := startAuction(a.AssetID, ethAddr, quoAddr)
-
-	// publish
-	ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
-	check(err)
-	payload, _ = json.Marshal(myAuction)
-	ccsvc.Publish(ecomm.AuctionCreatingEvent, payload)
 
 	go fabric_listener(a)
 	go eth_listener(a)
@@ -104,6 +78,12 @@ func fabric_listener(a *ecomm.Auction) {
 			break
 		}
 	}
+
+	t := time.Now()
+
+	payload, _ := json.Marshal(a)
+	cclib.LogEventToFile(logInfoFile, ecomm.ReceivedEvent, payload, t, timeInfoFile)
+
 	// initialize
 	authT, err := cclib.NewTransactor(root_key, password)
 	check(err)
@@ -136,16 +116,16 @@ func fabric_listener(a *ecomm.Auction) {
 	tx, _ := eth_auction_contract.EndAuction(authT)
 	receipt := ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDING'", eth_auction_addr))
 
-	payload, err := json.Marshal(&ecomm.Tx{
+	payload, err = json.Marshal(&ecomm.Tx{
 		Platform: "eth",
 		Type:     "EndAuction",
 		Receipt:  receipt,
 	})
 	check(err)
 
-	t := time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t)
-	cclib.LastEventTimestamp.Set(t)
+	t = time.Now()
+	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	// Change Auction Contract on Quo
 	tx, _ = quo_auction_contract.EndAuction(authT)
@@ -159,23 +139,25 @@ func fabric_listener(a *ecomm.Auction) {
 	check(err)
 
 	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t)
+	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
 
 	// Abort one platform's Auction
 	if winner_platform == "eth" {
 		tx, _ = quo_auction_contract.Abort(authT)
 		ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Close Auction since winner on other platform %s", winner_platform))
+		winner_listener(*eth_auction_contract, a)
 	} else {
 		tx, _ = eth_auction_contract.Abort(authT)
 		ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Close Auction since winner on other platform %s", winner_platform))
+		winner_listener(*quo_auction_contract, a)
 	}
 
 	a.HighestBidPlatform = winner_platform
 	payload, _ = json.Marshal(a)
-	ccsvc.Publish(ecomm.AuctionEndingEvent, payload)
+	//ccsvc.Publish(ecomm.AuctionEndingEvent, payload)
 
 	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.AuctionEndingEvent, payload, t)
+	cclib.LogEventToFile(logInfoFile, ecomm.AuctionEndingEvent, payload, t, timeInfoFile)
 
 }
 
@@ -238,8 +220,8 @@ func eth_listener(a *ecomm.Auction) {
 			auctionResultsMu.Unlock()
 
 			payload, _ := json.Marshal(result)
-			ccsvc.Publish(ecomm.BiddingAuctionEvent, payload)
-			cclib.LogEventToFile(logInfoFile, ecomm.BiddingAuctionEvent, payload, t)
+			//ccsvc.Publish(ecomm.BiddingAuctionEvent, payload)
+			cclib.LogEventToFile(logInfoFile, ecomm.BiddingAuctionEvent, payload, t, timeInfoFile)
 			//cclib.LastEventTimestamp.Set(t)
 		}
 	}
@@ -296,52 +278,32 @@ func quo_listener(a *ecomm.Auction) {
 			auctionResultsMu.Unlock()
 
 			payload, _ := json.Marshal(result)
-			ccsvc.Publish(ecomm.BiddingAuctionEvent, payload)
-			cclib.LogEventToFile(logInfoFile, ecomm.BiddingAuctionEvent, payload, t)
+			//ccsvc.Publish(ecomm.BiddingAuctionEvent, payload)
+			cclib.LogEventToFile(logInfoFile, ecomm.BiddingAuctionEvent, payload, t, timeInfoFile)
 			//cclib.LastEventTimestamp.Set(t)
 		}
 	}
 }
 
-// Auction Contract is already deployed in Fabric Network
-// Just create a asset/auction obj in one global variable stored in this
-func startAuction(assetID, ethAddr, quorumAddr string) *ecomm.Auction {
-	args := ecomm.StartAuctionArgs{
-		AssetID:    assetID,
-		EthAddr:    ethAddr,
-		QuorumAddr: quorumAddr,
-	}
-	_, err := assetClient.StartAuction(args)
-	check(err)
-	// @wait
-	time.Sleep(3 * time.Second)
-	fmt.Println("Started auction for asset")
+func winner_listener(contract eth_auction.EthAuction, a *ecomm.Auction) {
+	//client := ethClient
 
-	auctionID, err := assetClient.GetLastAuctionID()
-	check(err)
-	fmt.Println("AuctionID: ", auctionID)
-
-	a, err := assetClient.GetAuction(auctionID)
-	check(err)
-	return a
-}
-
-// this is only used for recording bid
-// Use Auctioner 1's key1 to deploy contract
-func deployCrossChainAuction(client *ethclient.Client, erc20 common.Address) (string, *types.Receipt) {
-	auth, err := cclib.NewTransactor(root_key, password)
-	check(err)
-
-	addr, tx, _, err := eth_auction.DeployEthAuction(auth, client, erc20)
-	check(err)
-
-	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Deploy Auction contract with address: %s", addr.Hex()))
-
-	// success, err := cclib.WaitTx(client, tx.Hash())
+	// authT, err := cclib.NewTransactor(root_key, password)
 	// check(err)
 
-	//printTxStatus(success)
-	// fmt.Printf("Auction contract address: %s\n", addr.Hex())
+	for {
+		time.Sleep(1 * time.Second)
+		status, _ := contract.Status(&bind.CallOpts{})
 
-	return addr.Hex(), receipt
+		if status == "ended" {
+			t := time.Now()
+			payload, _ := json.Marshal(a)
+			cclib.LogEventToFile(logInfoFile, ecomm.ProceedAuctionResultEvent,
+				payload, t, timeInfoFile)
+			return
+			//assetClient.FinalizeAuction()
+		}
+
+	}
+
 }

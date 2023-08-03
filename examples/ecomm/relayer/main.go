@@ -55,8 +55,8 @@ func main() {
 
 	// Register("event_", event_handler)
 	// SignedAuctionResultEvent is the one when bidder accept such auction
-	//ccsvc.Register(ecomm.SignedAuctionResultEvent, handleSignedAuctionResult)
-	//ccsvc.Register(ecomm.AuctionCreatingEvent, handleAuctionCreating)
+	ccsvc.Register(ecomm.BiddingAuctionEvent, handleBiddingAuction)
+	ccsvc.Register(ecomm.AuctionCreatingEvent, handleAuctionCreating)
 	ccsvc.Register(ecomm.AuctionEndingEvent, handleAuctionEnding)
 
 	// Why not create a new event for new auction?

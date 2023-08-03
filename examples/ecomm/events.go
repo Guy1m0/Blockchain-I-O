@@ -7,19 +7,22 @@ const (
 )
 
 var (
-	SignedAuctionResultEvent = "signed_result@ccsvc"
+	SignedAuctionResultEvent = "auction.signed_result"
 
-	AuctionEndingEvent        = "auction_ending@ccsvc"
-	ProceedAuctionResultEvent = "prcd_result@ccsvc"
-	AbortAuctionResultEvent   = "abt_result@ccsvc"
+	AuctionEndingEvent        = "ccsvc.auction_ending"
+	ProceedAuctionResultEvent = "ccsvc.prcd_result"
+	AbortAuctionResultEvent   = "ccsvc.abt_result"
 
-	AuctionCreatingEvent = "auction_creating@ccsvc"
+	AuctionCreatingEvent = "ccsvc.auction_creating"
 	//AddingAssetEvent     = "add_asset@fabric"
 	// tx_mined on eth/quo
 	// end AucCrEvt
 
-	BiddingAuctionEvent   = "bid_auc@eth/quo"
-	TransactionMinedEvent = "tx_mined@eth/quo"
+	BiddingAuctionEvent   = "eth_quo.bid_auc"
+	WithdrawEvent         = "eth_quo.withdraw"
+	TransactionMinedEvent = "eth_quo.tx_mined"
+
+	ReceivedEvent = "kafka.received"
 	// end with BiddingAuctionEvent
 )
 

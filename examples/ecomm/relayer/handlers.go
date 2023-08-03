@@ -32,21 +32,29 @@ func handleSignedAuctionResult(payload []byte) {
 }
 
 func handleAuctionCreating(payload []byte) {
-	var result ecomm.Auction
-	err := json.Unmarshal(payload, &result)
-	check(err)
+	// var result ecomm.Auction
+	// err := json.Unmarshal(payload, &result)
+	// check(err)
 
-	mutex.Lock()
-	defer mutex.Unlock()
+	// mutex.Lock()
+	// defer mutex.Unlock()
+	return
 }
 
 func handleAuctionEnding(payload []byte) {
-	var result ecomm.Auction
+	// var result ecomm.Auction
+	// err := json.Unmarshal(payload, &result)
+	// check(err)
+
+	// mutex.Lock()
+	// defer mutex.Unlock()
+	return
+}
+
+func handleBiddingAuction(payload []byte) {
+	var result ecomm.AuctionResult
 	err := json.Unmarshal(payload, &result)
 	check(err)
-
-	mutex.Lock()
-	defer mutex.Unlock()
 }
 
 func handleProceedingAuctionResult(payload []byte) {

@@ -2,8 +2,10 @@ package cclib
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -14,7 +16,8 @@ import (
 )
 
 const (
-	logFile = "log.json"
+// logFile = "log.json"
+// timeInfoFile = "/examples/ecomm/timer"
 )
 
 var (
@@ -100,7 +103,7 @@ func (svc *CCService) Publish(event string, payload []byte) error {
 // 	return data, nil
 // }
 
-func LogEventToFile(path string, event string, payload []byte, t time.Time) {
+func LogEventToFile(path string, event string, payload []byte, t time.Time, timer_file string) {
 	mutex.Lock()
 	defer mutex.Unlock()
 	// Create new file or append to existing one
@@ -123,7 +126,7 @@ func LogEventToFile(path string, event string, payload []byte, t time.Time) {
 	// }
 
 	elapsedTime := ""
-	lastEventTimestamp := LastEventTimestamp.Get()
+	lastEventTimestamp := LastEventTimestamp.Get(timer_file)
 	elapsedTime = t.Sub(lastEventTimestamp).String()
 
 	// Create new event
@@ -255,15 +258,32 @@ func (svc *CCService) topics() []string {
 }
 
 // Update the timestamp in a thread-safe way
-func (st *SafeTimestamp) Set(t time.Time) {
+func (st *SafeTimestamp) Set(t time.Time, filename string) {
 	st.mu.Lock()
 	defer st.mu.Unlock()
-	st.timestamp = t
+
+	timestampStr := strconv.FormatInt(t.UnixNano(), 10)
+
+	err := ioutil.WriteFile(filename, []byte(timestampStr), 0644)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // Retrieve the timestamp in a thread-safe way
-func (st *SafeTimestamp) Get() time.Time {
+func (st *SafeTimestamp) Get(filename string) time.Time {
 	st.mu.Lock()
 	defer st.mu.Unlock()
-	return st.timestamp
+
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+
+	nanoSeconds, err := strconv.ParseInt(string(data), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+
+	return time.Unix(0, nanoSeconds)
 }

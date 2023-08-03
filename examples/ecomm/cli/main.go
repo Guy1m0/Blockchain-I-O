@@ -27,6 +27,7 @@ const (
 
 	erc20InfoFile = "../erc20_info.json"
 	userInfoFile  = "../user_info.json"
+	logInfoFile   = "../log.json"
 )
 
 var (
@@ -112,6 +113,12 @@ func initialize(token_name string) {
 	if _, err := os.Stat(userInfoFile); err == nil {
 		// If no error is returned, the file exists and you can try to remove it
 		err = os.Remove(userInfoFile)
+		check(err)
+	}
+
+	if _, err := os.Stat(logInfoFile); err == nil {
+		// If no error is returned, the file exists and you can try to remove it
+		err = os.Remove(logInfoFile)
 		check(err)
 	}
 
