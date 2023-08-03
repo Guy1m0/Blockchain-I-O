@@ -149,22 +149,16 @@ func main() {
 
 // also no relayer involved, 'locally' make bid
 func bidAuction(auction_id int, amount *big.Int) {
-
 	//DecimalB, _ = big.NewInt(0).SetString("1"+strings.Repeat("0", 15), 10)
 
-	// Set start timer
-	t := time.Now()
-	cclib.LastEventTimestamp.Set(t)
-
+	// if auction addr is already known
+	// Get Auction Contract deployed on Eth/Quo
 	var erc20_info ecomm.Erc20Info
 	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
 	erc20_address := erc20_info.EthERC20
 
 	client := ethClient
-	bidT, err := cclib.NewTransactor(bid_key, "password")
-	check(err)
 
-	// Get Auction Contract deployed on Eth/Quo
 	assetClient := ecomm.NewAssetClient() // return Fabric asset contract
 	a, err := assetClient.GetAuction(auction_id)
 	check(err)
@@ -175,6 +169,13 @@ func bidAuction(auction_id int, amount *big.Int) {
 		client = quoClient
 		erc20_address = erc20_info.QuoERC20
 	}
+
+	// @reset timer
+	t := time.Now()
+	cclib.LastEventTimestamp.Set(t)
+
+	bidT, err := cclib.NewTransactor(bid_key, "password")
+	check(err)
 
 	// log
 	payload, _ := json.Marshal(&ecomm.Bid{
@@ -192,9 +193,9 @@ func bidAuction(auction_id int, amount *big.Int) {
 	tx, _ := MDAI.Approve(bidT, auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	ecomm.WaitTx(client, tx, "Approve Auction Contract's allowance")
 
-	alw, err := MDAI.Allowance(&bind.CallOpts{}, bidT.From, auction_addr)
-	check(err)
-	fmt.Println("Check allowance: ", alw)
+	// alw, err := MDAI.Allowance(&bind.CallOpts{}, bidT.From, auction_addr)
+	// check(err)
+	// fmt.Println("Check allowance: ", alw)
 
 	//fmt.Println("Load Auction obj")
 

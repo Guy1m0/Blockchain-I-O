@@ -8,15 +8,19 @@ const (
 
 var (
 	SignedAuctionResultEvent = "signed_result@ccsvc"
-	AuctionEndingEvent       = "auction_ending@ccsvc"
-	AuctionCreatingEvent     = "auction_creating@ccsvc"
 
+	AuctionEndingEvent        = "auction_ending@ccsvc"
 	ProceedAuctionResultEvent = "prcd_result@ccsvc"
 	AbortAuctionResultEvent   = "abt_result@ccsvc"
 
-	AddingAssetEvent      = "add_asset"
-	BiddingAuctionEvent   = "bid_auc"
-	TransactionMinedEvent = "tx_mined"
+	AuctionCreatingEvent = "auction_creating@ccsvc"
+	//AddingAssetEvent     = "add_asset@fabric"
+	// tx_mined on eth/quo
+	// end AucCrEvt
+
+	BiddingAuctionEvent   = "bid_auc@eth/quo"
+	TransactionMinedEvent = "tx_mined@eth/quo"
+	// end with BiddingAuctionEvent
 )
 
 type SignedAuctionResult struct {

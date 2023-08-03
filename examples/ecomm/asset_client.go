@@ -108,6 +108,17 @@ func (cc *AssetClient) GetAuction(auctionID int) (*Auction, error) {
 	return &auction, err
 }
 
+// better not use
+func (cc *AssetClient) SetAuction(auctionID int) (*Auction, error) {
+	var auction Auction
+	res, err := cc.contract.EvaluateTransaction("setAuction", strconv.Itoa(auctionID))
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(res, &auction)
+	return &auction, err
+}
+
 func (cc *AssetClient) GetLastAuctionID() (int, error) {
 	res, err := cc.contract.EvaluateTransaction("GetLastAuctionID")
 	if err != nil {

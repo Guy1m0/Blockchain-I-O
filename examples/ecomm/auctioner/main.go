@@ -5,26 +5,23 @@ import (
 	"flag"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 const (
-	password = "password"
+	//password = "password"
 
 	zkNodes       = "localhost:2181"
 	userInfoFile  = "../user_info.json"
 	erc20InfoFile = "../erc20_info.json"
 	logInfoFile   = "../log.json"
 
-	root_key = "../../keys/key0"
+	// root_key = "../../keys/key0"
 )
 
 type CreateAuctionRequest struct {
@@ -34,8 +31,8 @@ type CreateAuctionRequest struct {
 }
 
 var (
-	ethClient *ethclient.Client
-	quoClient *ethclient.Client
+	// ethClient *ethclient.Client
+	// quoClient *ethclient.Client
 
 	assetClient *ecomm.AssetClient
 
@@ -45,26 +42,26 @@ var (
 
 	//ccsvc       *cclib.CCService
 
-	asset     *ecomm.Asset
-	myAuction *ecomm.Auction
+	asset *ecomm.Asset
+	// myAuction *ecomm.Auction
 
-	eth_ERC20 common.Address
-	quo_ERC20 common.Address
+	// eth_ERC20 common.Address
+	// quo_ERC20 common.Address
 )
 
 func main() {
 	var erc20_info ecomm.Erc20Info
 	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
 
-	eth_ERC20 = erc20_info.EthERC20
-	quo_ERC20 = erc20_info.QuoERC20
+	// eth_ERC20 = erc20_info.EthERC20
+	// quo_ERC20 = erc20_info.QuoERC20
 
-	var err error
-	ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
-	check(err)
+	// var err error
+	// ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
+	// check(err)
 
-	quoClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
-	check(err)
+	// quoClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
+	// check(err)
 
 	assetClient = ecomm.NewAssetClient()
 
@@ -76,8 +73,8 @@ func main() {
 
 	fmt.Println("Load Auctioner: ", auc_name)
 	load_auctioner(auc_name)
-	aucT, err = cclib.NewTransactor(auc_key, password)
-	check(err)
+	// aucT, err := cclib.NewTransactor(auc_key, password)
+	// check(err)
 	// parts := strings.Split(*command, ":")
 	// cmd := parts[0]
 
@@ -132,37 +129,38 @@ func main() {
 func create(asset_name string) {
 	fmt.Println("[fabric] Adding asset")
 
+	// @reset timer
 	t := time.Now()
 	cclib.LastEventTimestamp.Set(t)
 
 	asset = addAsset(asset_name)
 	payload, _ := json.Marshal(asset)
-	cclib.LogEventToFile(logInfoFile, ecomm.AddingAssetEvent, payload, t)
+	cclib.LogEventToFile(logInfoFile, ecomm.AuctionCreatingEvent, payload, t)
 
-	fmt.Println("Starting auction")
-	fmt.Println("[ethereum] Deploying auction")
-	ethAddr := deployCrossChainAuction(ethClient, eth_ERC20)
+	// fmt.Println("Starting auction")
+	// fmt.Println("[ethereum] Deploying auction")
+	// ethAddr := deployCrossChainAuction(ethClient, eth_ERC20)
 
-	fmt.Println("[quorum] Deploying auction")
-	quoAddr := deployCrossChainAuction(quoClient, quo_ERC20)
+	// fmt.Println("[quorum] Deploying auction")
+	// quoAddr := deployCrossChainAuction(quoClient, quo_ERC20)
 
-	fmt.Println("[fabric] Creating auction")
-	myAuction = startAuction(asset.ID, ethAddr, quoAddr)
+	// fmt.Println("[fabric] Creating auction")
+	// myAuction = startAuction(asset.ID, ethAddr, quoAddr)
 
-	// publish
-	ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
-	check(err)
-	payload, _ = json.Marshal(myAuction)
-	ccsvc.Publish(ecomm.AuctionCreatingEvent, payload)
+	// // publish
+	// ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
+	// check(err)
+	// payload, _ = json.Marshal(myAuction)
+	// ccsvc.Publish(ecomm.AuctionCreatingEvent, payload)
 
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t)
-	cclib.LastEventTimestamp.Set(time.Time{})
+	// t = time.Now()
+	// cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t)
+	// cclib.LastEventTimestamp.Set(time.Time{})
 	// till this part, no relayer involved yet
 }
 
 func end(auctionID int) {
-	// Set start timer
+	// @reset timer
 	t := time.Now()
 	cclib.LastEventTimestamp.Set(t)
 
@@ -184,8 +182,8 @@ func end(auctionID int) {
 	//fmt.Println("auction ID:", auctionID, "AssetID:", a.AssetID)
 
 	// @wait
-	time.Sleep(1 * time.Second)
-	a, _ = assetClient.GetAuction(auctionID)
+	// time.Sleep(1 * time.Second)
+	// a, _ = assetClient.GetAuction(auctionID)
 
 	payload, _ := json.Marshal(a)
 	//ccsvc.Publish(ecomm.AuctionEndingEvent, payload)

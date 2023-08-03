@@ -2,14 +2,12 @@ package cclib
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/Shopify/sarama"
 	kb "github.com/philipjkim/kafka-brokers-go"
 	"github.com/wvanbergen/kafka/consumergroup"
@@ -21,6 +19,7 @@ const (
 
 var (
 	LastEventTimestamp = &SafeTimestamp{}
+	mutex              sync.Mutex
 )
 
 type EventHandler func(payload []byte)
@@ -75,33 +74,35 @@ func (svc *CCService) Publish(event string, payload []byte) error {
 	return nil
 }
 
-func unmarshalPayload(event string, payload []byte) (interface{}, error) {
-	var data interface{}
+// func unmarshalPayload(event string, payload []byte) (interface{}, error) {
+// 	var data interface{}
 
-	switch event {
-	case "auction_ending":
-		data = new(ecomm.Auction)
-	case "auction_creating":
-		data = new(ecomm.Auction)
-	case "add_asset":
-		data = new(ecomm.Asset)
-	case "bid_auc":
-		data = new(ecomm.Bid)
-	case "tx_mined":
-		data = new(ecomm.Tx)
-	// more cases...
-	default:
-		return nil, fmt.Errorf("unknown event: %s", event)
-	}
+// 	switch event {
+// 	case "auction_ending":
+// 		data = new(ecomm.Auction)
+// 	case "auction_creating":
+// 		data = new(ecomm.Auction)
+// 	case "add_asset":
+// 		data = new(ecomm.Asset)
+// 	case "bid_auc":
+// 		data = new(ecomm.Bid)
+// 	case "tx_mined":
+// 		data = new(ecomm.Tx)
+// 	// more cases...
+// 	default:
+// 		return nil, fmt.Errorf("unknown event: %s", event)
+// 	}
 
-	err := json.Unmarshal(payload, data)
-	if err != nil {
-		return nil, err
-	}
-	return data, nil
-}
+// 	err := json.Unmarshal(payload, data)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return data, nil
+// }
 
 func LogEventToFile(path string, event string, payload []byte, t time.Time) {
+	mutex.Lock()
+	defer mutex.Unlock()
 	// Create new file or append to existing one
 	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {

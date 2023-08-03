@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"strings"
+	"sync"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
@@ -15,7 +16,8 @@ var (
 	assetClient *ecomm.AssetClient
 	ccsvc       *cclib.CCService
 
-	auctionResults map[int]*ecomm.FinalizeAuctionArgs
+	auctionResults   map[int]*ecomm.FinalizeAuctionArgs
+	auctionResultsMu sync.Mutex
 
 	ethClient *ethclient.Client
 	quoClient *ethclient.Client
