@@ -35,7 +35,7 @@ func (cc *SmartContract) AddAsset(
 		Owner: owner,
 	}
 
-	err := cc.setAsset(ctx, &asset)
+	err = cc.setAsset(ctx, &asset)
 	if err != nil {
 		return err
 	}

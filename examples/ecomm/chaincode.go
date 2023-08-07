@@ -20,7 +20,7 @@ type Chaincode struct {
 // )
 
 func NewChaincode(name string) *Chaincode {
-	log.Println("============ application-golang starts ============")
+	//log.Println("============ application-golang starts ============")
 
 	err := os.Setenv("DISCOVERY_AS_LOCALHOST", "true")
 	if err != nil {
@@ -56,17 +56,12 @@ func NewChaincode(name string) *Chaincode {
 		gateway.WithConfig(config.FromFile(filepath.Clean(ccpPath))),
 		gateway.WithIdentity(wallet, "appUser"),
 	)
+
 	if err != nil {
 		log.Fatalf("Failed to connect to gateway: %v", err)
 	}
 	defer gw.Close()
 
-	channelName := "mychannel"
-	if cname := os.Getenv("CHANNEL_NAME"); cname != "" {
-		channelName = cname
-	}
-
-	log.Println("--> Connecting to channel", channelName)
 	network, err := gw.GetNetwork("mychannel")
 	if err != nil {
 		log.Fatalf("Failed to get network: %v", err)
@@ -203,10 +198,10 @@ func populateWallet(wallet *gateway.Wallet) error {
 
 	certPath := filepath.Join(credPath, "signcerts", "cert.pem")
 	// read the certificate pem
-	// cert, err := os.ReadFile(filepath.Clean(certPath))
-	// if err != nil {
-	// 	return err
-	// }
+	cert, err := os.ReadFile(filepath.Clean(certPath))
+	if err != nil {
+		return err
+	}
 
 	keyDir := filepath.Join(credPath, "keystore")
 	// there's a single file in this dir containing the private key
@@ -218,12 +213,12 @@ func populateWallet(wallet *gateway.Wallet) error {
 		return fmt.Errorf("keystore folder should have contain one file")
 	}
 	keyPath := filepath.Join(keyDir, files[0].Name())
-	// key, err := os.ReadFile(filepath.Clean(keyPath))
-	// if err != nil {
-	// 	return err
-	// }
+	key, err := os.ReadFile(filepath.Clean(keyPath))
+	if err != nil {
+		return err
+	}
 
-	identity := gateway.NewX509Identity("Org1MSP", certPath, keyPath)
+	identity := gateway.NewX509Identity("Org1MSP", string(cert), string(key))
 
 	return wallet.Put("appUser", identity)
 }
