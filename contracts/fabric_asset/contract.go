@@ -21,11 +21,32 @@ const (
 func (cc *SmartContract) AddAsset(
 	ctx contractapi.TransactionContextInterface, id, owner string,
 ) error {
+	existing, err := ctx.GetStub().GetState(cc.makeAssetKey(id))
+	if err != nil {
+		return fmt.Errorf("unable to interact with worldstate: %v", err)
+	}
+
+	if existing != nil {
+		return fmt.Errorf("asset with ID %s already exists", id)
+	}
+
 	asset := Asset{
 		ID:    id,
 		Owner: owner,
 	}
-	return cc.setAsset(ctx, &asset)
+
+	err := cc.setAsset(ctx, &asset)
+	if err != nil {
+		return err
+	}
+
+	// Emit an event when an asset is added
+	eventPayload := "Asset added: " + id
+	err = ctx.GetStub().SetEvent("AddAsset", []byte(eventPayload))
+	if err != nil {
+		return fmt.Errorf("error setting event: %v", err)
+	}
+	return nil
 }
 
 func (cc *SmartContract) StartAuction(
