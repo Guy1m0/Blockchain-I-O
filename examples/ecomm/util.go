@@ -8,7 +8,10 @@ import (
 	"math/big"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/Guy1m0/Blockchain-I-O/cclib"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -20,6 +23,11 @@ import (
 var (
 	Decimal     = 15
 	DecimalB, _ = big.NewInt(0).SetString("1"+strings.Repeat("0", Decimal), 10)
+)
+
+const (
+	root_key = "../keys/key0"
+	password = "password"
 )
 
 func NewEthClient() *ethclient.Client {
@@ -191,6 +199,50 @@ func SplitSignature(sig string) (r [32]byte, s [32]byte, v uint8) {
 	copy(s[:], b[32:64])
 	v = b[64]
 	return
+}
+
+// this is only used for recording bid
+// Use Auctioner 1's key1 to deploy contract
+func DeployCrossChainAuction(client *ethclient.Client, erc20 common.Address) (string, *types.Receipt) {
+	auth, err := cclib.NewTransactor(root_key, password)
+	check(err)
+
+	addr, tx, _, err := eth_auction.DeployEthAuction(auth, client, erc20)
+	check(err)
+
+	receipt := WaitTx(client, tx, fmt.Sprintf("Deploy Auction contract with address: %s", addr.Hex()))
+
+	// success, err := cclib.WaitTx(client, tx.Hash())
+	// check(err)
+
+	//printTxStatus(success)
+	// fmt.Printf("Auction contract address: %s\n", addr.Hex())
+
+	return addr.Hex(), receipt
+}
+
+// Auction Contract is already deployed in Fabric Network
+// Just create a asset/auction obj in one global variable stored in this
+// sleep 3s
+func StartAuction(assetClient *AssetClient, assetID, ethAddr, quorumAddr string) *Auction {
+	args := StartAuctionArgs{
+		AssetID:    assetID,
+		EthAddr:    ethAddr,
+		QuorumAddr: quorumAddr,
+	}
+	_, err := assetClient.StartAuction(args)
+	check(err)
+	// @wait
+	time.Sleep(3 * time.Second)
+	fmt.Println("Started auction for asset")
+
+	auctionID, err := assetClient.GetLastAuctionID()
+	check(err)
+	fmt.Println("AuctionID: ", auctionID)
+
+	a, err := assetClient.GetAuction(auctionID)
+	check(err)
+	return a
 }
 
 func check(err error) {

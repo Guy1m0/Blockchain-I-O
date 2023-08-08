@@ -7,6 +7,7 @@ import (
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -23,8 +24,8 @@ var (
 	ethClient *ethclient.Client
 	quoClient *ethclient.Client
 
-	//eth_ERC20 eth_stable_coin
-	//quo_ERC20 eth_stable_coin
+	eth_ERC20 common.Address
+	quo_ERC20 common.Address
 )
 
 const (
@@ -53,6 +54,12 @@ func main() {
 
 	ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "relayer") //zookeeper node
 	check(err)
+
+	var erc20_info ecomm.Erc20Info
+	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
+
+	eth_ERC20 = erc20_info.EthERC20
+	quo_ERC20 = erc20_info.QuoERC20
 
 	// Register("event_", event_handler)
 	// SignedAuctionResultEvent is the one when bidder accept such auction

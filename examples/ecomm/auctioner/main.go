@@ -140,6 +140,8 @@ func create(asset_name string) {
 
 	asset = addAsset(asset_name)
 
+	return
+
 	fmt.Println("[fabric] Creating auction")
 	payload, _ := json.Marshal(asset)
 	cclib.LogEventToFile(logInfoFile, ecomm.AuctionCreatingEvent, payload, t, timeInfoFile)
