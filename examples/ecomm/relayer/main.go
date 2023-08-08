@@ -14,7 +14,8 @@ var (
 	zkNodes = "localhost:2181"
 
 	assetClient *ecomm.AssetClient
-	ccsvc       *cclib.CCService
+	//fabric_network *gateway.Network
+	ccsvc *cclib.CCService
 
 	auctionResults   map[int]*ecomm.FinalizeAuctionArgs
 	auctionResultsMu sync.Mutex
@@ -64,7 +65,8 @@ func main() {
 	check(err)
 
 	// check new auction posted on Asset contract on Fabric
-	runAuctionListener()
+	startListeningForEvents(assetClient)
+	//runAuctionListener()
 }
 
 func check(err error) {

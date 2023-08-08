@@ -31,6 +31,8 @@ var (
 	ccsvc     *cclib.CCService
 	ethClient *ethclient.Client
 	quoClient *ethclient.Client
+
+	assetClient *ecomm.AssetClient
 	// signer *cclib.Signer
 )
 
@@ -66,6 +68,8 @@ func main() {
 
 	ccsvc, err = cclib.NewEventService(strings.Split(zkNodes, ","), "bidder")
 	check(err)
+
+	assetClient = ecomm.NewAssetClient()
 
 	command := flag.String("c", "", "command")
 
@@ -168,7 +172,7 @@ func bidAuction(auction_id int, amount *big.Int) {
 
 	client := ethClient
 
-	assetClient := ecomm.NewAssetClient() // return Fabric asset contract
+	// return Fabric asset contract
 	a, err := assetClient.GetAuction(auction_id)
 	check(err)
 
@@ -239,7 +243,7 @@ func check_winner(auction_id int) {
 	check(err)
 
 	// Get Auction Contract deployed on Eth/Quo
-	assetClient := ecomm.NewAssetClient() // return Fabric asset contract
+	//assetClient := ecomm.NewAssetClient() // return Fabric asset contract
 	a, err := assetClient.GetAuction(auction_id)
 	check(err)
 
@@ -272,7 +276,7 @@ func procd_auction(auction_id int) {
 
 	client := ethClient
 
-	assetClient := ecomm.NewAssetClient() // return Fabric asset contract
+	//assetClient := ecomm.NewAssetClient() // return Fabric asset contract
 	a, err := assetClient.GetAuction(auction_id)
 	check(err)
 
@@ -315,7 +319,7 @@ func procd_auction(auction_id int) {
 func abort_auction(auction_id int) {
 	client := ethClient
 
-	assetClient := ecomm.NewAssetClient() // return Fabric asset contract
+	//assetClient := ecomm.NewAssetClient() // return Fabric asset contract
 	a, err := assetClient.GetAuction(auction_id)
 	check(err)
 
@@ -357,7 +361,7 @@ func abort_auction(auction_id int) {
 func withdraw(auction_id int) {
 	client := ethClient
 
-	assetClient := ecomm.NewAssetClient() // return Fabric asset contract
+	//assetClient := ecomm.NewAssetClient() // return Fabric asset contract
 	a, err := assetClient.GetAuction(auction_id)
 	check(err)
 

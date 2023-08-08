@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/fab"
 	"github.com/hyperledger/fabric-sdk-go/pkg/core/config"
 	"github.com/hyperledger/fabric-sdk-go/pkg/gateway"
 )
@@ -62,9 +63,7 @@ func NewAssetClient() *AssetClient {
 		log.Fatalf("Failed to get network: %v", err)
 	}
 
-	return &AssetClient{
-		contract: network.GetContract("asset"),
-	}
+	return &AssetClient{contract: network.GetContract("asset")}
 }
 
 func (cc *AssetClient) GetCCID() string {
@@ -132,4 +131,12 @@ func (cc *AssetClient) GetLastAuctionID() (int, error) {
 	var id int
 	err = json.Unmarshal(res, &id)
 	return id, err
+}
+
+func (cc *AssetClient) Register(eventID string) (fab.Registration, <-chan *fab.CCEvent, error) {
+	return cc.contract.RegisterEvent(eventID)
+}
+
+func (cc *AssetClient) Unregister(reg fab.Registration) {
+	cc.contract.Unregister(reg)
 }

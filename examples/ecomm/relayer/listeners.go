@@ -10,7 +10,6 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/hyperledger/fabric-sdk-go/pkg/client/channel"
 )
 
 const (
@@ -19,13 +18,14 @@ const (
 
 // sets up the event listener, and handleEvent, which contains
 // the logic to execute when an event is received.
-func startListeningForEvents(client *channel.Client) error {
+func startListeningForEvents(client *ecomm.AssetClient) error {
 	eventID := "AddAsset"
-	reg, notifier, err := client.RegisterChaincodeEvent("MDai", eventID)
+	reg, notifier, err := client.Register(eventID)
 	if err != nil {
 		return fmt.Errorf("failed to register chaincode event: %v", err)
 	}
-	defer client.UnregisterChaincodeEvent(reg)
+
+	defer client.Unregister(reg)
 
 	for {
 		select {
