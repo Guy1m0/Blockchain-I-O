@@ -9,6 +9,10 @@ import (
 
 var mutex sync.Mutex
 
+func handleAddAssetEvent(eventPayload string) error {
+	return nil
+}
+
 func handleSignedAuctionResult(payload []byte) {
 	var result ecomm.SignedAuctionResult
 	err := json.Unmarshal(payload, &result)
