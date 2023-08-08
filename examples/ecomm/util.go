@@ -34,11 +34,11 @@ func NewQuorumClient() *ethclient.Client {
 	return client
 }
 
-func PrintFabricBalance(token *Chaincode, account string, label string) {
-	b, err := token.EvaluateTransaction("BalanceOf", account)
-	check(err)
-	fmt.Printf("fabric ERC20 contract %s for account %s balance: %s\n", token.GetName(), label, string(b))
-}
+// func PrintFabricBalance(token *Chaincode, account string, label string) {
+// 	b, err := token.EvaluateTransaction("BalanceOf", account)
+// 	check(err)
+// 	fmt.Printf("fabric ERC20 contract %s for account %s balance: %s\n", token.GetName(), label, string(b))
+// }
 
 func TransferToken(client *ethclient.Client, token *eth_stable_coin.EthStableCoin, auth *bind.TransactOpts, to common.Address, amount int64) {
 	tx, err := token.Transfer(auth, to, big.NewInt(0).Mul(big.NewInt(amount), DecimalB))
