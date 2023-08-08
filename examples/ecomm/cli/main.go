@@ -75,14 +75,14 @@ func main() {
 
 // Deploy contracts and mint enough tokens
 func initialize(token_name string) {
-	fabricToken := ecomm.NewChaincode(token_name)
+	fabricToken := ecomm.NewErc20Client(token_name)
 
 	fmt.Println("Initialize Fabric Stable Coin: ", token_name)
-	_, err := fabricToken.SubmitTransaction("Initialize", "Multi-Dai Stablecoin", "MDAI", "15")
+	_, err := fabricToken.Initialize("Multi-Dai Stablecoin", "MDAI", "15")
 	check(err)
 
 	fmt.Printf("Mint %s on Frabic \n", token_name)
-	_, err = fabricToken.SubmitTransaction("Mint", "10000000000")
+	_, err = fabricToken.Mint("10000000000")
 	check(err)
 
 	supply, _ := big.NewInt(0).SetString("1"+strings.Repeat("0", ecomm.Decimal+10), 10)
@@ -149,7 +149,7 @@ func setup() {
 	eth_ERC20, quo_ERC20, fabric_ERC20 := load_ERC20()
 
 	fmt.Println("Setup 1 account on Fabirc")
-	_, err = fabric_ERC20.SubmitTransaction("Transfer", aucT.From.Hex(), "100")
+	_, err = fabric_ERC20.Transfer(aucT.From.Hex(), "100")
 	check(err)
 	ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
 		UserID:  "Auctioner 1",
@@ -159,7 +159,7 @@ func setup() {
 
 	fmt.Println("Setup 1 account on Ethereum")
 	ecomm.TransferToken(ethClient, eth_ERC20, rootT, bid1T.From, 100)
-	_, err = fabric_ERC20.SubmitTransaction("Transfer", bid1T.From.Hex(), "0")
+	_, err = fabric_ERC20.Transfer(bid1T.From.Hex(), "0")
 	check(err)
 	ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
 		UserID:  "Bidder 1",
@@ -169,7 +169,7 @@ func setup() {
 
 	fmt.Println("Setup 1 account on Quorum")
 	ecomm.TransferToken(quoClient, quo_ERC20, rootT, bid2T.From, 100)
-	_, err = fabric_ERC20.SubmitTransaction("Transfer", bid2T.From.Hex(), "0")
+	_, err = fabric_ERC20.Transfer(bid2T.From.Hex(), "0")
 	check(err)
 	ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
 		UserID:  "Bidder 2",
@@ -199,7 +199,7 @@ func display() {
 		valueB, _ = quo_ERC20.BalanceOf(&bind.CallOpts{}, user.Address)
 		quo_balance := big.NewInt(0).Div(valueB, DecimalB).String()
 		// Fabric balance
-		b, _ := fabric_ERC20.EvaluateTransaction("BalanceOf", user.Address.Hex())
+		b, _ := fabric_ERC20.BalanceOf(user.Address.Hex())
 
 		row := []string{
 			user.UserID,
@@ -227,14 +227,14 @@ func add_user(user_id string, platform string, amount string) {
 
 	if platform == "eth" {
 		ecomm.TransferToken(ethClient, eth_ERC20, rootT, userT.From, amout_)
-		_, err = fabric_ERC20.SubmitTransaction("Transfer", userT.From.Hex(), "0")
+		_, err = fabric_ERC20.Transfer(userT.From.Hex(), "0")
 		check(err)
 	} else if platform == "quo" {
 		ecomm.TransferToken(quoClient, quo_ERC20, rootT, userT.From, amout_)
-		_, err = fabric_ERC20.SubmitTransaction("Transfer", userT.From.Hex(), "0")
+		_, err = fabric_ERC20.Transfer(userT.From.Hex(), "0")
 		check(err)
 	} else {
-		_, err = fabric_ERC20.SubmitTransaction("Transfer", userT.From.Hex(), amount)
+		_, err = fabric_ERC20.Transfer(userT.From.Hex(), amount)
 		check(err)
 	}
 
@@ -245,7 +245,7 @@ func add_user(user_id string, platform string, amount string) {
 	})
 }
 
-func load_ERC20() (*eth_stable_coin.EthStableCoin, *eth_stable_coin.EthStableCoin, *ecomm.Chaincode) {
+func load_ERC20() (*eth_stable_coin.EthStableCoin, *eth_stable_coin.EthStableCoin, *ecomm.Erc20Client) {
 	var erc20_info ecomm.Erc20Info
 	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
 
@@ -255,7 +255,7 @@ func load_ERC20() (*eth_stable_coin.EthStableCoin, *eth_stable_coin.EthStableCoi
 	quo_ERC20, err := eth_stable_coin.NewEthStableCoin(erc20_info.QuoERC20, quoClient)
 	check(err)
 
-	fabric_ERC20 := ecomm.NewChaincode(erc20_info.FabricTokenName)
+	fabric_ERC20 := ecomm.NewErc20Client(erc20_info.FabricTokenName)
 
 	return eth_ERC20, quo_ERC20, fabric_ERC20
 }

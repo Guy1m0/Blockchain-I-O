@@ -65,7 +65,7 @@ func debugTransaction(tx *types.Transaction) error {
 	return nil
 }
 
-func load_ERC20() (*eth_stable_coin.EthStableCoin, *eth_stable_coin.EthStableCoin, *ecomm.Chaincode) {
+func load_ERC20() (*eth_stable_coin.EthStableCoin, *eth_stable_coin.EthStableCoin, *ecomm.Erc20Client) {
 	var erc20_info ecomm.Erc20Info
 	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
 
@@ -75,7 +75,7 @@ func load_ERC20() (*eth_stable_coin.EthStableCoin, *eth_stable_coin.EthStableCoi
 	quo_ERC20, err := eth_stable_coin.NewEthStableCoin(erc20_info.QuoERC20, quoClient)
 	check(err)
 
-	fabric_ERC20 := ecomm.NewChaincode(erc20_info.FabricTokenName)
+	fabric_ERC20 := ecomm.NewErc20Client(erc20_info.FabricTokenName)
 
 	return eth_ERC20, quo_ERC20, fabric_ERC20
 }

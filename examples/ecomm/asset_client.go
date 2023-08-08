@@ -19,7 +19,22 @@ type AssetClient struct {
 func NewAssetClient() *AssetClient {
 	err := os.Setenv("DISCOVERY_AS_LOCALHOST", "true")
 	if err != nil {
-		log.Fatalf("Error setting DISCOVERY_AS_LOCALHOST environemnt variable: %v", err)
+		log.Fatalf("Error setting DISCOVERY_AS_LOCALHOST environment variable: %v", err)
+	}
+
+	walletPath := "wallet"
+	// remove any existing wallet from prior runs
+	os.RemoveAll(walletPath)
+	wallet, err := gateway.NewFileSystemWallet(walletPath)
+	if err != nil {
+		log.Fatalf("Failed to create wallet: %v", err)
+	}
+
+	if !wallet.Exists("appUser") {
+		err = populateWallet(wallet)
+		if err != nil {
+			log.Fatalf("Failed to populate wallet contents: %v", err)
+		}
 	}
 
 	ccpPath := filepath.Join(
@@ -32,17 +47,6 @@ func NewAssetClient() *AssetClient {
 		"connection-org1.yaml",
 	)
 
-	wallet, err := gateway.NewFileSystemWallet("wallet")
-	if err != nil {
-		log.Fatalf("Failed to create wallet: %v", err)
-	}
-
-	err = populateWallet(wallet)
-	if err != nil {
-		log.Fatalf("Failed to populate wallet contents: %v", err)
-	}
-
-	// error: Failed to apply identity option
 	gw, err := gateway.Connect(
 		gateway.WithConfig(config.FromFile(filepath.Clean(ccpPath))),
 		gateway.WithIdentity(wallet, "appUser"),
@@ -62,53 +66,6 @@ func NewAssetClient() *AssetClient {
 		contract: network.GetContract("asset"),
 	}
 }
-
-// func NewAssetClient_() *AssetClient {
-// 	err := os.Setenv("DISCOVERY_AS_LOCALHOST", "true")
-// 	if err != nil {
-// 		log.Fatalf("Error setting DISCOVERY_AS_LOCALHOST environemnt variable: %v", err)
-// 	}
-
-// 	ccpPath := filepath.Join(
-// 		"../../../",
-// 		"fabric-samples",
-// 		"test-network",
-// 		"organizations",
-// 		"peerOrganizations",
-// 		"org1.example.com",
-// 		"connection-org1.yaml",
-// 	)
-
-// 	wallet, err := gateway.NewFileSystemWallet("wallet")
-// 	if err != nil {
-// 		log.Fatalf("Failed to create wallet: %v", err)
-// 	}
-
-// 	err = populateWallet(wallet)
-// 	if err != nil {
-// 		log.Fatalf("Failed to populate wallet contents: %v", err)
-// 	}
-
-// 	// error: Failed to apply identity option
-// 	gw, err := gateway.Connect(
-// 		gateway.WithConfig(config.FromFile(filepath.Clean(ccpPath))),
-// 		gateway.WithIdentity(wallet, "appUser"),
-// 	)
-
-// 	if err != nil {
-// 		log.Fatalf("Failed to connect to gateway: %v", err)
-// 	}
-// 	defer gw.Close()
-
-// 	network, err := gw.GetNetwork("mychannel")
-// 	if err != nil {
-// 		log.Fatalf("Failed to get network: %v", err)
-// 	}
-
-// 	return &AssetClient{
-// 		contract: network.GetContract("asset"),
-// 	}
-// }
 
 func (cc *AssetClient) GetCCID() string {
 	return "asset"
