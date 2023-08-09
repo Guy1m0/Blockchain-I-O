@@ -212,12 +212,6 @@ func DeployCrossChainAuction(client *ethclient.Client, erc20 common.Address, roo
 
 	receipt := WaitTx(client, tx, fmt.Sprintf("Deploy Auction contract with address: %s", addr.Hex()))
 
-	// success, err := cclib.WaitTx(client, tx.Hash())
-	// check(err)
-
-	//printTxStatus(success)
-	// fmt.Printf("Auction contract address: %s\n", addr.Hex())
-
 	return addr.Hex(), receipt
 }
 
@@ -233,7 +227,7 @@ func StartAuction(assetClient *AssetClient, assetID, ethAddr, quorumAddr string)
 	_, err := assetClient.StartAuction(args)
 	check(err)
 	// @wait
-	time.Sleep(100 * time.Microsecond) // 0.1s = 100 ms
+	time.Sleep(10 * time.Microsecond) // 0.01s = 100 ms
 	fmt.Println("Started auction for asset")
 
 	auctionID, err := assetClient.GetLastAuctionID()

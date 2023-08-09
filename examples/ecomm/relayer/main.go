@@ -48,12 +48,13 @@ func main() {
 
 	// Initialize
 	auctionResults = make(map[int]*ecomm.FinalizeAuctionArgs)
+
 	assetClient = ecomm.NewAssetClient()
 	ethClient = ecomm.NewEthClient()
 	quoClient = ecomm.NewQuorumClient()
 
-	ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "relayer") //zookeeper node
-	check(err)
+	ccsvc, _ = cclib.NewEventService(strings.Split(zkNodes, ","), "relayer") //zookeeper node
+	//check(err)
 
 	var erc20_info ecomm.Erc20Info
 	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
@@ -63,12 +64,12 @@ func main() {
 
 	// Register("event_", event_handler)
 	// SignedAuctionResultEvent is the one when bidder accept such auction
-	ccsvc.Register(ecomm.BiddingAuctionEvent, handleBiddingAuction)
-	ccsvc.Register(ecomm.AuctionCreatingEvent, handleAuctionCreating)
-	ccsvc.Register(ecomm.AuctionEndingEvent, handleAuctionEnding)
+	ccsvc.Register(ecomm.BiddingAuctionEvent, logEvent)
+	ccsvc.Register(ecomm.AuctionStartingEvent, logEvent)
+	ccsvc.Register(ecomm.AuctionEndingEvent, logEvent)
 
 	// Why not create a new event for new auction?
-	err = ccsvc.Start(true)
+	err := ccsvc.Start(true)
 	check(err)
 
 	// check new auction posted on Asset contract on Fabric

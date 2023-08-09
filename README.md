@@ -102,13 +102,22 @@ cd examples/auction/relayer
 sudo go build .
 ./relayer
 ```
+which is used to monitor all the activities on all three platforms. 
 
-
-7. Compile the `auctioneer` script.
+7. Compile the `auctioneer` script and create new asset.
 ```bash
 cd examples/auction/auctioneer
 go build .
 ```
+
+then
+```bash
+./auctioneer -c create -ast "Asset name"
+```
+
+which will return Auction ID in the terminal
+
+8. 
 
 8. Stop running Containers and Eth private networks
 
@@ -161,19 +170,8 @@ It is worthy noting that v2.2.11 might be a alternative release also supports RS
 
 For M1 chip user, better use Fabric no later than v2.5.0 and Fabric-CA no later than v1.5.6
 
-## Sarma Error
+> fixed this error by change `go.mod`. May need extra time to figure out which package cause this error
 
-For sarma error, use following bash code
-```bash
-go mod edit -replace github.com/Shopify/sarama=github.com/IBM/sarama@v1.40.0
-```
-
-Also change go.mod in fabric_asset folder from 1.16 to 1.18 at least
-
-## Total Supply
-Since fabric chaincode can not handle big.int natively, we set total supply in Eth and Quo as `10000000000000000000000000` and Fabric `10000000000` which to be intentionally 10^15 less as `Decimal = 15`
-
-May check back later to see if can really fix this difference.
 
 ## Remaining Problem
 

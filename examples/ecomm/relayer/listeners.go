@@ -10,6 +10,7 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/fab"
 )
 
 const (
@@ -19,21 +20,44 @@ const (
 // sets up the event listener, and handleEvent, which contains
 // the logic to execute when an event is received.
 func startListeningForEvents(client *ecomm.AssetClient) error {
+	events := []string{"AddAsset", "StartAuction", "EndAuction", "FinAuction"}
+	var regs []fab.Registration
+	var notifiers []<-chan *fab.CCEvent
 
-	// Can handle multiple event on Fabric
-	eventID := "AddAsset"
-	reg, notifier, err := client.Register(eventID)
-
-	if err != nil {
-		return fmt.Errorf("failed to register chaincode event: %v", err)
+	for _, eventID := range events {
+		reg, notifier, err := client.Register(eventID)
+		if err != nil {
+			return fmt.Errorf("failed to register chaincode event for %s: %v", eventID, err)
+		}
+		regs = append(regs, reg)
+		notifiers = append(notifiers, notifier)
 	}
 
-	defer client.Unregister(reg)
+	defer func() {
+		for _, reg := range regs {
+			client.Unregister(reg)
+		}
+	}()
 
 	for {
 		select {
-		case event := <-notifier:
+		case event := <-notifiers[0]:
 			err := handleAddAssetEvent(string(event.Payload))
+			if err != nil {
+				return err
+			}
+		case event := <-notifiers[1]:
+			err := handleStartAuctionEvent(string(event.Payload))
+			if err != nil {
+				return err
+			}
+		case event := <-notifiers[2]:
+			err := handleEndAuctionEvent(string(event.Payload))
+			if err != nil {
+				return err
+			}
+		case event := <-notifiers[3]:
+			err := handleFinAuctionEvent(string(event.Payload))
 			if err != nil {
 				return err
 			}

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -15,25 +16,23 @@ import (
 var mutex sync.Mutex
 
 func handleAddAssetEvent(eventPayload string) error {
+	log.Println("[fabric] Creating auction")
 
 	t := time.Now()
 	payload, _ := json.Marshal(eventPayload)
-	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent,
-		payload, t, timeInfoFile)
+	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
 
-	prefix := "Asset added: "
-
-	if !strings.HasPrefix(eventPayload, prefix) {
-		log.Fatalf("Received unexpected event: %s\n", eventPayload)
-		return nil
+	parts := strings.SplitN(eventPayload, ": ", 2)
+	if len(parts) < 2 {
+		return fmt.Errorf("received unexpected event: %s", eventPayload)
+		// Now eventDetail contains the string after ": "
 	}
 
-	assetID := strings.TrimPrefix(eventPayload, prefix)
-	asset, err := assetClient.GetAsset(assetID)
+	eventDetail := parts[1]
+	asset, err := assetClient.GetAsset(eventDetail)
 	check(err)
 
-	fmt.Println("Starting auction")
-	fmt.Println("[ethereum] Deploying auction")
+	log.Println("[ethereum] Deploying auction")
 
 	t = time.Now()
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
@@ -50,7 +49,7 @@ func handleAddAssetEvent(eventPayload string) error {
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
-	fmt.Println("[quorum] Deploying auction")
+	log.Println("[quorum] Deploying auction")
 	quoAddr, receipt_quo := ecomm.DeployCrossChainAuction(quoClient, quo_ERC20, root_key)
 	payload, err = json.Marshal(&ecomm.Tx{
 		Platform: "quo",
@@ -61,18 +60,57 @@ func handleAddAssetEvent(eventPayload string) error {
 
 	t = time.Now()
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	// @reset
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	fmt.Println("[fabric] Creating auction")
-	myAuction := ecomm.StartAuction(assetClient, asset.ID, ethAddr, quoAddr)
 
-	// publish
-	ccsvc_, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
-	check(err)
+	args := ecomm.StartAuctionArgs{
+		AssetID:    asset.ID,
+		EthAddr:    ethAddr,
+		QuorumAddr: quoAddr,
+	}
+	payload, _ = json.Marshal(args)
+	_, err = assetClient.StartAuction(args)
+	cclib.LogEventToFile(logInfoFile, ecomm.AuctionStartingEvent, payload, t, timeInfoFile)
 
-	payload, _ = json.Marshal(myAuction)
-	err = ccsvc_.Publish(ecomm.AuctionCreatingEvent, payload)
+	//myAuction := ecomm.StartAuction(assetClient, asset.ID, ethAddr, quoAddr)
 
 	return err
+}
+
+func handleStartAuctionEvent(eventPayload string) error {
+	log.Println("[kafka] Publish Auction Creating Event")
+
+	t := time.Now()
+	payload, _ := json.Marshal(eventPayload)
+	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
+
+	parts := strings.SplitN(eventPayload, ": ", 2)
+	if len(parts) < 2 {
+		return fmt.Errorf("received unexpected event: %s", eventPayload)
+	}
+
+	eventDetail := parts[1]
+	auctionID, _ := strconv.Atoi(eventDetail)
+	//fmt.Println("Auction ID:", auctionID, "eventPayload:", eventPayload)
+	myAuction, err := assetClient.GetAuction(auctionID)
+	check(err)
+	// publish
+	//ccsvc_, _ := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
+
+	payload, _ = json.Marshal(myAuction)
+	err = ccsvc.Publish(ecomm.AuctionStartingEvent, payload)
+
+	return err
+}
+
+func handleEndAuctionEvent(eventPayload string) error {
+	return nil
+}
+
+func handleFinAuctionEvent(eventPayload string) error {
+	return nil
 }
 
 func handleSignedAuctionResult(payload []byte) {
@@ -97,7 +135,7 @@ func handleSignedAuctionResult(payload []byte) {
 	}
 }
 
-func handleAuctionCreating(payload []byte) {
+func logEvent(payload []byte) {
 	t := time.Now()
 	cclib.LogEventToFile(logInfoFile, ecomm.KafkaReceivedEvent, payload, t, timeInfoFile)
 	//fmt.Println("Received Auction Creating Event in Kafka!")
@@ -107,7 +145,7 @@ func handleAuctionCreating(payload []byte) {
 
 	// mutex.Lock()
 	// defer mutex.Unlock()
-	return
+	//return
 }
 
 func handleAuctionEnding(payload []byte) {

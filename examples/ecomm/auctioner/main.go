@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
@@ -132,8 +132,6 @@ func main() {
 
 // Use key 1 as default auctioner
 func create(asset_name string) {
-	fmt.Println("[fabric] Adding asset")
-
 	// @reset timer
 	t := time.Now()
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
@@ -143,71 +141,12 @@ func create(asset_name string) {
 		Owner: aucT.From.Hex(),
 	}
 	payload, _ := json.Marshal(asset)
-	cclib.LogEventToFile(logInfoFile, ecomm.AuctionCreatingEvent, payload, t, timeInfoFile)
+	cclib.LogEventToFile(logInfoFile, ecomm.AddingAssetEvent, payload, t, timeInfoFile)
 
-	addAsset(asset_name)
-	fmt.Println("[fabric] Creating auction")
-
-	return
-
-	fmt.Println("Starting auction")
-	fmt.Println("[ethereum] Deploying auction")
-	ethAddr, receipt_eth := deployCrossChainAuction(ethClient, eth_ERC20)
-	payload, err := json.Marshal(&ecomm.Tx{
-		Platform: "eth",
-		Type:     "newAuction",
-		Receipt:  receipt_eth,
-	})
+	log.Println("[fabric] Adding asset")
+	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex())
 	check(err)
 
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
-
-	fmt.Println("[quorum] Deploying auction")
-	quoAddr, receipt_quo := deployCrossChainAuction(quoClient, quo_ERC20)
-	payload, err = json.Marshal(&ecomm.Tx{
-		Platform: "quo",
-		Type:     "newAuction",
-		Receipt:  receipt_quo,
-	})
-	check(err)
-
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
-
-	fmt.Println("[fabric] Creating auction")
-	// a.EthAddr = ethAddr
-	// a.QuorumAddr = quoAddr
-	// _, err = assetClient.SetAuction(a)
-	// check(err)
-	myAuction := startAuction(asset.ID, ethAddr, quoAddr)
-
-	// publish
-	ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
-	check(err)
-	payload, _ = json.Marshal(myAuction)
-	ccsvc.Publish(ecomm.AuctionCreatingEvent, payload)
-
-	// fmt.Println("Starting auction")
-	// fmt.Println("[ethereum] Deploying auction")
-	// ethAddr := deployCrossChainAuction(ethClient, eth_ERC20)
-
-	// fmt.Println("[quorum] Deploying auction")
-	// quoAddr := deployCrossChainAuction(quoClient, quo_ERC20)
-
-	// fmt.Println("[fabric] Creating auction")
-	// myAuction = startAuction(asset.ID, ethAddr, quoAddr)
-
-	// // publish
-	// ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
-	// check(err)
-	// payload, _ = json.Marshal(myAuction)
-	// ccsvc.Publish(ecomm.AuctionCreatingEvent, payload)
-
-	// t = time.Now()
-	// cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t)
-	// cclib.LastEventTimestamp.Set(time.Time{})
-	// till this part, no relayer involved yet
 }
 
 func end(auctionID int) {
@@ -301,3 +240,21 @@ func login() {
 // 	check(err)
 // 	fmt.Println("highest bid:", highestBid)
 // }
+
+func load_auctioner(name string) {
+	users, err := ecomm.ReadUsersFromFile(userInfoFile)
+	check(err)
+
+	for _, user := range users {
+		if name == user.UserID {
+			auc_key = user.KeyFile
+			return
+		}
+	}
+}
+
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
+}

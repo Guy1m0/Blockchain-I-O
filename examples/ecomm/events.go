@@ -13,11 +13,11 @@ var (
 	ProceedAuctionResultEvent = "ccsvc.prcd_result"
 	AbortAuctionResultEvent   = "ccsvc.abt_result"
 
-	AuctionCreatingEvent = "ccsvc.auction_creating"
-	//AddingAssetEvent     = "add_asset@fabric"
+	AuctionStartingEvent = "fabric.start_auction"
+
 	// tx_mined on eth/quo
 	// end AucCrEvt
-
+	AddingAssetEvent      = "fabric.add_asset"
 	BiddingAuctionEvent   = "eth_quo.bid_auc"
 	WithdrawEvent         = "eth_quo.withdraw"
 	TransactionMinedEvent = "eth_quo.tx_mined"

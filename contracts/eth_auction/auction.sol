@@ -24,6 +24,7 @@ contract Auction {
 
     // Events that will be emitted on changes.
     event HighestBidIncreased(address bidder, uint amount);
+    event WithdarwBid(address bidder, uint amount);
     event AuctionEnded(address winner, uint amount);
     event WaitResponse(address winner, uint amount);
 
@@ -74,6 +75,7 @@ contract Auction {
                 return false;
             }
         }
+        emit WithdarwBid(msg.sender, amount);
         return true;
     }
 

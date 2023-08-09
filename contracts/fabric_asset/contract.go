@@ -87,6 +87,14 @@ func (cc *SmartContract) StartAuction(
 	}
 
 	asset.PendingAuctionID = auction.ID
+
+	// Emit an event when an auction is started
+	eventPayload := fmt.Sprintf("Auction start: %d", auction.ID)
+	err = ctx.GetStub().SetEvent("StartAuction", []byte(eventPayload))
+	if err != nil {
+		return fmt.Errorf("error setting event: %v", err)
+	}
+
 	return cc.setAsset(ctx, asset)
 }
 
@@ -102,6 +110,14 @@ func (cc *SmartContract) EndAuction(
 		return err
 	}
 	auction.Status = "Ending"
+
+	// Emit an event when an auction is started
+	eventPayload := fmt.Sprintf("Auction end: %d", auction.ID)
+	err = ctx.GetStub().SetEvent("EndAuction", []byte(eventPayload))
+	if err != nil {
+		return fmt.Errorf("error setting event: %v", err)
+	}
+
 	return cc.setAuction(ctx, auction)
 }
 
