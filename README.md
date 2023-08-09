@@ -98,7 +98,7 @@ and then show the result
 
 6. Run `relayer` crosschain service.
 ```bash
-cd examples/auction/relayer
+cd examples/ecomm/relayer
 sudo go build .
 ./relayer
 ```
@@ -106,7 +106,7 @@ which is used to monitor all the activities on all three platforms.
 
 7. Compile the `auctioneer` script and create new asset.
 ```bash
-cd examples/auction/auctioneer
+cd examples/ecomm/auctioneer
 go build .
 ```
 
@@ -117,7 +117,33 @@ then
 
 which will return Auction ID in the terminal
 
-8. 
+8. Place bid on Eth
+First compile 
+```bash
+cd examples/ecomm/bidder
+go build .
+```
+
+then place MDai `5` bidding on first asset 
+
+```bash
+./bidder -c bid -amt 5 -id 1
+```
+
+9. Place bid on Quo
+
+Load `Bidder 2` and then place MDai `7` on quo as follows
+```bash
+./bidder -c bid -name "Bidder 2" -p quo -amt 7 -id 1
+```
+
+10. End Auction
+
+Go to folder `examples/ecomm/auctioneer`
+then use following bash code
+```bash
+./auctioneer -c end -id 1
+```
 
 8. Stop running Containers and Eth private networks
 
