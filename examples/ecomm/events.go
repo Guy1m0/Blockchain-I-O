@@ -1,5 +1,12 @@
 package ecomm
 
+import (
+	"math/big"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+)
+
 const (
 	OnInitializedLending = "ecomm.initialize"
 	OnLoanSuccessful     = "ecomm.successful"
@@ -30,4 +37,22 @@ var (
 type SignedAuctionResult struct {
 	AuctionResult
 	Signature []byte
+}
+
+type HighestBidIncreasedEvent struct {
+	Bidder common.Address
+	Amount *big.Int
+	Raw    types.Log // Blockchain specific contextual infos
+}
+
+type DecisionMadeEvent struct {
+	Winner common.Address
+	Amount *big.Int
+	Id     string
+	Raw    types.Log // Blockchain specific contextual infos
+}
+
+type WaitResponseEvent struct {
+	Winner common.Address
+	Raw    types.Log // Blockchain specific contextual infos
 }

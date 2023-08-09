@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -117,7 +116,7 @@ type Bid struct {
 type Tx struct {
 	Platform string
 	Type     string
-	Receipt  *types.Receipt
+	Hash     common.Hash
 }
 
 // Struct used as input for creating new Auction

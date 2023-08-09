@@ -203,11 +203,11 @@ func SplitSignature(sig string) (r [32]byte, s [32]byte, v uint8) {
 
 // this is only used for recording bid
 // Use Auctioner 1's key1 to deploy contract
-func DeployCrossChainAuction(client *ethclient.Client, erc20 common.Address, root_key string) (string, *types.Receipt) {
+func DeployCrossChainAuction(client *ethclient.Client, erc20 common.Address, asset_id string, root_key string) (string, *types.Receipt) {
 	auth, err := cclib.NewTransactor(root_key, password)
 	check(err)
 
-	addr, tx, _, err := eth_auction.DeployEthAuction(auth, client, erc20)
+	addr, tx, _, err := eth_auction.DeployEthAuction(auth, client, erc20, asset_id)
 	check(err)
 
 	receipt := WaitTx(client, tx, fmt.Sprintf("Deploy Auction contract with address: %s", addr.Hex()))

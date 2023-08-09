@@ -97,7 +97,7 @@ func main() {
 	case "prcd":
 		id, _ := strconv.Atoi(*id_)
 		procd_auction(id)
-	case "abort":
+	case "abt":
 		id, _ := strconv.Atoi(*id_)
 		abort_auction(id)
 	case "with":
@@ -183,9 +183,8 @@ func bidAuction(auction_id int, amount *big.Int) {
 		erc20_address = erc20_info.QuoERC20
 	}
 
-	// @reset timer
-	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	auction_contract, err := eth_auction.NewEthAuction(auction_addr, client)
+	check(err)
 
 	bidT, err := cclib.NewTransactor(bid_key, "password")
 	check(err)
@@ -199,6 +198,10 @@ func bidAuction(auction_id int, amount *big.Int) {
 		AuctionID:   auction_id,
 		AssetID:     a.AssetID,
 	})
+
+	// @reset timer
+	t := time.Now()
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 	cclib.LogEventToFile(logInfoFile, ecomm.BiddingAuctionEvent, payload, t, timeInfoFile)
 
 	// Approve amount of bid through ERC20 contract
@@ -207,34 +210,19 @@ func bidAuction(auction_id int, amount *big.Int) {
 	ecomm.WaitTx(client, tx, "Approve Auction Contract's allowance")
 
 	// alw, err := MDAI.Allowance(&bind.CallOpts{}, bidT.From, auction_addr)
-	// check(err)
-	// fmt.Println("Check allowance: ", alw)
-
-	//fmt.Println("Load Auction obj")
-
-	auction_contract, err := eth_auction.NewEthAuction(auction_addr, client)
-	check(err)
-
-	// eth_ERC20, _, _ := load_ERC20()
-	// bal, _ := eth_ERC20.BalanceOf(&bind.CallOpts{}, bidT.From)
-	// fmt.Println("Check Balance for Bidder: ", bal)
-
-	//fmt.Printf("Bid on Auction ID: %d through contract: %s\n", a.ID, Auction_addr)
 	tx, err = auction_contract.Bid(bidT, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	check(err)
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, auction_addr))
 	//debugTransaction(tx)
+
 	// log
+	t = time.Now()
 	payload, _ = json.Marshal(&ecomm.Tx{
 		Platform: platform,
 		Type:     "Bid",
-		Receipt:  receipt,
+		Hash:     receipt.TxHash,
 	})
-
-	t = time.Now()
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
-	//cclib.LastEventTimestamp.Set(time.Time{})
-
 }
 
 func check_winner(auction_id int) {
@@ -308,7 +296,7 @@ func procd_auction(auction_id int) {
 	payload, _ = json.Marshal(&ecomm.Tx{
 		Platform: platform,
 		Type:     "Proceed",
-		Receipt:  receipt,
+		Hash:     receipt.TxHash,
 	})
 
 	t = time.Now()
@@ -351,7 +339,7 @@ func abort_auction(auction_id int) {
 	payload, _ = json.Marshal(&ecomm.Tx{
 		Platform: platform,
 		Type:     "Abort",
-		Receipt:  receipt,
+		Hash:     receipt.TxHash,
 	})
 
 	t = time.Now()
@@ -393,7 +381,7 @@ func withdraw(auction_id int) {
 	payload, _ = json.Marshal(&ecomm.Tx{
 		Platform: platform,
 		Type:     "Withdraw",
-		Receipt:  receipt,
+		Hash:     receipt.TxHash,
 	})
 
 	t = time.Now()

@@ -4,7 +4,7 @@ pragma solidity ^0.8.18;
 
 interface IERC20 {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
-    function burn(uint256 amount) external;
+    function burn(address usr, uint wad) external;
 }
 
 contract Auction {
@@ -22,19 +22,22 @@ contract Auction {
     string public status;
     address public owner;
 
+    string public asset_id;
+
     // Events that will be emitted on changes.
     event HighestBidIncreased(address bidder, uint amount);
     event WithdarwBid(address bidder, uint amount);
-    event AuctionEnded(address winner, uint amount);
-    event WaitResponse(address winner, uint amount);
+    event DecisionMade(address winner, uint amount, string id);
+    event WaitResponse(address winner);
 
     IERC20 public token;
 
-    constructor(IERC20 _token) {
+    constructor(IERC20 _token, string memory _asset_id) {
         //beneficiary = payable(msg.sender);
         token = _token;
         status = "running";
         owner = msg.sender;
+        asset_id = _asset_id;
     }
 
     function bid(uint bidAmount) public {
@@ -85,12 +88,12 @@ contract Auction {
         require(keccak256(abi.encodePacked(status)) == keccak256(abi.encodePacked("running")), "Contract not in RUNNING status");
 
         status = "ending";
-        if (not_winner_platform){
+        if (not_winner_platform || highestBid == 0){
             abort();
             return;
         }
 
-        emit WaitResponse(highestBidder, highestBid);
+        emit WaitResponse(highestBidder);
     }
 
     function abort() public {
@@ -105,7 +108,7 @@ contract Auction {
         highestBidder = address(0);
         highestBid = 0;
 
-        emit AuctionEnded(highestBidder, highestBid);
+        emit DecisionMade(highestBidder, highestBid, asset_id);
 
     }
 
@@ -113,12 +116,12 @@ contract Auction {
         // Use hash to check status
         require(keccak256(abi.encodePacked(status)) == keccak256(abi.encodePacked("ending")), "Contract not in ENDING status");
         // For testing only
-        require(msg.sender == owner || msg.sender == highestBidder, "Not authorized access!");
+        require(msg.sender == highestBidder, "Not authorized access!");
         
         status = "ended";
 
-        token.burn(highestBid);
-        emit AuctionEnded(highestBidder, highestBid);
+        token.burn(address(this), highestBid);
+        emit DecisionMade(highestBidder, highestBid, asset_id);
 
     }
 }

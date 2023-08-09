@@ -17,7 +17,7 @@ func load_bidder_key(name string) string {
 	for _, user := range users {
 		//fmt.Println("Find ", name, "in", user.UserID)
 		if name == user.UserID {
-			fmt.Println("Find!", user.KeyFile)
+			//fmt.Println("Find!", user.KeyFile)
 			return user.KeyFile
 		}
 	}

@@ -73,7 +73,7 @@ func main() {
 	check(err)
 
 	// check new auction posted on Asset contract on Fabric
-	startListeningForEvents(assetClient)
+	startListeningForAssetEvents(assetClient)
 	//runAuctionListener()
 }
 

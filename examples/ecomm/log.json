@@ -2,357 +2,441 @@
   "ElapsedTime": "0s",
   "Event": "fabric.add_asset",
   "Payload": {
-    "ID": "nft1",
+    "ID": "ast1",
     "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
     "PendingAuctionID": 0
   },
-  "Time": "2023-08-10T00:29:46+08:00"
+  "Time": "2023-08-10T04:25:44+08:00"
 }
 {
-  "ElapsedTime": "2.066209s",
+  "ElapsedTime": "2.048628s",
   "Event": "relayer.detected",
-  "Payload": "Asset added: nft1",
-  "Time": "2023-08-10T00:29:48+08:00"
+  "Payload": "Asset added: ast1",
+  "Time": "2023-08-10T04:25:46+08:00"
 }
 {
-  "ElapsedTime": "2.479005s",
+  "ElapsedTime": "2.474455s",
   "Event": "eth_quo.tx_mined",
   "Payload": {
+    "Hash": "0x7d143115dbfbc322b21963c4e3441aa66c56dd0b982299c040c3d3edcf408ce1",
     "Platform": "eth",
-    "Receipt": {
-      "blockHash": "0xffda804351c8387803333ac55e54b8612e00ac09b49f7863060e24774f0573b2",
-      "blockNumber": "0x44",
-      "contractAddress": "0x11285cbbdaee1f046460a387d9a5f0d2352ddaba",
-      "cumulativeGasUsed": "0x10e963",
-      "effectiveGasPrice": "0x3b9aca00",
-      "gasUsed": "0x10e963",
-      "logs": [],
-      "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-      "root": "0x",
-      "status": "0x1",
-      "transactionHash": "0xb0fd7b6f5d736af6fd63a6bea86e0cc7945cb948daaebe18909923dcd467fef3",
-      "transactionIndex": "0x0"
-    },
     "Type": "newAuction"
   },
-  "Time": "2023-08-10T00:29:51+08:00"
+  "Time": "2023-08-10T04:25:49+08:00"
 }
 {
-  "ElapsedTime": "1.491534s",
+  "ElapsedTime": "1.462554s",
   "Event": "eth_quo.tx_mined",
   "Payload": {
+    "Hash": "0xf950e9c0e47927f6f38b482fdc2bd07334b3f0dc0430190107a1edff26a07cee",
     "Platform": "quo",
-    "Receipt": {
-      "blockHash": "0x4c0767dfe2a0bd8c8e064cc136c677b6073aa128fe81384cfdd15523722cd460",
-      "blockNumber": "0x6",
-      "contractAddress": "0x5934484f44018ceeda392d2a2d9077a62cf87c57",
-      "cumulativeGasUsed": "0x10e963",
-      "effectiveGasPrice": null,
-      "gasUsed": "0x10e963",
-      "logs": [],
-      "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-      "root": "0x",
-      "status": "0x1",
-      "transactionHash": "0x84ab5169716045125773639745121b3784b69fe0ef54ebc5afd3e6a8320b9b8e",
-      "transactionIndex": "0x0"
-    },
     "Type": "newAuction"
   },
-  "Time": "2023-08-10T00:29:52+08:00"
+  "Time": "2023-08-10T04:25:50+08:00"
 }
 {
   "ElapsedTime": "0s",
   "Event": "ccsvc.start_auction",
   "Payload": {
-    "AssetID": "nft1",
-    "EthAddr": "0x11285cbBDAEE1F046460a387D9a5F0D2352DdAba",
-    "QuorumAddr": "0x5934484f44018ceEda392d2A2d9077a62CF87c57",
+    "AssetID": "ast1",
+    "EthAddr": "0xb3035B3e02af4b2eb9CF9BEdBfef9B4F971B3F60",
+    "QuorumAddr": "0x7b2d8826e6AFB613Cc766DaB6d48C0e53C9c58B8",
     "Signature": ""
   },
-  "Time": "2023-08-10T00:29:52+08:00"
+  "Time": "2023-08-10T04:25:50+08:00"
 }
 {
-  "ElapsedTime": "2.056037s",
+  "ElapsedTime": "2.050748s",
   "Event": "relayer.detected",
-  "Payload": "Auction start: 1",
-  "Time": "2023-08-10T00:29:54+08:00"
+  "Payload": "Auction start: 11",
+  "Time": "2023-08-10T04:25:52+08:00"
 }
 {
-  "ElapsedTime": "2.064162s",
+  "ElapsedTime": "2.065032s",
   "Event": "kafka.received",
   "Payload": {
-    "AssetID": "nft1",
-    "EthAddr": "0x11285cbBDAEE1F046460a387D9a5F0D2352DdAba",
+    "AssetID": "ast1",
+    "EthAddr": "0xb3035B3e02af4b2eb9CF9BEdBfef9B4F971B3F60",
     "HighestBid": 0,
     "HighestBidPlatform": "",
     "HighestBidder": "",
-    "ID": 1,
-    "QuorumAddr": "0x5934484f44018ceEda392d2A2d9077a62CF87c57",
+    "ID": 11,
+    "QuorumAddr": "0x7b2d8826e6AFB613Cc766DaB6d48C0e53C9c58B8",
     "Status": "Started"
   },
-  "Time": "2023-08-10T00:29:54+08:00"
+  "Time": "2023-08-10T04:25:52+08:00"
 }
 {
   "ElapsedTime": "0s",
   "Event": "eth_quo.bid_auc",
   "Payload": {
-    "AssetID": "nft1",
-    "AuctionAddr": "0x11285cbbdaee1f046460a387d9a5f0d2352ddaba",
-    "AuctionID": 1,
+    "AssetID": "ast1",
+    "AuctionAddr": "0xb3035b3e02af4b2eb9cf9bedbfef9b4f971b3f60",
+    "AuctionID": 11,
     "BidAmount": 5,
     "Bidder": "0xd0a73fe9d44184e9f1264ce2097064212e67ebfe",
     "Platform": "eth"
   },
-  "Time": "2023-08-10T00:33:41+08:00"
+  "Time": "2023-08-10T04:26:01+08:00"
 }
 {
-  "ElapsedTime": "4.474753s",
-  "Event": "eth_quo.tx_mined",
+  "ElapsedTime": "3.480718s",
+  "Event": "relayer.detected",
   "Payload": {
-    "Platform": "eth",
-    "Receipt": {
-      "blockHash": "0x732958f30eb1f9b843bb1531ede5a01fe6d0b9300a25ed5c29f55ebc9864929d",
-      "blockNumber": "0x12f",
-      "contractAddress": "0x0000000000000000000000000000000000000000",
-      "cumulativeGasUsed": "0x15149",
-      "effectiveGasPrice": "0x3b9aca00",
-      "gasUsed": "0x15149",
-      "logs": [
-        {
-          "address": "0x1377a9f3f7b5984d7653133be2955583f3858373",
-          "blockHash": "0x732958f30eb1f9b843bb1531ede5a01fe6d0b9300a25ed5c29f55ebc9864929d",
-          "blockNumber": "0x12f",
-          "data": "0x0000000000000000000000000000000000000000000000000011c37937e08000",
-          "logIndex": "0x0",
-          "removed": false,
-          "topics": [
-            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-            "0x000000000000000000000000d0a73fe9d44184e9f1264ce2097064212e67ebfe",
-            "0x00000000000000000000000011285cbbdaee1f046460a387d9a5f0d2352ddaba"
-          ],
-          "transactionHash": "0x8aa0e30e6ee58d3c84210e867ea829323dea8b88c3becb1e703345fe5aace642",
-          "transactionIndex": "0x0"
-        },
-        {
-          "address": "0x11285cbbdaee1f046460a387d9a5f0d2352ddaba",
-          "blockHash": "0x732958f30eb1f9b843bb1531ede5a01fe6d0b9300a25ed5c29f55ebc9864929d",
-          "blockNumber": "0x12f",
-          "data": "0x000000000000000000000000d0a73fe9d44184e9f1264ce2097064212e67ebfe0000000000000000000000000000000000000000000000000011c37937e08000",
-          "logIndex": "0x1",
-          "removed": false,
-          "topics": [
-            "0xf4757a49b326036464bec6fe419a4ae38c8a02ce3e68bf0809674f6aab8ad300"
-          ],
-          "transactionHash": "0x8aa0e30e6ee58d3c84210e867ea829323dea8b88c3becb1e703345fe5aace642",
-          "transactionIndex": "0x0"
-        }
-      ],
-      "logsBloom": "0x00000000000000000000100000800000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000008200000000000000000000000000008000000000000000000000400000000000000000400000000000000000000000000200000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000004000400000000000000000000000020000000000100000001000000000002000000000000000000000000000000000000000000010000000000000000000000000000000000000400000000000000000000000000000000000000",
-      "root": "0x",
-      "status": "0x1",
-      "transactionHash": "0x8aa0e30e6ee58d3c84210e867ea829323dea8b88c3becb1e703345fe5aace642",
-      "transactionIndex": "0x0"
-    },
-    "Type": "Bid"
-  },
-  "Time": "2023-08-10T00:33:46+08:00"
-}
-{
-  "ElapsedTime": "5.104345s",
-  "Event": "eth_quo.bid_auc",
-  "Payload": {
-    "AuctionAddr": "0x11285cbBDAEE1F046460a387D9a5F0D2352DdAba",
+    "AuctionAddr": "0xb3035B3e02af4b2eb9CF9BEdBfef9B4F971B3F60",
     "HighestBid": 5000000000000000,
     "HighestBidder": "0xD0A73Fe9D44184e9F1264ce2097064212E67EbFE",
-    "HostAuctionID": 1,
+    "HostAuctionID": 11,
     "Platform": "eth"
   },
-  "Time": "2023-08-10T00:33:46+08:00"
+  "Time": "2023-08-10T04:26:05+08:00"
 }
 {
-  "ElapsedTime": "0s",
-  "Event": "eth_quo.bid_auc",
+  "ElapsedTime": "10.143ms",
+  "Event": "kafka.received",
   "Payload": {
-    "AssetID": "nft1",
-    "AuctionAddr": "0x5934484f44018ceeda392d2a2d9077a62cf87c57",
-    "AuctionID": 1,
-    "BidAmount": 7,
-    "Bidder": "0xd3cf32a24e4527cf84ef0c8d571f8a77f6481984",
-    "Platform": "quo"
+    "AuctionAddr": "0xb3035B3e02af4b2eb9CF9BEdBfef9B4F971B3F60",
+    "HighestBid": 5000000000000000,
+    "HighestBidder": "0xD0A73Fe9D44184e9F1264ce2097064212E67EbFE",
+    "HostAuctionID": 11,
+    "Platform": "eth"
   },
-  "Time": "2023-08-10T00:36:21+08:00"
+  "Time": "2023-08-10T04:26:05+08:00"
 }
 {
-  "ElapsedTime": "1.9804s",
-  "Event": "eth_quo.bid_auc",
-  "Payload": {
-    "AuctionAddr": "0x5934484f44018ceEda392d2A2d9077a62CF87c57",
-    "HighestBid": 7000000000000000,
-    "HighestBidder": "0xd3CF32A24e4527Cf84EF0c8d571f8a77F6481984",
-    "HostAuctionID": 1,
-    "Platform": "quo"
-  },
-  "Time": "2023-08-10T00:36:23+08:00"
-}
-{
-  "ElapsedTime": "2.4738s",
+  "ElapsedTime": "533.76ms",
   "Event": "eth_quo.tx_mined",
   "Payload": {
-    "Platform": "quo",
-    "Receipt": {
-      "blockHash": "0xbbcef0072df6f35000248853c7aca215108730ad1b5a1d9cb5dd85796861e056",
-      "blockNumber": "0x8",
-      "contractAddress": "0x0000000000000000000000000000000000000000",
-      "cumulativeGasUsed": "0x15149",
-      "effectiveGasPrice": null,
-      "gasUsed": "0x15149",
-      "logs": [
-        {
-          "address": "0x7034fabec4344ac5fc76a918bbde2543c235434b",
-          "blockHash": "0xbbcef0072df6f35000248853c7aca215108730ad1b5a1d9cb5dd85796861e056",
-          "blockNumber": "0x8",
-          "data": "0x0000000000000000000000000000000000000000000000000018de76816d8000",
-          "logIndex": "0x0",
-          "removed": false,
-          "topics": [
-            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-            "0x000000000000000000000000d3cf32a24e4527cf84ef0c8d571f8a77f6481984",
-            "0x0000000000000000000000005934484f44018ceeda392d2a2d9077a62cf87c57"
-          ],
-          "transactionHash": "0xdd47530a6e9777a41302e41a42472b10f3905ef065aac2c549432af3f77d3978",
-          "transactionIndex": "0x0"
-        },
-        {
-          "address": "0x5934484f44018ceeda392d2a2d9077a62cf87c57",
-          "blockHash": "0xbbcef0072df6f35000248853c7aca215108730ad1b5a1d9cb5dd85796861e056",
-          "blockNumber": "0x8",
-          "data": "0x000000000000000000000000d3cf32a24e4527cf84ef0c8d571f8a77f64819840000000000000000000000000000000000000000000000000018de76816d8000",
-          "logIndex": "0x1",
-          "removed": false,
-          "topics": [
-            "0xf4757a49b326036464bec6fe419a4ae38c8a02ce3e68bf0809674f6aab8ad300"
-          ],
-          "transactionHash": "0xdd47530a6e9777a41302e41a42472b10f3905ef065aac2c549432af3f77d3978",
-          "transactionIndex": "0x0"
-        }
-      ],
-      "logsBloom": "0x00000000004000000000000000800000000000000000000000000000000000000000000000000000000000000000000000080000800000000000000000000000000000000000000000000008000000000000004000000400000000000000000000000000080000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000100000000000000000002000000000000000000000000000000000000000000200000000000002000000000000000080000000000100000800000000000000000000000000000",
-      "root": "0x",
-      "status": "0x1",
-      "transactionHash": "0xdd47530a6e9777a41302e41a42472b10f3905ef065aac2c549432af3f77d3978",
-      "transactionIndex": "0x0"
-    },
+    "Hash": "0x063c5274029066c5dbd84a75e92dfcb9b41a58f7afa0281b10ee2f358e804f80",
+    "Platform": "eth",
     "Type": "Bid"
   },
-  "Time": "2023-08-10T00:36:23+08:00"
+  "Time": "2023-08-10T04:26:05+08:00"
+}
+{
+  "ElapsedTime": "2.035367s",
+  "Event": "relayer.detected",
+  "Payload": "Auction end: 11",
+  "Time": "2023-08-10T04:26:12+08:00"
 }
 {
   "ElapsedTime": "0s",
   "Event": "fabric.end_auction",
   "Payload": {
-    "AssetID": "nft1",
-    "EthAddr": "0x11285cbBDAEE1F046460a387D9a5F0D2352DdAba",
+    "AssetID": "ast1",
+    "EthAddr": "0xb3035B3e02af4b2eb9CF9BEdBfef9B4F971B3F60",
     "HighestBid": 0,
     "HighestBidPlatform": "",
     "HighestBidder": "",
-    "ID": 1,
-    "QuorumAddr": "0x5934484f44018ceEda392d2A2d9077a62CF87c57",
+    "ID": 11,
+    "QuorumAddr": "0x7b2d8826e6AFB613Cc766DaB6d48C0e53C9c58B8",
     "Status": "Started"
   },
-  "Time": "2023-08-10T00:39:38+08:00"
+  "Time": "2023-08-10T04:26:10+08:00"
 }
 {
-  "ElapsedTime": "2.04198s",
-  "Event": "relayer.detected",
-  "Payload": "Auction end: 1",
-  "Time": "2023-08-10T00:39:40+08:00"
-}
-{
-  "ElapsedTime": "2.00687s",
+  "ElapsedTime": "2.004251s",
   "Event": "eth_quo.tx_mined",
   "Payload": {
+    "Hash": "0xfb5f5b6b278376b4b0550beb06ea12c2f8b8fffccf08cbfcd7132fbd4ad7a456",
     "Platform": "eth",
-    "Receipt": {
-      "blockHash": "0x97d78515d4b552b95e1886bf10e035be8101c153e954558dbc681cd62c3ba8d5",
-      "blockNumber": "0x294",
-      "contractAddress": "0x0000000000000000000000000000000000000000",
-      "cumulativeGasUsed": "0x9117",
-      "effectiveGasPrice": "0x3b9aca00",
-      "gasUsed": "0x9117",
-      "logs": [
-        {
-          "address": "0x11285cbbdaee1f046460a387d9a5f0d2352ddaba",
-          "blockHash": "0x97d78515d4b552b95e1886bf10e035be8101c153e954558dbc681cd62c3ba8d5",
-          "blockNumber": "0x294",
-          "data": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-          "logIndex": "0x0",
-          "removed": false,
-          "topics": [
-            "0xdaec4582d5d9595688c8c98545fdd1c696d41c6aeaeb636737e84ed2f5c00eda"
-          ],
-          "transactionHash": "0xcbf693c5808963522db0722a5b8faf42c832835903e49c886a1794d6fd543db7",
-          "transactionIndex": "0x0"
-        }
-      ],
-      "logsBloom": "0x00000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000040000000000000000000000000001000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000",
-      "root": "0x",
-      "status": "0x1",
-      "transactionHash": "0xcbf693c5808963522db0722a5b8faf42c832835903e49c886a1794d6fd543db7",
-      "transactionIndex": "0x0"
-    },
     "Type": "EndAuction"
   },
-  "Time": "2023-08-10T00:39:43+08:00"
+  "Time": "2023-08-10T04:26:14+08:00"
 }
 {
-  "ElapsedTime": "1.013052s",
+  "ElapsedTime": "1.00917s",
   "Event": "eth_quo.tx_mined",
   "Payload": {
+    "Hash": "0x2515e8139f437c1dfa612812e81da78113f4822ead6e0a104b554e03580f2e6e",
     "Platform": "quo",
-    "Receipt": {
-      "blockHash": "0x1f17ce544afc130afbc30dae3ee672ed429dfc0cba957d08bf415ef9a53c81eb",
-      "blockNumber": "0x9",
-      "contractAddress": "0x0000000000000000000000000000000000000000",
-      "cumulativeGasUsed": "0x759b",
-      "effectiveGasPrice": null,
-      "gasUsed": "0x759b",
-      "logs": [
-        {
-          "address": "0x5934484f44018ceeda392d2a2d9077a62cf87c57",
-          "blockHash": "0x1f17ce544afc130afbc30dae3ee672ed429dfc0cba957d08bf415ef9a53c81eb",
-          "blockNumber": "0x9",
-          "data": "0x000000000000000000000000d3cf32a24e4527cf84ef0c8d571f8a77f64819840000000000000000000000000000000000000000000000000018de76816d8000",
-          "logIndex": "0x0",
-          "removed": false,
-          "topics": [
-            "0x0472d43abcf056976d4a0f799dccd47a3fadcc3f385763eed302bdcc802bc20c"
-          ],
-          "transactionHash": "0xbdc4771190af2d6003753e6e91111f699297ba5bd72981f6e63f39957005df6f",
-          "transactionIndex": "0x0"
-        }
-      ],
-      "logsBloom": "0x00000000000000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000004000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000800000000000000000000000000000",
-      "root": "0x",
-      "status": "0x1",
-      "transactionHash": "0xbdc4771190af2d6003753e6e91111f699297ba5bd72981f6e63f39957005df6f",
-      "transactionIndex": "0x0"
-    },
     "Type": "EndAuction"
   },
-  "Time": "2023-08-10T00:39:44+08:00"
+  "Time": "2023-08-10T04:26:15+08:00"
 }
 {
-  "ElapsedTime": "19.43ms",
+  "ElapsedTime": "8.632ms",
   "Event": "kafka.received",
   "Payload": {
-    "AssetID": "nft1",
-    "EthAddr": "0x11285cbBDAEE1F046460a387D9a5F0D2352DdAba",
+    "AssetID": "ast1",
+    "EthAddr": "0xb3035B3e02af4b2eb9CF9BEdBfef9B4F971B3F60",
     "HighestBid": 0,
-    "HighestBidPlatform": "quo",
+    "HighestBidPlatform": "eth",
     "HighestBidder": "",
-    "ID": 1,
-    "QuorumAddr": "0x5934484f44018ceEda392d2A2d9077a62CF87c57",
+    "ID": 11,
+    "QuorumAddr": "0x7b2d8826e6AFB613Cc766DaB6d48C0e53C9c58B8",
     "Status": "Ending"
   },
-  "Time": "2023-08-10T00:39:44+08:00"
+  "Time": "2023-08-10T04:26:15+08:00"
+}
+{
+  "ElapsedTime": "0s",
+  "Event": "ccsvc.prcd_result",
+  "Payload": {
+    "AssetID": "ast1",
+    "EthAddr": "0xb3035B3e02af4b2eb9CF9BEdBfef9B4F971B3F60",
+    "HighestBid": 0,
+    "HighestBidPlatform": "",
+    "HighestBidder": "",
+    "ID": 11,
+    "QuorumAddr": "0x7b2d8826e6AFB613Cc766DaB6d48C0e53C9c58B8",
+    "Status": "Ending"
+  },
+  "Time": "2023-08-10T04:26:33+08:00"
+}
+{
+  "ElapsedTime": "1.469513s",
+  "Event": "ccsvc.prcd_result",
+  "Payload": {
+    "Hash": "0x12cc1ec811f0cb6f4c35ab5fc831c2554a4d11a75e5ff77bdc62fa6f85cb63f0",
+    "Platform": "quo",
+    "Type": "Proceed"
+  },
+  "Time": "2023-08-10T04:26:34+08:00"
+}
+{
+  "ElapsedTime": "0s",
+  "Event": "ccsvc.prcd_result",
+  "Payload": {
+    "AssetID": "ast1",
+    "EthAddr": "0xb3035B3e02af4b2eb9CF9BEdBfef9B4F971B3F60",
+    "HighestBid": 0,
+    "HighestBidPlatform": "",
+    "HighestBidder": "",
+    "ID": 11,
+    "QuorumAddr": "0x7b2d8826e6AFB613Cc766DaB6d48C0e53C9c58B8",
+    "Status": "Ending"
+  },
+  "Time": "2023-08-10T04:26:42+08:00"
+}
+{
+  "ElapsedTime": "2.46705s",
+  "Event": "ccsvc.prcd_result",
+  "Payload": {
+    "Hash": "0x86a8c7594d36a1ada8d4dd45ee538e9691d2aebd25ff7cee633b4e1ce27ddb5d",
+    "Platform": "eth",
+    "Type": "Proceed"
+  },
+  "Time": "2023-08-10T04:26:44+08:00"
+}
+{
+  "ElapsedTime": "0s",
+  "Event": "fabric.add_asset",
+  "Payload": {
+    "ID": "ast2",
+    "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
+    "PendingAuctionID": 0
+  },
+  "Time": "2023-08-10T04:30:10+08:00"
+}
+{
+  "ElapsedTime": "2.045816s",
+  "Event": "relayer.detected",
+  "Payload": "Asset added: ast2",
+  "Time": "2023-08-10T04:30:12+08:00"
+}
+{
+  "ElapsedTime": "2.472207s",
+  "Event": "eth_quo.tx_mined",
+  "Payload": {
+    "Hash": "0xc42a76e02c2e1096f9ce3579026a1580d977b9c7cb2f4ad60ff8e6ae39aebf4c",
+    "Platform": "eth",
+    "Type": "newAuction"
+  },
+  "Time": "2023-08-10T04:30:15+08:00"
+}
+{
+  "ElapsedTime": "1.481366s",
+  "Event": "eth_quo.tx_mined",
+  "Payload": {
+    "Hash": "0xe416fed491f1520967c4fe74165d27fb0345ac33be954bfa8d81930f0756bfe3",
+    "Platform": "quo",
+    "Type": "newAuction"
+  },
+  "Time": "2023-08-10T04:30:16+08:00"
+}
+{
+  "ElapsedTime": "0s",
+  "Event": "ccsvc.start_auction",
+  "Payload": {
+    "AssetID": "ast2",
+    "EthAddr": "0x885d29dbE214282Ff0c3BaD10b6d0aECcf06538d",
+    "QuorumAddr": "0x6108bB8bDB252B09DE33517b940288afD5DC85dc",
+    "Signature": ""
+  },
+  "Time": "2023-08-10T04:30:16+08:00"
+}
+{
+  "ElapsedTime": "2.061342s",
+  "Event": "relayer.detected",
+  "Payload": "Auction start: 12",
+  "Time": "2023-08-10T04:30:18+08:00"
+}
+{
+  "ElapsedTime": "2.07454s",
+  "Event": "kafka.received",
+  "Payload": {
+    "AssetID": "ast2",
+    "EthAddr": "0x885d29dbE214282Ff0c3BaD10b6d0aECcf06538d",
+    "HighestBid": 0,
+    "HighestBidPlatform": "",
+    "HighestBidder": "",
+    "ID": 12,
+    "QuorumAddr": "0x6108bB8bDB252B09DE33517b940288afD5DC85dc",
+    "Status": "Started"
+  },
+  "Time": "2023-08-10T04:30:18+08:00"
+}
+{
+  "ElapsedTime": "0s",
+  "Event": "eth_quo.bid_auc",
+  "Payload": {
+    "AssetID": "ast2",
+    "AuctionAddr": "0x885d29dbe214282ff0c3bad10b6d0aeccf06538d",
+    "AuctionID": 12,
+    "BidAmount": 5,
+    "Bidder": "0xd0a73fe9d44184e9f1264ce2097064212e67ebfe",
+    "Platform": "eth"
+  },
+  "Time": "2023-08-10T04:30:23+08:00"
+}
+{
+  "ElapsedTime": "3.206375s",
+  "Event": "relayer.detected",
+  "Payload": {
+    "AuctionAddr": "0x885d29dbE214282Ff0c3BaD10b6d0aECcf06538d",
+    "HighestBid": 5000000000000000,
+    "HighestBidder": "0xD0A73Fe9D44184e9F1264ce2097064212E67EbFE",
+    "HostAuctionID": 12,
+    "Platform": "eth"
+  },
+  "Time": "2023-08-10T04:30:27+08:00"
+}
+{
+  "ElapsedTime": "8.292ms",
+  "Event": "kafka.received",
+  "Payload": {
+    "AuctionAddr": "0x885d29dbE214282Ff0c3BaD10b6d0aECcf06538d",
+    "HighestBid": 5000000000000000,
+    "HighestBidder": "0xD0A73Fe9D44184e9F1264ce2097064212E67EbFE",
+    "HostAuctionID": 12,
+    "Platform": "eth"
+  },
+  "Time": "2023-08-10T04:30:27+08:00"
+}
+{
+  "ElapsedTime": "808.853ms",
+  "Event": "eth_quo.tx_mined",
+  "Payload": {
+    "Hash": "0x39889a61b577a59d710f352a3f41ee9da24ed7020de1086a7c8fea1636bd77f5",
+    "Platform": "eth",
+    "Type": "Bid"
+  },
+  "Time": "2023-08-10T04:30:27+08:00"
+}
+{
+  "ElapsedTime": "2.038724s",
+  "Event": "relayer.detected",
+  "Payload": "Auction end: 12",
+  "Time": "2023-08-10T04:30:40+08:00"
+}
+{
+  "ElapsedTime": "0s",
+  "Event": "fabric.end_auction",
+  "Payload": {
+    "AssetID": "ast2",
+    "EthAddr": "0x885d29dbE214282Ff0c3BaD10b6d0aECcf06538d",
+    "HighestBid": 0,
+    "HighestBidPlatform": "",
+    "HighestBidder": "",
+    "ID": 12,
+    "QuorumAddr": "0x6108bB8bDB252B09DE33517b940288afD5DC85dc",
+    "Status": "Started"
+  },
+  "Time": "2023-08-10T04:30:38+08:00"
+}
+{
+  "ElapsedTime": "2.007615s",
+  "Event": "eth_quo.tx_mined",
+  "Payload": {
+    "Hash": "0xc6c5e18420f1fc6228909671328877b03aaa96f5dda4499ea042ccc0077b50cb",
+    "Platform": "eth",
+    "Type": "EndAuction"
+  },
+  "Time": "2023-08-10T04:30:42+08:00"
+}
+{
+  "ElapsedTime": "1.010152s",
+  "Event": "eth_quo.tx_mined",
+  "Payload": {
+    "Hash": "0xb1c322356e869fe6c025bfd22e91a31a102717c9739e9201837164ffabf90a82",
+    "Platform": "quo",
+    "Type": "EndAuction"
+  },
+  "Time": "2023-08-10T04:30:43+08:00"
+}
+{
+  "ElapsedTime": "11.043ms",
+  "Event": "kafka.received",
+  "Payload": {
+    "AssetID": "ast2",
+    "EthAddr": "0x885d29dbE214282Ff0c3BaD10b6d0aECcf06538d",
+    "HighestBid": 0,
+    "HighestBidPlatform": "eth",
+    "HighestBidder": "",
+    "ID": 12,
+    "QuorumAddr": "0x6108bB8bDB252B09DE33517b940288afD5DC85dc",
+    "Status": "Ending"
+  },
+  "Time": "2023-08-10T04:30:43+08:00"
+}
+{
+  "ElapsedTime": "0s",
+  "Event": "ccsvc.prcd_result",
+  "Payload": {
+    "AssetID": "ast2",
+    "EthAddr": "0x885d29dbE214282Ff0c3BaD10b6d0aECcf06538d",
+    "HighestBid": 0,
+    "HighestBidPlatform": "",
+    "HighestBidder": "",
+    "ID": 12,
+    "QuorumAddr": "0x6108bB8bDB252B09DE33517b940288afD5DC85dc",
+    "Status": "Ending"
+  },
+  "Time": "2023-08-10T04:31:04+08:00"
+}
+{
+  "ElapsedTime": "2.476153s",
+  "Event": "ccsvc.prcd_result",
+  "Payload": {
+    "Hash": "0x752b9aa85923c925affc1343604e11b09d6a1e584c503f74f1c0db1ccedc0ffa",
+    "Platform": "eth",
+    "Type": "Proceed"
+  },
+  "Time": "2023-08-10T04:31:06+08:00"
+}
+{
+  "ElapsedTime": "0s",
+  "Event": "ccsvc.prcd_result",
+  "Payload": {
+    "AssetID": "ast2",
+    "EthAddr": "0x885d29dbE214282Ff0c3BaD10b6d0aECcf06538d",
+    "HighestBid": 0,
+    "HighestBidPlatform": "",
+    "HighestBidder": "",
+    "ID": 12,
+    "QuorumAddr": "0x6108bB8bDB252B09DE33517b940288afD5DC85dc",
+    "Status": "Ending"
+  },
+  "Time": "2023-08-10T04:31:22+08:00"
+}
+{
+  "ElapsedTime": "2.468934s",
+  "Event": "ccsvc.prcd_result",
+  "Payload": {
+    "Hash": "0x8023b1edf7c1a46462bb0841534e8b94e51f0ad1d8d1f8bc994ce5786befdc9d",
+    "Platform": "eth",
+    "Type": "Abort"
+  },
+  "Time": "2023-08-10T04:31:25+08:00"
 }
