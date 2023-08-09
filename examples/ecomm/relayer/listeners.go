@@ -19,8 +19,11 @@ const (
 // sets up the event listener, and handleEvent, which contains
 // the logic to execute when an event is received.
 func startListeningForEvents(client *ecomm.AssetClient) error {
+
+	// Can handle multiple event on Fabric
 	eventID := "AddAsset"
 	reg, notifier, err := client.Register(eventID)
+
 	if err != nil {
 		return fmt.Errorf("failed to register chaincode event: %v", err)
 	}
@@ -66,7 +69,7 @@ func listenNewAuction() *ecomm.Auction {
 			check(err)
 
 			payload, _ := json.Marshal(auction)
-			cclib.LogEventToFile(logInfoFile, ecomm.ReceivedEvent, payload, t, timeInfoFile)
+			cclib.LogEventToFile(logInfoFile, ecomm.KafkaReceivedEvent, payload, t, timeInfoFile)
 			return auction
 		}
 	}
@@ -104,7 +107,7 @@ func fabric_listener(a *ecomm.Auction) {
 	t := time.Now()
 
 	payload, _ := json.Marshal(a)
-	cclib.LogEventToFile(logInfoFile, ecomm.ReceivedEvent, payload, t, timeInfoFile)
+	cclib.LogEventToFile(logInfoFile, ecomm.KafkaReceivedEvent, payload, t, timeInfoFile)
 
 	// initialize
 	authT, err := cclib.NewTransactor(root_key, password)

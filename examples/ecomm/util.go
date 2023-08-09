@@ -26,7 +26,7 @@ var (
 )
 
 const (
-	root_key = "../keys/key0"
+	//root_key = "../keys/key0"
 	password = "password"
 )
 
@@ -203,7 +203,7 @@ func SplitSignature(sig string) (r [32]byte, s [32]byte, v uint8) {
 
 // this is only used for recording bid
 // Use Auctioner 1's key1 to deploy contract
-func DeployCrossChainAuction(client *ethclient.Client, erc20 common.Address) (string, *types.Receipt) {
+func DeployCrossChainAuction(client *ethclient.Client, erc20 common.Address, root_key string) (string, *types.Receipt) {
 	auth, err := cclib.NewTransactor(root_key, password)
 	check(err)
 
@@ -233,7 +233,7 @@ func StartAuction(assetClient *AssetClient, assetID, ethAddr, quorumAddr string)
 	_, err := assetClient.StartAuction(args)
 	check(err)
 	// @wait
-	time.Sleep(3 * time.Second)
+	time.Sleep(100 * time.Microsecond) // 0.1s = 100 ms
 	fmt.Println("Started auction for asset")
 
 	auctionID, err := assetClient.GetLastAuctionID()

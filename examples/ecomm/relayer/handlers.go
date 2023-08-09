@@ -15,8 +15,12 @@ import (
 var mutex sync.Mutex
 
 func handleAddAssetEvent(eventPayload string) error {
+
 	t := time.Now()
-	//defer cclib.LogEventToFile(logInfoFile, event string, payload []byte, t time.Time, timer_file string)
+	payload, _ := json.Marshal(eventPayload)
+	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent,
+		payload, t, timeInfoFile)
+
 	prefix := "Asset added: "
 
 	if !strings.HasPrefix(eventPayload, prefix) {
@@ -31,8 +35,11 @@ func handleAddAssetEvent(eventPayload string) error {
 	fmt.Println("Starting auction")
 	fmt.Println("[ethereum] Deploying auction")
 
-	ethAddr, receipt_eth := ecomm.DeployCrossChainAuction(ethClient, eth_ERC20)
-	payload, err := json.Marshal(&ecomm.Tx{
+	t = time.Now()
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+
+	ethAddr, receipt_eth := ecomm.DeployCrossChainAuction(ethClient, eth_ERC20, root_key)
+	payload, _ = json.Marshal(&ecomm.Tx{
 		Platform: "eth",
 		Type:     "newAuction",
 		Receipt:  receipt_eth,
@@ -41,9 +48,10 @@ func handleAddAssetEvent(eventPayload string) error {
 
 	t = time.Now()
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	fmt.Println("[quorum] Deploying auction")
-	quoAddr, receipt_quo := ecomm.DeployCrossChainAuction(quoClient, quo_ERC20)
+	quoAddr, receipt_quo := ecomm.DeployCrossChainAuction(quoClient, quo_ERC20, root_key)
 	payload, err = json.Marshal(&ecomm.Tx{
 		Platform: "quo",
 		Type:     "newAuction",
@@ -55,19 +63,16 @@ func handleAddAssetEvent(eventPayload string) error {
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
 
 	fmt.Println("[fabric] Creating auction")
-	// a.EthAddr = ethAddr
-	// a.QuorumAddr = quoAddr
-	// _, err = assetClient.SetAuction(a)
-	// check(err)
 	myAuction := ecomm.StartAuction(assetClient, asset.ID, ethAddr, quoAddr)
 
 	// publish
-	ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
+	ccsvc_, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
 	check(err)
-	payload, _ = json.Marshal(myAuction)
-	ccsvc.Publish(ecomm.AuctionCreatingEvent, payload)
 
-	return nil
+	payload, _ = json.Marshal(myAuction)
+	err = ccsvc_.Publish(ecomm.AuctionCreatingEvent, payload)
+
+	return err
 }
 
 func handleSignedAuctionResult(payload []byte) {
@@ -93,6 +98,9 @@ func handleSignedAuctionResult(payload []byte) {
 }
 
 func handleAuctionCreating(payload []byte) {
+	t := time.Now()
+	cclib.LogEventToFile(logInfoFile, ecomm.KafkaReceivedEvent, payload, t, timeInfoFile)
+	//fmt.Println("Received Auction Creating Event in Kafka!")
 	// var result ecomm.Auction
 	// err := json.Unmarshal(payload, &result)
 	// check(err)
@@ -103,6 +111,7 @@ func handleAuctionCreating(payload []byte) {
 }
 
 func handleAuctionEnding(payload []byte) {
+
 	// var result ecomm.Auction
 	// err := json.Unmarshal(payload, &result)
 	// check(err)

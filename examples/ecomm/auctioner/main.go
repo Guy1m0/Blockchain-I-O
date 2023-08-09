@@ -138,13 +138,17 @@ func create(asset_name string) {
 	t := time.Now()
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
-	asset = addAsset(asset_name)
-
-	return
-
-	fmt.Println("[fabric] Creating auction")
+	asset := &ecomm.Asset{
+		ID:    asset_name,
+		Owner: aucT.From.Hex(),
+	}
 	payload, _ := json.Marshal(asset)
 	cclib.LogEventToFile(logInfoFile, ecomm.AuctionCreatingEvent, payload, t, timeInfoFile)
+
+	addAsset(asset_name)
+	fmt.Println("[fabric] Creating auction")
+
+	return
 
 	fmt.Println("Starting auction")
 	fmt.Println("[ethereum] Deploying auction")

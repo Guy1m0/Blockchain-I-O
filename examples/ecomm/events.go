@@ -22,7 +22,8 @@ var (
 	WithdrawEvent         = "eth_quo.withdraw"
 	TransactionMinedEvent = "eth_quo.tx_mined"
 
-	ReceivedEvent = "kafka.received"
+	KafkaReceivedEvent   = "kafka.received"
+	RelayerDetectedEvent = "relayer.detected"
 	// end with BiddingAuctionEvent
 )
 

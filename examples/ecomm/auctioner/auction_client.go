@@ -31,7 +31,7 @@ func addAsset(id string) *ecomm.Asset {
 	_, err := assetClient.AddAsset(id, aucT.From.Hex())
 	check(err)
 	// @wait
-	time.Sleep(3 * time.Second)
+	time.Sleep(10 * time.Microsecond)
 	asset, err := assetClient.GetAsset(id)
 	check(err)
 
