@@ -159,6 +159,19 @@ The scenario script will do the following steps.
 
 # Note
 
+## Compile and generate contract go file
+Use `auction.sol` as example
+
+Go to folder `contracts/eth_auction`
+```bash
+solc --bin --abi --optimize -o build auction.sol --overwrite
+```
+
+and then
+
+```bash
+../abigen --bin=./build/Auction.bin --abi=./build/Auction.abi --pkg=eth_auction --out=auction_gen.go
+```
 ## Cert key error 
 ```bash
 Failed to connect to gateway: Failed to apply identity option: Invalid identity format: invalid character 'n' after top-level value
@@ -194,10 +207,12 @@ We also assume `endAuction` and `abort` included in one tx
 
 Can check posted events on kafak to see which platform receives hightest bid earlier, but let assume we alread know that or eth is higher (because of gas fee) :)
 
-5. Deploy Auction Contract through Auctioneer
+5. Need two instances of ccsvc to publish and handle events
 
 ## Todo
 
 1. Emit event for 'AddAsset'
 2. Check same name for new asset
 3. Add basic feedback system 
+4. Auctioneer can also reject or accept auction result
+5. Publish event on kafka if and only if related event is emited by contract

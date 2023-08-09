@@ -79,12 +79,17 @@ contract Auction {
         return true;
     }
 
-    function endAuction() public {
+    function endAuction(bool not_winner_platform) public {
         require(msg.sender == owner, "Only owner can change contract's status");
         // Use hash to check status
         require(keccak256(abi.encodePacked(status)) == keccak256(abi.encodePacked("running")), "Contract not in RUNNING status");
 
         status = "ending";
+        if (not_winner_platform){
+            abort();
+            return;
+        }
+
         emit WaitResponse(highestBidder, highestBid);
     }
 

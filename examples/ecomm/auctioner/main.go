@@ -132,77 +132,44 @@ func main() {
 
 // Use key 1 as default auctioner
 func create(asset_name string) {
-	// @reset timer
-	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
-
 	asset := &ecomm.Asset{
 		ID:    asset_name,
 		Owner: aucT.From.Hex(),
 	}
-	payload, _ := json.Marshal(asset)
-	cclib.LogEventToFile(logInfoFile, ecomm.AddingAssetEvent, payload, t, timeInfoFile)
+
+	// @reset timer
+	t := time.Now()
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	log.Println("[fabric] Adding asset")
 	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex())
 	check(err)
 
+	payload, _ := json.Marshal(asset)
+	cclib.LogEventToFile(logInfoFile, ecomm.AddingAssetEvent, payload, t, timeInfoFile)
 }
 
 func end(auctionID int) {
-	// @reset timer
-	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
-
-	//ccsvc, err := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
-	//check(err)
-
 	a, err := assetClient.GetAuction(auctionID)
 	check(err)
 
 	if a.Status != "Started" {
 		//cclib.LastEventTimestamp.Set(time.Time{})
-		fmt.Println("Auction status error!")
-		return
+		err = fmt.Errorf("auction status error")
+		check(err)
 	}
+
+	// @reset timer
+	t := time.Now()
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+
+	log.Println("[fabric] Ending auction")
 
 	_, err = assetClient.EndAuction(a.AssetID)
 	check(err)
 
-	//fmt.Println("auction ID:", auctionID, "AssetID:", a.AssetID)
-
-	// @wait
-	// time.Sleep(1 * time.Second)
-	// a, _ = assetClient.GetAuction(auctionID)
-
 	payload, _ := json.Marshal(a)
-	//ccsvc.Publish(ecomm.AuctionEndingEvent, payload)
 	cclib.LogEventToFile(logInfoFile, ecomm.AuctionEndingEvent, payload, t, timeInfoFile)
-
-	// fmt.Println("Check status:", a.Status)
-
-	// for {
-	// 	// @wait
-	// 	time.Sleep(1 * time.Second)
-	// 	a, err = assetClient.GetAuction(auctionID)
-	// 	check(err)
-	// 	if a.Status == "Ending" {
-
-	// 		fmt.Println("Auction Ended")
-	// 		fmt.Println("Highest Bidder: ", a.HighestBidder)
-	// 		fmt.Println("Highest Bid: ", a.HighestBid)
-	// 		fmt.Println("Highest Bid Platform: ", a.HighestBidPlatform)
-
-	// 		asset, err := assetClient.GetAsset(a.AssetID)
-	// 		check(err)
-	// 		fmt.Println("New Asset Owner: ", asset.Owner)
-
-	// 		break
-	// 	}
-	// }
-
-	// publish
-
 }
 
 func check_status(auctionID int) {

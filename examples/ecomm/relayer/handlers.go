@@ -10,7 +10,10 @@ import (
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 var mutex sync.Mutex
@@ -94,18 +97,102 @@ func handleStartAuctionEvent(eventPayload string) error {
 	eventDetail := parts[1]
 	auctionID, _ := strconv.Atoi(eventDetail)
 	//fmt.Println("Auction ID:", auctionID, "eventPayload:", eventPayload)
-	myAuction, err := assetClient.GetAuction(auctionID)
+	a, err := assetClient.GetAuction(auctionID)
 	check(err)
-	// publish
-	//ccsvc_, _ := cclib.NewEventService(strings.Split(zkNodes, ","), "auctioner")
 
-	payload, _ = json.Marshal(myAuction)
+	// Listen new auction
+	onNewAuction(a)
+
+	payload, _ = json.Marshal(a)
 	err = ccsvc.Publish(ecomm.AuctionStartingEvent, payload)
 
 	return err
 }
 
 func handleEndAuctionEvent(eventPayload string) error {
+	log.Println("[ETH/QUO] Determin winner")
+
+	t := time.Now()
+	payload, _ := json.Marshal(eventPayload)
+	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
+
+	parts := strings.SplitN(eventPayload, ": ", 2)
+	if len(parts) < 2 {
+		return fmt.Errorf("received unexpected event: %s", eventPayload)
+		// Now eventDetail contains the string after ": "
+	}
+
+	eventDetail := parts[1]
+	auctionID, _ := strconv.Atoi(eventDetail)
+
+	a, err := assetClient.GetAuction(auctionID)
+	check(err)
+
+	// load auction contract
+	eth_auction_addr := common.HexToAddress(a.EthAddr)
+	eth_auction_contract, err := eth_auction.NewEthAuction(eth_auction_addr, ethClient)
+	check(err)
+
+	quo_auction_addr := common.HexToAddress(a.QuorumAddr)
+	quo_auction_contract, err := eth_auction.NewEthAuction(quo_auction_addr, quoClient)
+	check(err)
+
+	// Check highest bid
+	eth_highestBid, _ := eth_auction_contract.HighestBid(&bind.CallOpts{})
+	//eth_highestBidder, _ := eth_auction_contract.HighestBidder(&bind.CallOpts{})
+	quo_highestBid, _ := quo_auction_contract.HighestBid(&bind.CallOpts{})
+	//quo_highestBidder, _ := quo_auction_contract.HighestBidder(&bind.CallOpts{})
+
+	eth_bool := false
+	quo_bool := true
+	a.HighestBidPlatform = "eth"
+	if eth_highestBid.Cmp(quo_highestBid) < 0 {
+		eth_bool = true
+		quo_bool = false
+		a.HighestBidPlatform = "quo"
+	}
+
+	log.Println("[ETH/QUO] Change contract state")
+	authT, err := cclib.NewTransactor(root_key, password)
+	check(err)
+
+	// @reset timer
+	t = time.Now()
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+
+	// Change Auction Contract on Eth
+	tx, _ := eth_auction_contract.EndAuction(authT, eth_bool)
+	receipt := ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDING'", eth_auction_addr))
+
+	payload, err = json.Marshal(&ecomm.Tx{
+		Platform: "eth",
+		Type:     "EndAuction",
+		Receipt:  receipt,
+	})
+	check(err)
+
+	t = time.Now()
+	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+
+	// Change Auction Contract on Quo
+	tx, _ = quo_auction_contract.EndAuction(authT, quo_bool)
+	receipt = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDING'", quo_auction_addr))
+
+	payload, err = json.Marshal(&ecomm.Tx{
+		Platform: "quo",
+		Type:     "EndAuction",
+		Receipt:  receipt,
+	})
+	check(err)
+
+	t = time.Now()
+	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+
+	payload, _ = json.Marshal(a)
+	ccsvc.Publish(ecomm.AuctionEndingEvent, payload)
+
 	return nil
 }
 

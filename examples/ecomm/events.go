@@ -9,15 +9,15 @@ const (
 var (
 	SignedAuctionResultEvent = "auction.signed_result"
 
-	AuctionEndingEvent        = "ccsvc.auction_ending"
 	ProceedAuctionResultEvent = "ccsvc.prcd_result"
 	AbortAuctionResultEvent   = "ccsvc.abt_result"
-
-	AuctionStartingEvent = "fabric.start_auction"
+	AuctionStartingEvent      = "ccsvc.start_auction"
 
 	// tx_mined on eth/quo
 	// end AucCrEvt
-	AddingAssetEvent      = "fabric.add_asset"
+	AddingAssetEvent   = "fabric.add_asset"
+	AuctionEndingEvent = "fabric.end_auction"
+
 	BiddingAuctionEvent   = "eth_quo.bid_auc"
 	WithdrawEvent         = "eth_quo.withdraw"
 	TransactionMinedEvent = "eth_quo.tx_mined"
