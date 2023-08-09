@@ -265,15 +265,3 @@ func check(err error) {
 		panic(err)
 	}
 }
-
-// fmt.Println("Check total Supply on Fabric")
-// fabricToken := ecomm.NewChaincode(fabricTokenName)
-// response, err := fabricToken.SubmitTransaction("TotalSupply")
-// check(err)
-// total_supply := new(big.Int)
-// err = json.Unmarshal(response, total_supply)
-// if err != nil {
-// 	log.Fatalf("Failed to decode response as int: %v", err)
-// }
-// check(err)
-// fmt.Printf("Fabirc total supply: %v \n", total_supply)

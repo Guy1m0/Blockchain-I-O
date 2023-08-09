@@ -89,46 +89,13 @@ func main() {
 	case "end":
 		id_, _ := strconv.Atoi(*id)
 		end(id_)
-	case "login":
-		login()
-	// case "init":
-	// 	initialize()
 	case "check":
 		id_, _ := strconv.Atoi(*id)
 		check_status(id_)
 	default:
 		fmt.Println("command not found")
 	}
-
-	//fmt.Println("[ethereum] Bidding auction")
-	//bidAuction(ethClient, myAuction.EthAddr, "../../keys/key1", 500)
-
-	//fmt.Println("[quorum] Bidding auction")
-	//bidAuction(quorumClient, myAuction.QuorumAddr, "../../keys/key2", 1000)
-
-	//fmt.Println("[fabric] Ending auction")
-	//endAuction(myAuction)
 }
-
-// not need this i think
-// func initialize() {
-// 	ccsvc, err := cclib.NewEventService(
-// 		strings.Split(zkNodes, ","),
-// 		fmt.Sprintf("auctioner"),
-// 	)
-// 	check(err)
-
-// 	ccsvc.Register(ecomm.ProceedAuctionResultEvent, handleProceedingAuction)
-
-// 	err = ccsvc.Start(true)
-// 	check(err)
-// }
-
-// Bidder/Auctioner has no idea of what happened on other platform
-
-// 1. Update Asset Contract deployed on Fabric
-// 2. Publish related event
-// 3. Relayer create corresponding tx based on received event
 
 // Use key 1 as default auctioner
 func create(asset_name string) {
@@ -179,34 +146,6 @@ func check_status(auctionID int) {
 	fmt.Println("auction ID:", auctionID, "AssetID:", a.AssetID, "Status: ", a.Status)
 
 }
-
-func login() {
-
-}
-
-// also no relayer involved, 'locally' make bid
-// func bidAuction(addrHex, keyfile string, value int64) {
-// 	addr := common.HexToAddress(addrHex)
-// 	auctionSession := newAuctionSession(addr, client, keyfile)
-// 	auctionSession.TransactOpts.Value = big.NewInt(value)
-// 	tx, err := auctionSession.Bid(big.NewInt(value))
-// 	check(err)
-// 	success, err := cclib.WaitTx(client, tx.Hash())
-// 	check(err)
-// 	printTxStatus(success)
-// 	if !success {
-// 		panic("failed to bid auction")
-// 	}
-// 	auctionSession.TransactOpts.Value = big.NewInt(0)
-
-// 	highestBidder, err := auctionSession.HighestBidder()
-// 	check(err)
-// 	fmt.Println("highest bidder:", highestBidder.Hex())
-
-// 	highestBid, err := auctionSession.HighestBid()
-// 	check(err)
-// 	fmt.Println("highest bid:", highestBid)
-// }
 
 func load_auctioner(name string) {
 	users, err := ecomm.ReadUsersFromFile(userInfoFile)

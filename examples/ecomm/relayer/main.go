@@ -82,16 +82,3 @@ func check(err error) {
 		panic(err)
 	}
 }
-
-// func load_setup_info() (*eth_stable_coin.EthStableCoin, *eth_stable_coin.EthStableCoin) {
-// 	var erc20_info ecomm.Erc20Info
-// 	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
-
-// 	eth_ERC20, err := eth_stable_coin.NewEthStableCoin(erc20_info.EthERC20, ethClient)
-// 	check(err)
-
-// 	quo_ERC20, err := eth_stable_coin.NewEthStableCoin(erc20_info.QuoERC20, quoClient)
-// 	check(err)
-
-// 	return eth_ERC20, quo_ERC20
-// }

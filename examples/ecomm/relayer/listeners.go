@@ -80,12 +80,6 @@ func onNewAuction(a *ecomm.Auction) {
 
 	go startListeningForAuctionEvents(a.ID, a.EthAddr, "eth")
 	go startListeningForAuctionEvents(a.ID, a.QuorumAddr, "quo")
-	//go fabric_listener(a)
-	// go eth_listener(a)
-	// go quo_listener(a)
-	// check target auction's status change
-
-	//cclib.LastEventTimestamp.Set(t)
 
 }
 

@@ -242,3 +242,4 @@ Can check posted events on kafak to see which platform receives hightest bid ear
 3. Add basic feedback system 
 4. Auctioneer can also reject or accept auction result
 5. Publish event on kafka if and only if related event is emited by contract
+6. If no one bid on this auction but ended by auctioneer, relayer should finalize this auction on fabric

@@ -115,51 +115,6 @@ func main() {
 	// endAuction(myAuction)
 }
 
-// func initialize() {
-// 	ccsvc, err := cclib.NewEventService(
-// 		strings.Split(zkNodes, ","),
-// 		fmt.Sprintf("bidder"),
-// 	)
-// 	check(err)
-
-// 	ccsvc.Register(ecomm.AuctionCreatingEvent, handleAuctionCreating)
-// 	ccsvc.Register(ecomm.AuctionEndingEvent, handleAuctionEnding)
-
-// 	err = ccsvc.Start(true)
-// 	check(err)
-// }
-
-// func login(platform string, name string) {
-// 	var erc20_info ecomm.Erc20Info
-// 	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
-
-// 	//keyfile := fmt.Sprintf("%s%s", key_path, key)
-// 	load_bidder_key(name)
-
-// 	erc20 := erc20_info.EthERC20
-// 	//err new(error)
-// 	if platform == "eth" {
-// 		Endpoint = fmt.Sprintf("http://%s:8545", "localhost")
-// 	} else {
-// 		Endpoint = fmt.Sprintf("http://%s:8546", "localhost")
-// 		erc20 = erc20_info.QuoERC20
-// 	}
-
-// 	ecomm.WriteJsonFile(BidderInfoFile, ecomm.BidderInfo{
-// 		ZkNodes:  zkNodes,
-// 		Endpoint: Endpoint,
-// 		Keyfile:  bid_key,
-// 		Platform: platform,
-// 		ERC20:    erc20,
-// 	})
-
-// 	// not catch error
-// 	//client, _ = ethclient.Dial(Endpoint)
-// 	//signer, _ = cclib.NewSigner(fmt.Sprintf("%s%s", key_path, keyfile), keypassword)
-// 	//check(err)
-
-// }
-
 // also no relayer involved, 'locally' make bid
 func bidAuction(auction_id int, amount *big.Int) {
 	//DecimalB, _ = big.NewInt(0).SetString("1"+strings.Repeat("0", 15), 10)
