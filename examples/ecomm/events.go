@@ -41,12 +41,12 @@ type HighestBidIncreasedEvent struct {
 }
 
 type DecisionMadeEvent struct {
-	Winner  common.Address
-	Amount  *big.Int
-	Id      string
-	Prcd    bool
-	Payload string
-	Raw     types.Log // Blockchain specific contextual infos
+	Winner     common.Address
+	Amount     *big.Int
+	Id         string
+	Prcd       bool
+	JsonString string
+	Raw        types.Log // Blockchain specific contextual infos
 }
 
 type WaitResponseEvent struct {

@@ -86,9 +86,9 @@ func main() {
 	switch *command {
 	case "create":
 		create(*asset)
-	case "end":
+	case "close":
 		id_, _ := strconv.Atoi(*id)
-		end(id_)
+		close(id_)
 	case "check":
 		id_, _ := strconv.Atoi(*id)
 		check_status(id_)
@@ -116,11 +116,11 @@ func create(asset_name string) {
 	cclib.LogEventToFile(logInfoFile, ecomm.AddingAssetEvent, payload, t, timeInfoFile)
 }
 
-func end(auctionID int) {
+func close(auctionID int) {
 	a, err := assetClient.GetAuction(auctionID)
 	check(err)
 
-	if a.Status != "Started" {
+	if a.Status != "open" {
 		//cclib.LastEventTimestamp.Set(time.Time{})
 		err = fmt.Errorf("auction status error")
 		check(err)
@@ -130,7 +130,7 @@ func end(auctionID int) {
 	t := time.Now()
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
-	log.Println("[fabric] Ending auction")
+	log.Println("[fabric] Closing auction")
 
 	_, err = assetClient.CloseAuction(a.AssetID)
 	check(err)

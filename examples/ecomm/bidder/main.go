@@ -125,6 +125,7 @@ func main() {
 
 // also no relayer involved, 'locally' make bid
 func bidAuction(auction_id int, amount *big.Int) {
+
 	// if auction addr is already known
 	// Get Auction Contract deployed on Eth/Quo
 	var erc20_info ecomm.Erc20Info
@@ -184,6 +185,7 @@ func bidAuction(auction_id int, amount *big.Int) {
 		Hash:     receipt.TxHash,
 	})
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 }
 
 func check_winner(auction_id int) {

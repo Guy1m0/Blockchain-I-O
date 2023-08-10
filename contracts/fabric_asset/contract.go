@@ -196,9 +196,9 @@ func (cc *SmartContract) AuctionClosed(
 		return err
 	}
 
-	eventPayload := fmt.Sprintf("Owner no change for asset: %s", auction.asset_id)
+	eventPayload := fmt.Sprintf("Owner no change for asset: %s", auction.AssetID)
 	if prcd {
-		eventPayload = fmt.Sprintf("Owner changed for asset: %s", auction.asset_id)
+		eventPayload = fmt.Sprintf("Owner changed for asset: %s", auction.AssetID)
 		asset.Owner = auction.HighestBidder
 	}
 

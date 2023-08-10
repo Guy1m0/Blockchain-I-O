@@ -214,7 +214,7 @@ func handleCloseAuctionEvent(eventPayload string) error {
 
 	t = time.Now()
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	//cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	payload, _ = json.Marshal(a)
 	ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
@@ -223,8 +223,8 @@ func handleCloseAuctionEvent(eventPayload string) error {
 }
 
 func handleDecisionMadeEvent(eventPayload ecomm.DecisionMadeEvent, t time.Time) error {
-	payload := eventPayload.Payload
-	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, []byte(eventPayload.Payload), t, timeInfoFile)
+	payload := eventPayload.JsonString
+	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, []byte(eventPayload.JsonString), t, timeInfoFile)
 
 	var result ecomm.AuctionResult
 
