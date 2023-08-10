@@ -8,26 +8,21 @@ import (
 )
 
 const (
-	OnInitializedLending = "ecomm.initialize"
-	OnLoanSuccessful     = "ecomm.successful"
-	OnLoanFail           = "ecomm.fail"
-)
-
-var (
-	SignedAuctionResultEvent = "auction.signed_result"
-
-	ProceedAuctionResultEvent = "ccsvc.prcd_result"
-	AbortAuctionResultEvent   = "ccsvc.abt_result"
+	ProceedAuctionResultEvent = "eth_quo.prcd_result"
+	AbortAuctionResultEvent   = "eth_quo.abt_result"
 	AuctionStartingEvent      = "ccsvc.start_auction"
+	AuctionClosedEvent        = "ccsvc.auction_closed"
 
 	// tx_mined on eth/quo
 	// end AucCrEvt
-	AddingAssetEvent   = "fabric.add_asset"
-	AuctionEndingEvent = "fabric.end_auction"
+	AddingAssetEvent    = "fabric.add_asset"
+	AuctionClosingEvent = "fabric.close_auction"
 
-	BiddingAuctionEvent   = "eth_quo.bid_auc"
-	WithdrawEvent         = "eth_quo.withdraw"
-	TransactionMinedEvent = "eth_quo.tx_mined"
+	BiddingAuctionEvent      = "eth_quo.bid_auc"
+	WithdrawEvent            = "eth_quo.withdraw"
+	TransactionMinedEvent    = "eth_quo.tx_mined"
+	SignedAuctionResultEvent = "eth_quo.signed_result"
+	FeedBackEvent            = "eth_quo.provide_feedback"
 
 	KafkaReceivedEvent   = "kafka.received"
 	RelayerDetectedEvent = "relayer.detected"
@@ -46,10 +41,12 @@ type HighestBidIncreasedEvent struct {
 }
 
 type DecisionMadeEvent struct {
-	Winner common.Address
-	Amount *big.Int
-	Id     string
-	Raw    types.Log // Blockchain specific contextual infos
+	Winner  common.Address
+	Amount  *big.Int
+	Id      string
+	Prcd    bool
+	Payload string
+	Raw     types.Log // Blockchain specific contextual infos
 }
 
 type WaitResponseEvent struct {

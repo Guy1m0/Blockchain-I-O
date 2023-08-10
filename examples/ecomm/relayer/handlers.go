@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/big"
 	"strconv"
 	"strings"
 	"sync"
@@ -133,7 +134,7 @@ func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreasedEvent,
 	return nil
 }
 
-func handleEndAuctionEvent(eventPayload string) error {
+func handleCloseAuctionEvent(eventPayload string) error {
 	log.Println("[ETH/QUO] Determin winner")
 
 	t := time.Now()
@@ -186,12 +187,12 @@ func handleEndAuctionEvent(eventPayload string) error {
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	// Change Auction Contract on Eth
-	tx, _ := eth_auction_contract.EndAuction(authT, eth_bool)
+	tx, _ := eth_auction_contract.CloseAuction(authT, eth_bool)
 	receipt := ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDING'", eth_auction_addr))
 
 	payload, err = json.Marshal(&ecomm.Tx{
 		Platform: "eth",
-		Type:     "EndAuction",
+		Type:     "CloseAuction",
 		Hash:     receipt.TxHash,
 	})
 	check(err)
@@ -201,12 +202,12 @@ func handleEndAuctionEvent(eventPayload string) error {
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	// Change Auction Contract on Quo
-	tx, _ = quo_auction_contract.EndAuction(authT, quo_bool)
+	tx, _ = quo_auction_contract.CloseAuction(authT, quo_bool)
 	receipt = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDING'", quo_auction_addr))
 
 	payload, err = json.Marshal(&ecomm.Tx{
 		Platform: "quo",
-		Type:     "EndAuction",
+		Type:     "CloseAuction",
 		Hash:     receipt.TxHash,
 	})
 	check(err)
@@ -216,40 +217,69 @@ func handleEndAuctionEvent(eventPayload string) error {
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	payload, _ = json.Marshal(a)
-	ccsvc.Publish(ecomm.AuctionEndingEvent, payload)
+	ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
 
 	return nil
 }
 
-func handleDecisionMadeEvent() error {
-	return nil
-}
+func handleDecisionMadeEvent(eventPayload ecomm.DecisionMadeEvent, t time.Time) error {
+	payload := eventPayload.Payload
+	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, []byte(eventPayload.Payload), t, timeInfoFile)
 
-func handleFinAuctionEvent(eventPayload string) error {
-	return nil
-}
+	var result ecomm.AuctionResult
 
-func handleSignedAuctionResult(payload []byte) {
-	var result ecomm.SignedAuctionResult
-	err := json.Unmarshal(payload, &result)
-	check(err)
-
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	merged := auctionResults[result.HostAuctionID]
-	if result.Platform == "ethereum" {
-		merged.EthResult.AuctionResult = result.AuctionResult
-		merged.EthResult.Signatures = append(merged.EthResult.Signatures, result.Signature)
-	} else {
-		merged.QuorumResult.AuctionResult = result.AuctionResult
-		merged.QuorumResult.Signatures = append(merged.QuorumResult.Signatures, result.Signature)
+	err := json.Unmarshal([]byte(payload), &result)
+	if err != nil {
+		log.Fatalf("Failed to unmarshal JSON: %v", err)
 	}
 
-	if len(merged.EthResult.Signatures) >= 2 && len(merged.QuorumResult.Signatures) >= 2 {
-		assetClient.FinalizeAuction(*merged)
+	log.Printf("[%s] Decesion Made Event", strings.ToUpper(result.Platform))
+
+	proceed := eventPayload.Prcd
+
+	_, err = assetClient.AuctionClosed(result, proceed)
+
+	// transfer token to original owner
+	if proceed {
+		fabric_ERC20_contract := ecomm.NewErc20Client(fabric_ERC20)
+		auction, _ := assetClient.GetAuction(result.AuctionID)
+		asset, _ := assetClient.GetAsset(auction.AssetID)
+
+		amt := big.NewInt(int64(result.HighestBid))
+		quotient := new(big.Int).Div(amt, ecomm.DecimalB)
+		fabric_ERC20_contract.Transfer(asset.Owner, quotient.String())
 	}
+
+	ccsvc.Publish(ecomm.AuctionClosedEvent, []byte(payload))
+	//t := time.Now()
+	return nil
 }
+
+func handleAuctionClosedEvent(eventPayload string) error {
+	return nil
+}
+
+// func handleSignedAuctionResult(payload []byte) {
+// 	var result ecomm.SignedAuctionResult
+// 	err := json.Unmarshal(payload, &result)
+// 	check(err)
+
+// 	mutex.Lock()
+// 	defer mutex.Unlock()
+
+// 	merged := auctionResults[result.AuctionID]
+// 	if result.Platform == "ethereum" {
+// 		merged.EthResult.AuctionResult = result.AuctionResult
+// 		merged.EthResult.Signatures = append(merged.EthResult.Signatures, result.Signature)
+// 	} else {
+// 		merged.QuorumResult.AuctionResult = result.AuctionResult
+// 		merged.QuorumResult.Signatures = append(merged.QuorumResult.Signatures, result.Signature)
+// 	}
+
+// 	if len(merged.EthResult.Signatures) >= 2 && len(merged.QuorumResult.Signatures) >= 2 {
+// 		assetClient.FinalizeAuction(*merged)
+// 	}
+// }
 
 func logEvent(payload []byte) {
 	t := time.Now()

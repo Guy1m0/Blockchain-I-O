@@ -82,13 +82,14 @@ func (cc *AssetClient) StartAuction(args StartAuctionArgs) ([]byte, error) {
 // Not use same assetID!!!!
 // when auctioner tries to end one, which actually ends the latest Auction
 // with same assetID
-func (cc *AssetClient) EndAuction(assetID string) ([]byte, error) {
-	return cc.contract.SubmitTransaction("EndAuction", assetID)
+func (cc *AssetClient) CloseAuction(assetID string) ([]byte, error) {
+	return cc.contract.SubmitTransaction("CloseAuction", assetID)
 }
 
-func (cc *AssetClient) FinalizeAuction(args FinalizeAuctionArgs) ([]byte, error) {
+func (cc *AssetClient) AuctionClosed(args AuctionResult, prcd bool) ([]byte, error) {
 	b, _ := json.Marshal(args)
-	return cc.contract.SubmitTransaction("FinalizeAuction", string(b))
+	prcdStr := strconv.FormatBool(prcd)
+	return cc.contract.SubmitTransaction("AuctionClosed", string(b), prcdStr)
 }
 
 func (cc *AssetClient) GetAsset(assetID string) (*Asset, error) {

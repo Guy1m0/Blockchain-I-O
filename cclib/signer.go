@@ -40,28 +40,14 @@ func (s *Signer) Sign(hash []byte) ([]byte, error) {
 	return crypto.Sign(hash, s.privkey.PrivateKey)
 }
 
-func VerifySignature(hash, signature []byte) (address common.Address, err error) {
+func VerifySignature(hash, signature []byte, addr string) bool {
 	pubkey, err := crypto.SigToPub(hash, signature)
 	if err != nil {
-		return address, err
+		return false
 	}
-	return crypto.PubkeyToAddress(*pubkey), nil
-}
 
-func VerifyKnownSignatures(hash []byte, sigs [][]byte, addrs []common.Address) bool {
-	set := make(map[string]struct{}, len(addrs))
-	for _, addr := range addrs {
-		set[addr.Hex()] = struct{}{}
+	if addr == crypto.PubkeyToAddress(*pubkey).Hex() {
+		return true
 	}
-	for _, sig := range sigs {
-		addr, err := VerifySignature(hash, sig)
-		if err != nil {
-			return false
-		}
-		_, ok := set[addr.Hex()]
-		if !ok {
-			return false
-		}
-	}
-	return true
+	return false
 }

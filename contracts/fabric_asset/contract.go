@@ -3,8 +3,8 @@ package asset
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
@@ -75,7 +75,7 @@ func (cc *SmartContract) StartAuction(
 		AssetID:    args.AssetID,
 		EthAddr:    args.EthAddr,
 		QuorumAddr: args.QuorumAddr,
-		Status:     "Started",
+		Status:     "open",
 	}
 	err = cc.setAuction(ctx, &auction)
 	if err != nil {
@@ -87,6 +87,10 @@ func (cc *SmartContract) StartAuction(
 	}
 
 	asset.PendingAuctionID = auction.ID
+	err = cc.setAsset(ctx, asset)
+	if err != nil {
+		return fmt.Errorf("error setting asset: %v", err)
+	}
 
 	// Emit an event when an auction is started
 	eventPayload := fmt.Sprintf("Auction start: %d", auction.ID)
@@ -95,73 +99,93 @@ func (cc *SmartContract) StartAuction(
 		return fmt.Errorf("error setting event: %v", err)
 	}
 
-	return cc.setAsset(ctx, asset)
+	return nil
 }
 
-func (cc *SmartContract) EndAuction(
+func (cc *SmartContract) CancelAuction(
 	ctx contractapi.TransactionContextInterface, assetID string,
 ) error {
 	asset, err := cc.GetAsset(ctx, assetID)
 	if err != nil {
 		return err
 	}
+
 	auction, err := cc.GetAuction(ctx, asset.PendingAuctionID)
 	if err != nil {
 		return err
 	}
-	auction.Status = "Ending"
+	auction.Status = "closed"
+	err = cc.setAuction(ctx, auction)
+	if err != nil {
+		return fmt.Errorf("error setting auction: %v", err)
+	}
+
+	asset.PendingAuctionID = 0
+	err = cc.setAsset(ctx, asset)
+	if err != nil {
+		return fmt.Errorf("error setting asset: %v", err)
+	}
 
 	// Emit an event when an auction is started
-	eventPayload := fmt.Sprintf("Auction end: %d", auction.ID)
-	err = ctx.GetStub().SetEvent("EndAuction", []byte(eventPayload))
+	eventPayload := fmt.Sprintf("Auction cancel: %d", auction.ID)
+	err = ctx.GetStub().SetEvent("CancelAuction", []byte(eventPayload))
 	if err != nil {
 		return fmt.Errorf("error setting event: %v", err)
 	}
 
-	return cc.setAuction(ctx, auction)
+	return nil
 }
 
-func (cc *SmartContract) FinalizeAuction(
-	ctx contractapi.TransactionContextInterface, argjson string,
+func (cc *SmartContract) CloseAuction(
+	ctx contractapi.TransactionContextInterface, assetID string,
 ) error {
-	var args FinalizeAuctionArgs
+	asset, err := cc.GetAsset(ctx, assetID)
+	if err != nil {
+		return err
+	}
+
+	auction, err := cc.GetAuction(ctx, asset.PendingAuctionID)
+	if err != nil {
+		return err
+	}
+	auction.Status = "closing"
+	err = cc.setAuction(ctx, auction)
+	if err != nil {
+		return fmt.Errorf("error setting auction: %v", err)
+	}
+
+	// Emit an event when an auction is started
+	eventPayload := fmt.Sprintf("Auction closing: %d", auction.ID)
+	err = ctx.GetStub().SetEvent("CloseAuction", []byte(eventPayload))
+	if err != nil {
+		return fmt.Errorf("error setting event: %v", err)
+	}
+
+	return nil
+}
+
+func (cc *SmartContract) AuctionClosed(
+	ctx contractapi.TransactionContextInterface, argjson string, prcdStr string,
+) error {
+	// only owner or admin can call this
+
+	var args AuctionResult
 	err := json.Unmarshal([]byte(argjson), &args)
 	if err != nil {
 		return err
 	}
+	prcd, err := strconv.ParseBool(prcdStr)
 
 	auction, err := cc.GetAuction(ctx, args.AuctionID)
 	if err != nil {
 		return err
 	}
 
-	addrs, min := cc.ethAddrs()
-	if !cc.verifyAuctionResult(addrs, min, args.EthResult) {
-		return fmt.Errorf("invalid ethereum result")
-	}
-	addrs, min = cc.quorumAddrs()
-	if !cc.verifyAuctionResult(addrs, min, args.EthResult) {
-		return fmt.Errorf("invalid quorum result")
+	if !cc.verifyAuctionResult(args) {
+		return fmt.Errorf("invalid auction result")
 	}
 
-	if args.EthResult.AuctionAddr != auction.EthAddr {
-		return fmt.Errorf("invalid ethereum address")
-	}
-	if args.QuorumResult.AuctionAddr != auction.QuorumAddr {
-		return fmt.Errorf("invalid quorum address")
-	}
-
-	if args.EthResult.HighestBid >= args.QuorumResult.HighestBid {
-		auction.HighestBid = args.EthResult.HighestBid
-		auction.HighestBidder = args.EthResult.HighestBidder
-		auction.HighestBidPlatform = "ethereum"
-	} else {
-		auction.HighestBid = args.QuorumResult.HighestBid
-		auction.HighestBidder = args.QuorumResult.HighestBidder
-		auction.HighestBidPlatform = "quorum"
-	}
-
-	auction.Status = "Ended"
+	auction.Status = "closed"
 	err = cc.setAuction(ctx, auction)
 	if err != nil {
 		return err
@@ -172,45 +196,39 @@ func (cc *SmartContract) FinalizeAuction(
 		return err
 	}
 
-	asset.Owner = auction.HighestBidder
+	eventPayload := fmt.Sprintf("Owner no change for asset: %s", auction.asset_id)
+	if prcd {
+		eventPayload = fmt.Sprintf("Owner changed for asset: %s", auction.asset_id)
+		asset.Owner = auction.HighestBidder
+	}
+
 	asset.PendingAuctionID = 0
 	err = cc.setAsset(ctx, asset)
 	if err != nil {
 		return err
 	}
+
+	err = ctx.GetStub().SetEvent("AuctionClosed", []byte(eventPayload))
+	if err != nil {
+		return fmt.Errorf("error setting event: %v", err)
+	}
+
 	return nil
 }
 
-// in other words, it only accepts bidder who uses following keys
-// So if want to improve scalability, need to modify this
-func (cc *SmartContract) ethAddrs() (addrs []string, min int) {
-	return []string{
-		"17dc6ca2e1c84ae4107975a48dfd05831b8addff", // key 0
-		"ac5580ad28a3c0e044a52541785bfd34c753d3bf", // key 1
-		"d0a73fe9d44184e9f1264ce2097064212e67ebfe", // key 2
-	}, 2
-}
-
-func (cc *SmartContract) quorumAddrs() (addrs []string, min int) {
-	return []string{
-		"17dc6ca2e1c84ae4107975a48dfd05831b8addff",
-		"ac5580ad28a3c0e044a52541785bfd34c753d3bf",
-		"d0a73fe9d44184e9f1264ce2097064212e67ebfe",
-	}, 2
-}
-
 // can add some mech to check if bidder has DID creditional
-func (cc *SmartContract) verifyAuctionResult(
-	trustedAddrs []string, majority int, result CrossChainAuctionResult,
-) bool {
-	if len(result.Signatures) < majority {
-		return false
+func (cc *SmartContract) verifyAuctionResult(result AuctionResult) bool {
+
+	tmp := &AuctionResult{
+		Platform:    result.Platform,
+		AuctionID:   result.AuctionID,
+		AuctionAddr: result.AuctionAddr,
+
+		HighestBid:    result.HighestBid,
+		HighestBidder: result.HighestBidder,
 	}
-	addrs := make([]common.Address, 0, len(trustedAddrs))
-	for _, addr := range trustedAddrs {
-		addrs = append(addrs, common.HexToAddress(addr))
-	}
-	return VerifyKnownSignatures(result.Hash(), result.Signatures, addrs)
+
+	return VerifySignature(tmp.Hash(), result.Signatrue, result.HighestBidder)
 }
 
 func (cc *SmartContract) GetAsset(

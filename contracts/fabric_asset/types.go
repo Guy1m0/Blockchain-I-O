@@ -29,31 +29,43 @@ type StartAuctionArgs struct {
 	AssetID    string
 	EthAddr    string
 	QuorumAddr string
-	Signature  string
+
+	Signature []byte // acknowledged by auctioneer?
 }
 
-func (this *StartAuctionArgs) Hash() []byte {
+func (sa *StartAuctionArgs) Hash() []byte {
 	h := sha3.New256()
-	h.Write([]byte(this.AssetID))
-	h.Write([]byte(this.EthAddr))
-	h.Write([]byte(this.QuorumAddr))
+
+	h.Write([]byte(sa.AssetID))
+	h.Write([]byte(sa.EthAddr))
+	h.Write([]byte(sa.QuorumAddr))
+
 	return h.Sum(nil)
 }
 
 type AuctionResult struct {
-	Platform      string
-	HostAuctionID int
-	AuctionAddr   string
+	Platform    string
+	AuctionID   int
+	AuctionAddr string
+
 	HighestBid    int
 	HighestBidder string
+
+	Signatrue []byte // acknowledged by bidder?
 }
 
-func (this *AuctionResult) Hash() []byte {
+func (ar *AuctionResult) Hash() []byte {
 	h := sha3.New256()
-	h.Write([]byte(this.AuctionAddr))
-	h.Write([]byte(this.Platform))
-	h.Write([]byte(strconv.Itoa(this.HighestBid)))
-	h.Write([]byte(this.HighestBidder))
+
+	h.Write([]byte(ar.Platform))
+	h.Write([]byte(strconv.Itoa(ar.AuctionID)))
+	h.Write([]byte(ar.AuctionAddr))
+
+	h.Write([]byte(strconv.Itoa(ar.HighestBid)))
+	h.Write([]byte(ar.HighestBidder))
+
+	h.Write([]byte(""))
+
 	return h.Sum(nil)
 }
 

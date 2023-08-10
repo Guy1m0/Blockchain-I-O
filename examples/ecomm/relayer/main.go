@@ -24,8 +24,9 @@ var (
 	ethClient *ethclient.Client
 	quoClient *ethclient.Client
 
-	eth_ERC20 common.Address
-	quo_ERC20 common.Address
+	eth_ERC20    common.Address
+	quo_ERC20    common.Address
+	fabric_ERC20 string
 )
 
 const (
@@ -61,12 +62,13 @@ func main() {
 
 	eth_ERC20 = erc20_info.EthERC20
 	quo_ERC20 = erc20_info.QuoERC20
+	fabric_ERC20 = erc20_info.FabricTokenName
 
 	// Register("event_", event_handler)
 	// SignedAuctionResultEvent is the one when bidder accept such auction
 	ccsvc.Register(ecomm.BiddingAuctionEvent, logEvent)
 	ccsvc.Register(ecomm.AuctionStartingEvent, logEvent)
-	ccsvc.Register(ecomm.AuctionEndingEvent, logEvent)
+	ccsvc.Register(ecomm.AuctionClosingEvent, logEvent)
 
 	// Why not create a new event for new auction?
 	err := ccsvc.Start(true)

@@ -132,11 +132,11 @@ func end(auctionID int) {
 
 	log.Println("[fabric] Ending auction")
 
-	_, err = assetClient.EndAuction(a.AssetID)
+	_, err = assetClient.CloseAuction(a.AssetID)
 	check(err)
 
 	payload, _ := json.Marshal(a)
-	cclib.LogEventToFile(logInfoFile, ecomm.AuctionEndingEvent, payload, t, timeInfoFile)
+	cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
 }
 
 func check_status(auctionID int) {

@@ -24,7 +24,7 @@ const (
 // sets up the event listener, and handleEvent, which contains
 // the logic to execute when an event is received.
 func startListeningForAssetEvents(client *ecomm.AssetClient) error {
-	events := []string{"AddAsset", "StartAuction", "EndAuction", "FinAuction"}
+	events := []string{"AddAsset", "StartAuction", "CloseAuction", "AuctionClosed"}
 	var regs []fab.Registration
 	var notifiers []<-chan *fab.CCEvent
 
@@ -56,12 +56,12 @@ func startListeningForAssetEvents(client *ecomm.AssetClient) error {
 				return err
 			}
 		case event := <-notifiers[2]:
-			err := handleEndAuctionEvent(string(event.Payload))
+			err := handleCloseAuctionEvent(string(event.Payload))
 			if err != nil {
 				return err
 			}
 		case event := <-notifiers[3]:
-			err := handleFinAuctionEvent(string(event.Payload))
+			err := handleAuctionClosedEvent(string(event.Payload))
 			if err != nil {
 				return err
 			}
@@ -114,9 +114,9 @@ func startListeningForAuctionEvents(auction_id int, address string, platform str
 			check(err)
 
 			result := ecomm.AuctionResult{
-				Platform:      platform,
-				HostAuctionID: auction_id,
-				AuctionAddr:   address,
+				Platform:    platform,
+				AuctionID:   auction_id,
+				AuctionAddr: address,
 			}
 			// call handler
 			handleHighestBidIncreasedEvent(event, result, t)
