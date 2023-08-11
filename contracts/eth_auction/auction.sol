@@ -121,7 +121,7 @@ contract Auction {
         
     }
 
-    function proceed(string memory jsonString) public {
+    function commit(string memory jsonString) public {
         // Use hash to check status
         require(keccak256(abi.encodePacked(status)) == keccak256(abi.encodePacked("ending")), "Contract not in ENDING status");
         // For testing only

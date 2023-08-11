@@ -50,6 +50,9 @@ func main() {
 	case "close":
 		id_, _ := strconv.Atoi(*id)
 		close(id_)
+	case "cancel":
+		id_, _ := strconv.Atoi(*id)
+		cancel(id_)
 	case "check":
 		id_, _ := strconv.Atoi(*id)
 		check_status(id_)
@@ -60,7 +63,6 @@ func main() {
 
 // Use key 1 as default auctioner
 func create(asset_name string) {
-	// @reset timer
 	t := time.Now()
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
@@ -74,11 +76,38 @@ func create(asset_name string) {
 	check(err)
 
 	payload, _ := json.Marshal(asset)
-	cclib.LogEventToFile(logInfoFile, ecomm.AddingAssetEvent, payload, t, timeInfoFile)
+	t = time.Now()
+	cclib.LogEventToFile(logInfoFile, ecomm.AssetAddingEvent, payload, t, timeInfoFile)
+
+	// @reset
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+}
+
+func cancel(auctionID int) {
+	t := time.Now()
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+
+	a, err := assetClient.GetAuction(auctionID)
+	check(err)
+
+	if a.Status != "open" {
+		err = fmt.Errorf("auction status error")
+		check(err)
+	}
+
+	log.Println("[fabric] Closing auction")
+	_, err = assetClient.CancelAuction(auctionID)
+	check(err)
+
+	payload, _ := json.Marshal(a)
+	t = time.Now()
+	cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
+
+	// @reset
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 }
 
 func close(auctionID int) {
-	// @reset timer
 	t := time.Now()
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
@@ -95,7 +124,10 @@ func close(auctionID int) {
 	check(err)
 
 	payload, _ := json.Marshal(a)
+	t = time.Now()
 	cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
+
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 }
 
 func check_status(auctionID int) {

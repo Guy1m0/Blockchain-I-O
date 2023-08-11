@@ -24,7 +24,7 @@ const (
 // sets up the event listener, and handleEvent, which contains
 // the logic to execute when an event is received.
 func startListeningForAssetEvents(client *ecomm.AssetClient) error {
-	events := []string{"AddAsset", "StartAuction", "CloseAuction", "AuctionClosed"}
+	events := []string{"AddAsset", "StartAuction", "CloseAuction", "CancelAuction", "AuctionClosed"}
 	var regs []fab.Registration
 	var notifiers []<-chan *fab.CCEvent
 
@@ -61,6 +61,11 @@ func startListeningForAssetEvents(client *ecomm.AssetClient) error {
 				return err
 			}
 		case event := <-notifiers[3]:
+			err := handleAuctionCancelEvent(string(event.Payload))
+			if err != nil {
+				return err
+			}
+		case event := <-notifiers[4]:
 			err := handleAuctionClosedEvent(string(event.Payload))
 			if err != nil {
 				return err

@@ -137,12 +137,12 @@ Load `Bidder 2` and then place MDai `7` on quo as follows
 ./bidder -c bid -name "Bidder 2" -p quo -amt 7 -id 1
 ```
 
-10. End Auction
+10. Close Auction
 
 Go to folder `examples/ecomm/auctioneer`
 then use following bash code
 ```bash
-./auctioneer -c end -id 1
+./auctioneer -c close -id 1
 ```
 
 8. Stop running Containers and Eth private networks

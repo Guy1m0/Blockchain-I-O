@@ -8,21 +8,25 @@ import (
 )
 
 const (
-	ProceedAuctionResultEvent = "eth_quo.prcd_result"
-	AbortAuctionResultEvent   = "eth_quo.abt_result"
-	AuctionStartingEvent      = "ccsvc.start_auction"
-	AuctionClosedEvent        = "ccsvc.auction_closed"
+	CommitAuctionResultEvent = "eth_quo.cmt_result"
+	AbortAuctionResultEvent  = "eth_quo.abt_result"
+
+	AssetAddingEvent       = "fabric.add_asset"
+	AuctionStartingEvent   = "ccsvc.start_auction"
+	AuctionFinalizingEvent = "ccsvc.fin_auction"
+	AuctionClosingEvent    = "fabric.close_auction"
+	AuctionCancelingEvent  = "fabric.cancel_auction"
 
 	// tx_mined on eth/quo
 	// end AucCrEvt
-	AddingAssetEvent    = "fabric.add_asset"
-	AuctionClosingEvent = "fabric.close_auction"
 
-	BiddingAuctionEvent      = "eth_quo.bid_auc"
-	WithdrawEvent            = "eth_quo.withdraw"
-	TransactionMinedEvent    = "eth_quo.tx_mined"
-	SignedAuctionResultEvent = "eth_quo.signed_result"
-	FeedBackEvent            = "eth_quo.provide_feedback"
+	BidEvent      = "eth_quo.bid_auc"
+	WithdrawEvent = "eth_quo.withdraw"
+
+	TransactionMinedEvent = "eth_quo.tx_mined"
+	//SignAuctionResultEvent = "eth_quo.signed_result"
+
+	ProvideFeedbackEvent = "eth_quo.provide_feedback"
 
 	KafkaReceivedEvent   = "kafka.received"
 	RelayerDetectedEvent = "relayer.detected"

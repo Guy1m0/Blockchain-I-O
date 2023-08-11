@@ -7,7 +7,6 @@ import (
 	"math/big"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
@@ -17,7 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-var mutex sync.Mutex
+//var mutex sync.Mutex
 
 func handleAddAssetEvent(eventPayload string) error {
 	log.Println("[fabric] Creating auction")
@@ -27,9 +26,8 @@ func handleAddAssetEvent(eventPayload string) error {
 	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
 
 	parts := strings.SplitN(eventPayload, ": ", 2)
-	if len(parts) < 2 {
+	if len(parts) != 2 {
 		return fmt.Errorf("received unexpected event: %s", eventPayload)
-		// Now eventDetail contains the string after ": "
 	}
 
 	eventDetail := parts[1]
@@ -78,8 +76,6 @@ func handleAddAssetEvent(eventPayload string) error {
 	_, err = assetClient.StartAuction(args)
 	cclib.LogEventToFile(logInfoFile, ecomm.AuctionStartingEvent, payload, t, timeInfoFile)
 
-	//myAuction := ecomm.StartAuction(assetClient, asset.ID, ethAddr, quoAddr)
-
 	return err
 }
 
@@ -106,6 +102,10 @@ func handleStartAuctionEvent(eventPayload string) error {
 	onNewAuction(a)
 
 	payload, _ = json.Marshal(a)
+
+	// @reset timer
+	t = time.Now()
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 	err = ccsvc.Publish(ecomm.AuctionStartingEvent, payload)
 
 	return err
@@ -129,7 +129,7 @@ func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreasedEvent,
 	// @reset
 	t = time.Now()
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
-	ccsvc.Publish(ecomm.BiddingAuctionEvent, payload)
+	ccsvc.Publish(ecomm.BidEvent, payload)
 
 	return nil
 }
@@ -237,7 +237,8 @@ func handleDecisionMadeEvent(eventPayload ecomm.DecisionMadeEvent, t time.Time) 
 
 	proceed := eventPayload.Prcd
 
-	_, err = assetClient.AuctionClosed(result, proceed)
+	_, err = assetClient.FinAuction(result, proceed)
+	check(err)
 
 	// transfer token to original owner
 	if proceed {
@@ -250,8 +251,79 @@ func handleDecisionMadeEvent(eventPayload ecomm.DecisionMadeEvent, t time.Time) 
 		fabric_ERC20_contract.Transfer(asset.Owner, quotient.String())
 	}
 
-	ccsvc.Publish(ecomm.AuctionClosedEvent, []byte(payload))
+	ccsvc.Publish(ecomm.AuctionFinalizingEvent, []byte(payload))
 	//t := time.Now()
+	return nil
+}
+
+func handleAuctionCancelEvent(eventPayload string) error {
+	log.Println("[ETH/QUO] Clase auctions on both platforms")
+
+	t := time.Now()
+	payload, _ := json.Marshal(eventPayload)
+	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
+
+	parts := strings.SplitN(eventPayload, ": ", 2)
+	if len(parts) < 2 {
+		return fmt.Errorf("received unexpected event: %s", eventPayload)
+	}
+
+	eventDetail := parts[1]
+	auctionID, _ := strconv.Atoi(eventDetail)
+
+	a, err := assetClient.GetAuction(auctionID)
+	check(err)
+
+	// load auction contract
+	eth_auction_addr := common.HexToAddress(a.EthAddr)
+	eth_auction_contract, err := eth_auction.NewEthAuction(eth_auction_addr, ethClient)
+	check(err)
+
+	quo_auction_addr := common.HexToAddress(a.QuorumAddr)
+	quo_auction_contract, err := eth_auction.NewEthAuction(quo_auction_addr, quoClient)
+	check(err)
+
+	log.Println("[ETH/QUO] Change contract state")
+	authT, err := cclib.NewTransactor(root_key, password)
+	check(err)
+
+	// @reset timer
+	t = time.Now()
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+
+	// Change Auction Contract on Eth
+	tx, _ := eth_auction_contract.CloseAuction(authT, true)
+	receipt := ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDED'", eth_auction_addr))
+
+	payload, err = json.Marshal(&ecomm.Tx{
+		Platform: "eth",
+		Type:     "finAuction",
+		Hash:     receipt.TxHash,
+	})
+	check(err)
+
+	t = time.Now()
+	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+
+	// Change Auction Contract on Quo
+	tx, _ = quo_auction_contract.CloseAuction(authT, true)
+	receipt = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDED'", quo_auction_addr))
+
+	payload, err = json.Marshal(&ecomm.Tx{
+		Platform: "quo",
+		Type:     "finAuction",
+		Hash:     receipt.TxHash,
+	})
+	check(err)
+
+	t = time.Now()
+	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	//cclib.LastEventTimestamp.Set(t, timeInfoFile)
+
+	payload, _ = json.Marshal(a)
+	ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
+
 	return nil
 }
 
@@ -284,29 +356,4 @@ func handleAuctionClosedEvent(eventPayload string) error {
 func logEvent(payload []byte) {
 	t := time.Now()
 	cclib.LogEventToFile(logInfoFile, ecomm.KafkaReceivedEvent, payload, t, timeInfoFile)
-}
-
-func handleAuctionEnding(payload []byte) {
-
-	// var result ecomm.Auction
-	// err := json.Unmarshal(payload, &result)
-	// check(err)
-
-	// mutex.Lock()
-	// defer mutex.Unlock()
-	return
-}
-
-func handleBiddingAuction(payload []byte) {
-	var result ecomm.AuctionResult
-	err := json.Unmarshal(payload, &result)
-	check(err)
-}
-
-func handleProceedingAuctionResult(payload []byte) {
-
-}
-
-func handleAbortAuctionResult(payload []byte) {
-
 }

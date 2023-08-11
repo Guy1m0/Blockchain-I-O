@@ -127,7 +127,7 @@ func bidAuction(auction_id int, amount *big.Int) {
 		AssetID:     a.AssetID,
 	})
 
-	cclib.LogEventToFile(logInfoFile, ecomm.BiddingAuctionEvent, payload, t, timeInfoFile)
+	cclib.LogEventToFile(logInfoFile, ecomm.BidEvent, payload, t, timeInfoFile)
 
 	// Approve amount of bid through ERC20 contract
 	MDAI, _ := eth_stable_coin.NewEthStableCoin(erc20_address, client)
@@ -208,7 +208,7 @@ func sign_auction_result(auction_id int, prcd bool) {
 	// log
 	payload, _ := json.Marshal(a)
 	if prcd {
-		cclib.LogEventToFile(logInfoFile, ecomm.ProceedAuctionResultEvent, payload, t, timeInfoFile)
+		cclib.LogEventToFile(logInfoFile, ecomm.CommitAuctionResultEvent, payload, t, timeInfoFile)
 	} else {
 		cclib.LogEventToFile(logInfoFile, ecomm.AbortAuctionResultEvent, payload, t, timeInfoFile)
 	}
@@ -218,7 +218,7 @@ func sign_auction_result(auction_id int, prcd bool) {
 
 	highestBidder, _ := auction_contract.HighestBidder(&bind.CallOpts{})
 	if highestBidder != bidT.From {
-		log.Panicln("Not authorized to proceed the auction")
+		log.Panicln("Not authorized to commit the auction")
 	}
 
 	highestBid, _ := auction_contract.HighestBid(&bind.CallOpts{})
@@ -241,16 +241,17 @@ func sign_auction_result(auction_id int, prcd bool) {
 	check(err)
 
 	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.SignedAuctionResultEvent, jsonString, t, timeInfoFile)
 
 	var tx *types.Transaction
 	var p_type string
 	if prcd {
-		tx, err = auction_contract.Proceed(bidT, string(jsonString))
-		p_type = "Proceed"
+		tx, err = auction_contract.Commit(bidT, string(jsonString))
+		p_type = "Commit"
+		cclib.LogEventToFile(logInfoFile, ecomm.CommitAuctionResultEvent, jsonString, t, timeInfoFile)
 	} else {
 		tx, err = auction_contract.Abort(bidT, string(jsonString))
 		p_type = "Abort"
+		cclib.LogEventToFile(logInfoFile, ecomm.AbortAuctionResultEvent, jsonString, t, timeInfoFile)
 	}
 	check(err)
 
@@ -297,7 +298,7 @@ func provide_feedback(auction_id int, feedback string) {
 
 	// log
 	payload, _ := json.Marshal(a)
-	cclib.LogEventToFile(logInfoFile, ecomm.FeedBackEvent, payload, t, timeInfoFile)
+	cclib.LogEventToFile(logInfoFile, ecomm.ProvideFeedbackEvent, payload, t, timeInfoFile)
 
 	auction_contract, err := eth_auction.NewEthAuction(auction_addr, client)
 	check(err)

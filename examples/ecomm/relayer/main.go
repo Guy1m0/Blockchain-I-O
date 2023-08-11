@@ -31,14 +31,8 @@ var (
 
 const (
 	root_key = "../../keys/key0"
-	//auctionerKey = "../../keys/key1"
-	//bidder1Key   = "../../keys/key2"
-	//bidder2Key   = "../../keys/key3"
 	password = "password"
 
-	//fabricTokenName = "MDAI1"
-
-	//setupInfoFile = "../setup_info.json"
 	erc20InfoFile = "../erc20_info.json"
 	logInfoFile   = "../log.json"
 )
@@ -64,19 +58,16 @@ func main() {
 	quo_ERC20 = erc20_info.QuoERC20
 	fabric_ERC20 = erc20_info.FabricTokenName
 
-	// Register("event_", event_handler)
-	// SignedAuctionResultEvent is the one when bidder accept such auction
-	ccsvc.Register(ecomm.BiddingAuctionEvent, logEvent)
+	ccsvc.Register(ecomm.BidEvent, logEvent)
 	ccsvc.Register(ecomm.AuctionStartingEvent, logEvent)
 	ccsvc.Register(ecomm.AuctionClosingEvent, logEvent)
+	ccsvc.Register(ecomm.AuctionCancelingEvent, logEvent)
+	ccsvc.Register(ecomm.AuctionFinalizingEvent, logEvent)
 
-	// Why not create a new event for new auction?
 	err := ccsvc.Start(true)
 	check(err)
 
-	// check new auction posted on Asset contract on Fabric
 	startListeningForAssetEvents(assetClient)
-	//runAuctionListener()
 }
 
 func check(err error) {

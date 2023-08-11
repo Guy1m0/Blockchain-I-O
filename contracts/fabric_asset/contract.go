@@ -165,7 +165,7 @@ func (cc *SmartContract) CloseAuction(
 	return nil
 }
 
-func (cc *SmartContract) AuctionClosed(
+func (cc *SmartContract) FinAuction(
 	ctx contractapi.TransactionContextInterface, argjson string, prcdStr string,
 ) error {
 	// only owner or admin can call this
@@ -175,7 +175,11 @@ func (cc *SmartContract) AuctionClosed(
 	if err != nil {
 		return err
 	}
+
 	prcd, err := strconv.ParseBool(prcdStr)
+	if err != nil {
+		return err
+	}
 
 	auction, err := cc.GetAuction(ctx, args.AuctionID)
 	if err != nil {

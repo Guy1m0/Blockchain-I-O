@@ -89,10 +89,10 @@ func (cc *AssetClient) CancelAuction(ID int) ([]byte, error) {
 	return cc.contract.SubmitTransaction("CancelAuction", IDStr)
 }
 
-func (cc *AssetClient) AuctionClosed(args AuctionResult, prcd bool) ([]byte, error) {
+func (cc *AssetClient) FinAuction(args AuctionResult, prcd bool) ([]byte, error) {
 	b, _ := json.Marshal(args)
 	prcdStr := strconv.FormatBool(prcd)
-	return cc.contract.SubmitTransaction("AuctionClosed", string(b), prcdStr)
+	return cc.contract.SubmitTransaction("FinAuction", string(b), prcdStr)
 }
 
 func (cc *AssetClient) GetAsset(assetID string) (*Asset, error) {
@@ -113,18 +113,6 @@ func (cc *AssetClient) GetAuction(auctionID int) (*Auction, error) {
 	}
 	err = json.Unmarshal(res, &auction)
 	return &auction, err
-}
-
-// better not use
-func (cc *AssetClient) SetAuction(auction *Auction) ([]byte, error) {
-	//var auction Auction
-	b, _ := json.Marshal(auction)
-	return cc.contract.EvaluateTransaction("setAuction", string(b))
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// err = json.Unmarshal(res, &auction)
-	// return &auction, err
 }
 
 func (cc *AssetClient) GetLastAuctionID() (int, error) {
