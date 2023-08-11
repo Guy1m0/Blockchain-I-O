@@ -21,16 +21,13 @@ import (
 )
 
 var (
-	zkNodes = "localhost:2181"
+	//zkNodes = "localhost:2181"
 	//Endpoint = "localhost:8545"
 	platform = "eth"
 
-	bidder_name = "Bidder 1"
-	bid_key     string
+	usr_name = "Bidder 1"
+	bid_key  string
 
-	//keypassword = "password"
-
-	ccsvc     *cclib.CCService
 	ethClient *ethclient.Client
 	quoClient *ethclient.Client
 
@@ -39,36 +36,20 @@ var (
 )
 
 const (
-	// rootKey      = "../../keys/key0"
-	// auctionerKey = "../../keys/key1"
-	// bidder1Key   = "../../keys/key2"
-	// bidder2Key   = "../../keys/key3"
 	password = "password"
 
-	// fabricTokenName = "MDAI"
-	//default_name = "Bidder 1"
-	//setupInfoFile  = "../setup_info.json"
 	erc20InfoFile = "../erc20_info.json"
 	userInfoFile  = "../user_info.json"
 	logInfoFile   = "../log.json"
 	timeInfoFile  = "../timer"
-	//BidderInfoFile = "./bidder_info.json"
 )
 
 func main() {
-	//var setupInfo ecomm.SetupInfo
-	//ecomm.ReadJsonFile(setupInfoFile, &setupInfo)
-
 	var err error
 	ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
 	check(err)
 
 	quoClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
-	check(err)
-
-	//assetClient = ecomm.NewAssetClient() // return Fabric asset contract
-
-	ccsvc, err = cclib.NewEventService(strings.Split(zkNodes, ","), "bidder")
 	check(err)
 
 	assetClient = ecomm.NewAssetClient()
@@ -77,23 +58,19 @@ func main() {
 
 	id_ := flag.String("id", "", "Auction ID")
 	amount_ := flag.String("amt", "", "Bid amount")
-	score_ := flag.String("s", "", "Auction rating")
+	//score_ := flag.String("s", "", "Auction rating")
 	feedback := flag.String("fb", "", "Detail feedback")
+
 	flag.StringVar(&platform, "p", platform, "platform")
-	// flag.StringVar(&bid_key, "k", bid_key, "private key file")
-	flag.StringVar(&bidder_name, "name", bidder_name, "Load Bidder Information")
+	flag.StringVar(&usr_name, "usr", usr_name, "Load User/Bidder Information")
 	flag.Parse()
 
-	bid_key = load_bidder_key(bidder_name)
-
+	bid_key = load_bidder_key(usr_name)
 	switch *command {
-	// case "login":
-	// 	login(platform, bidder_name)
 	case "bid":
 		amount := new(big.Int)
 		amount.SetString(*amount_, 10)
 		id, _ := strconv.Atoi(*id_)
-
 		bidAuction(id, amount)
 	case "check":
 		id, _ := strconv.Atoi(*id_)
@@ -109,32 +86,21 @@ func main() {
 		withdraw(id)
 	case "rate":
 		id, _ := strconv.Atoi(*id_)
-		score, _ := strconv.Atoi(*score_)
-		provide_feedback(id, score, *feedback)
+		provide_feedback(id, *feedback)
 	}
-
-	// fmt.Println("[ethereum] Bidding auction")
-	// bidAuction(ethClient, myAuction.EthAddr, "../../keys/key1", 500)
-
-	// fmt.Println("[quorum] Bidding auction")
-	// bidAuction(quorumClient, myAuction.QuorumAddr, "../../keys/key2", 1000)
-
-	// fmt.Println("[fabric] Ending auction")
-	// endAuction(myAuction)
 }
 
 // also no relayer involved, 'locally' make bid
 func bidAuction(auction_id int, amount *big.Int) {
+	// @reset timer
+	t := time.Now()
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
-	// if auction addr is already known
-	// Get Auction Contract deployed on Eth/Quo
 	var erc20_info ecomm.Erc20Info
 	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
 	erc20_address := erc20_info.EthERC20
-
 	client := ethClient
 
-	// return Fabric asset contract
 	a, err := assetClient.GetAuction(auction_id)
 	check(err)
 
@@ -161,9 +127,6 @@ func bidAuction(auction_id int, amount *big.Int) {
 		AssetID:     a.AssetID,
 	})
 
-	// @reset timer
-	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 	cclib.LogEventToFile(logInfoFile, ecomm.BiddingAuctionEvent, payload, t, timeInfoFile)
 
 	// Approve amount of bid through ERC20 contract
@@ -221,75 +184,6 @@ func check_winner(auction_id int) {
 	check(err)
 	fmt.Println("highest bid:", highestBid)
 }
-
-// func procd_auction(auction_id int) {
-// 	// Check Status of Auctio
-
-// 	client := ethClient
-
-// 	//assetClient := ecomm.NewAssetClient() // return Fabric asset contract
-// 	a, err := assetClient.GetAuction(auction_id)
-// 	check(err)
-
-// 	auction_addr := common.HexToAddress(a.EthAddr)
-// 	if platform != "eth" {
-// 		auction_addr = common.HexToAddress(a.QuorumAddr)
-// 		client = quoClient
-// 	}
-
-// 	// @reset timer
-// 	t := time.Now()
-// 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
-
-// 	bidT, err := cclib.NewTransactor(bid_key, "password")
-// 	check(err)
-
-// 	// log
-// 	payload, _ := json.Marshal(a)
-// 	cclib.LogEventToFile(logInfoFile, ecomm.ProceedAuctionResultEvent, payload, t, timeInfoFile)
-
-// 	auction_contract, err := eth_auction.NewEthAuction(auction_addr, client)
-// 	check(err)
-
-// 	highestBidder, _ := auction_contract.HighestBidder(&bind.CallOpts{})
-// 	if highestBidder != bidT.From {
-// 		log.Panicln("Not authorized to proceed the auction")
-// 	}
-
-// 	highestBid, _ := auction_contract.HighestBid(&bind.CallOpts{})
-
-// 	auction_result := &ecomm.AuctionResult{
-// 		Platform:    platform,
-// 		AuctionID:   auction_id,
-// 		AuctionAddr: auction_addr.Hex(),
-
-// 		HighestBid:    int(highestBid.Int64()),
-// 		HighestBidder: bidT.From.Hex(),
-// 	}
-
-// 	signer, _ := cclib.NewSigner(bid_key, password)
-// 	sig, err := signer.Sign(auction_result.Hash())
-// 	check(err)
-
-// 	auction_result.Signature = sig
-// 	jsonString, err := json.Marshal(auction_result)
-// 	check(err)
-
-// 	tx, err := auction_contract.Proceed(bidT, string(jsonString))
-// 	check(err)
-// 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Commit to vote on Auction ID: %d through contract: %s", a.ID, auction_addr))
-// 	//debugTransaction(tx)
-// 	// log
-// 	payload, _ = json.Marshal(&ecomm.Tx{
-// 		Platform: platform,
-// 		Type:     "Proceed",
-// 		Hash:     receipt.TxHash,
-// 	})
-
-// 	t = time.Now()
-// 	cclib.LogEventToFile(logInfoFile, ecomm.ProceedAuctionResultEvent, payload, t, timeInfoFile)
-
-// }
 
 func sign_auction_result(auction_id int, prcd bool) {
 	// @reset timer
@@ -373,14 +267,22 @@ func sign_auction_result(auction_id int, prcd bool) {
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
 }
 
-func provide_feedback(auction_id int, score int, feedback string) {
+func provide_feedback(auction_id int, feedback string) {
 	// @reset timer
 	t := time.Now()
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
-	client := ethClient
+	parts := strings.SplitN(feedback, "@", 2)
+	score, err := strconv.Atoi(parts[0])
+	check(err)
 
-	//assetClient := ecomm.NewAssetClient() // return Fabric asset contract
+	if len(parts) == 1 {
+		feedback = ""
+	} else {
+		feedback = parts[1]
+	}
+
+	client := ethClient
 	a, err := assetClient.GetAuction(auction_id)
 	check(err)
 
@@ -395,7 +297,6 @@ func provide_feedback(auction_id int, score int, feedback string) {
 
 	// log
 	payload, _ := json.Marshal(a)
-
 	cclib.LogEventToFile(logInfoFile, ecomm.FeedBackEvent, payload, t, timeInfoFile)
 
 	auction_contract, err := eth_auction.NewEthAuction(auction_addr, client)
@@ -403,8 +304,7 @@ func provide_feedback(auction_id int, score int, feedback string) {
 
 	tx, _ := auction_contract.ProvideFeedback(bidT, big.NewInt(int64(score)), feedback)
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Provide feedback on Auction ID: %d", a.ID))
-	//debugTransaction(tx)
-	// log
+	t = time.Now()
 
 	payload, _ = json.Marshal(&ecomm.Tx{
 		Platform: platform,
@@ -412,7 +312,6 @@ func provide_feedback(auction_id int, score int, feedback string) {
 		Hash:     receipt.TxHash,
 	})
 
-	t = time.Now()
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
 }
 

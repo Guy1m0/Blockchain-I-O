@@ -43,20 +43,16 @@ var (
 )
 
 func main() {
-
 	rootT, _ = cclib.NewTransactor(rootKey, password)
 	ethClient = ecomm.NewEthClient()
 	quoClient = ecomm.NewQuorumClient()
 
 	command := flag.String("c", "", "command")
-	usr := flag.String("name", "", "user name")
-	flag.StringVar(&token_name, "coin", token_name, "Stable coin token name")
+	usr := flag.String("usr", "", "user name")
+	flag.StringVar(&token_name, "t", token_name, "Stable coin token name")
 	flag.StringVar(&amt, "amt", amt, "Set new user initial balance")
 	flag.StringVar(&plt, "p", plt, "Platform for new user")
 	flag.Parse()
-
-	// parts := strings.Split(*command, ":")
-	// cmd := parts[0]
 
 	switch *command {
 	case "init":
@@ -95,20 +91,12 @@ func initialize(token_name string) {
 	check(err)
 	ecomm.WaitTx(ethClient, tx, "Mint ERC20 Stable Coin on Ethereum")
 
-	// tmp, err := eth_MDAI.TotalSupply(&bind.CallOpts{})
-	// check(err)
-	// fmt.Println("Mint: ", tmp.String())
-
 	quo_MDAI_addr, tx, quo_MDAI, _ := eth_stable_coin.DeployEthStableCoin(rootT, quoClient, big.NewInt(1))
 	ecomm.WaitTx(quoClient, tx, "Deploy ERC20 Stable Coin on Quorum")
 
 	tx, err = quo_MDAI.Mint(rootT, rootT.From, supply)
 	check(err)
 	ecomm.WaitTx(quoClient, tx, "Mint ERC20 Stable Coin on Quorum")
-
-	// tmp, err = quo_MDAI.TotalSupply(&bind.CallOpts{})
-	// check(err)
-	// fmt.Println("Mint: ", tmp.String())
 
 	if _, err := os.Stat(userInfoFile); err == nil {
 		// If no error is returned, the file exists and you can try to remove it
@@ -129,13 +117,6 @@ func initialize(token_name string) {
 	})
 }
 
-// func mint_more(amount string) {
-// 	fabricToken := ecomm.NewChaincode(token_name)
-// 	fmt.Println("Mint more MDai on Frabic")
-// 	_, err := fabricToken.SubmitTransaction("Mint", amount)
-// 	check(err)
-// }
-
 func setup() {
 	aucT, err := cclib.NewTransactor(auctionerKey, password)
 	check(err)
@@ -148,7 +129,7 @@ func setup() {
 	//var user_info ecomm.UserInfo
 	eth_ERC20, quo_ERC20, fabric_ERC20 := load_ERC20()
 
-	fmt.Println("Setup 1 account on Fabirc")
+	fmt.Println("Setup account for 'Auctioner 1' on Fabirc")
 	_, err = fabric_ERC20.Transfer(aucT.From.Hex(), "100")
 	check(err)
 	ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
@@ -157,7 +138,7 @@ func setup() {
 		KeyFile: auctionerKey,
 	})
 
-	fmt.Println("Setup 1 account on Ethereum")
+	fmt.Println("Setup account for 'Bidder 1' on Ethereum")
 	ecomm.TransferToken(ethClient, eth_ERC20, rootT, bid1T.From, 100)
 	_, err = fabric_ERC20.Transfer(bid1T.From.Hex(), "0")
 	check(err)
@@ -167,7 +148,7 @@ func setup() {
 		KeyFile: bidder1Key,
 	})
 
-	fmt.Println("Setup 1 account on Quorum")
+	fmt.Println("Setup account for 'Bidder 2' on Quorum")
 	ecomm.TransferToken(quoClient, quo_ERC20, rootT, bid2T.From, 100)
 	_, err = fabric_ERC20.Transfer(bid2T.From.Hex(), "0")
 	check(err)

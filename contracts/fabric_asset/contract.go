@@ -103,14 +103,11 @@ func (cc *SmartContract) StartAuction(
 }
 
 func (cc *SmartContract) CancelAuction(
-	ctx contractapi.TransactionContextInterface, assetID string,
+	ctx contractapi.TransactionContextInterface, IDStr string,
 ) error {
-	asset, err := cc.GetAsset(ctx, assetID)
-	if err != nil {
-		return err
-	}
 
-	auction, err := cc.GetAuction(ctx, asset.PendingAuctionID)
+	ID, _ := strconv.Atoi(IDStr)
+	auction, err := cc.GetAuction(ctx, ID)
 	if err != nil {
 		return err
 	}
@@ -118,6 +115,11 @@ func (cc *SmartContract) CancelAuction(
 	err = cc.setAuction(ctx, auction)
 	if err != nil {
 		return fmt.Errorf("error setting auction: %v", err)
+	}
+
+	asset, err := cc.GetAsset(ctx, auction.AssetID)
+	if err != nil {
+		return err
 	}
 
 	asset.PendingAuctionID = 0
@@ -137,17 +139,16 @@ func (cc *SmartContract) CancelAuction(
 }
 
 func (cc *SmartContract) CloseAuction(
-	ctx contractapi.TransactionContextInterface, assetID string,
+	ctx contractapi.TransactionContextInterface, IDStr string,
 ) error {
-	asset, err := cc.GetAsset(ctx, assetID)
+
+	ID, _ := strconv.Atoi(IDStr)
+	auction, err := cc.GetAuction(ctx, ID)
+
 	if err != nil {
 		return err
 	}
 
-	auction, err := cc.GetAuction(ctx, asset.PendingAuctionID)
-	if err != nil {
-		return err
-	}
 	auction.Status = "closing"
 	err = cc.setAuction(ctx, auction)
 	if err != nil {
