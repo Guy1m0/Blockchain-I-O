@@ -134,7 +134,7 @@ then place MDai `5` bidding on first asset
 
 Load `Bidder 2` and then place MDai `7` on quo as follows
 ```bash
-./bidder -c bid -name "Bidder 2" -p quo -amt 7 -id 1
+./bidder -c bid -usr "Bidder 2" -p quo -amt 7 -id 1
 ```
 
 10. Close Auction

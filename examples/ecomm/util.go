@@ -67,6 +67,8 @@ func WaitTx(client *ethclient.Client, tx *types.Transaction, label string) *type
 	receipt, err := bind.WaitMined(context.Background(), client, tx)
 	check(err)
 
+	// @todo: debug transaction if status == "Fail"
+
 	// transferEventSignature := []byte("Transfer(address,address,uint256)")
 	// hash := crypto.Keccak256Hash(transferEventSignature)
 

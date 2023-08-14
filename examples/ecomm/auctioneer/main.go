@@ -28,7 +28,7 @@ var (
 
 	aucT     *bind.TransactOpts
 	usr_name = "Auctioner 1"
-	auc_key  = "../../keys/key1"
+	//auc_key  = "../../keys/key1"
 )
 
 func main() {
@@ -41,7 +41,7 @@ func main() {
 	flag.Parse()
 
 	fmt.Println("Load Auctioner: ", usr_name)
-	load_auctioner(usr_name)
+	auc_key := load_auctioner(usr_name)
 	aucT, _ = cclib.NewTransactor(auc_key, password)
 
 	switch *command {
@@ -63,6 +63,7 @@ func main() {
 
 // Use key 1 as default auctioner
 func create(asset_name string) {
+	// @reset timer
 	t := time.Now()
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
@@ -70,6 +71,7 @@ func create(asset_name string) {
 		ID:    asset_name,
 		Owner: aucT.From.Hex(),
 	}
+	// @todo: add signature
 
 	log.Println("[fabric] Adding asset")
 	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex())
@@ -95,13 +97,13 @@ func cancel(auctionID int) {
 		check(err)
 	}
 
-	log.Println("[fabric] Closing auction")
+	log.Println("[fabric] Cancel auction")
 	_, err = assetClient.CancelAuction(auctionID)
 	check(err)
 
 	payload, _ := json.Marshal(a)
 	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
+	cclib.LogEventToFile(logInfoFile, ecomm.AuctionCancelingEvent, payload, t, timeInfoFile)
 
 	// @reset
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
@@ -119,7 +121,7 @@ func close(auctionID int) {
 		check(err)
 	}
 
-	log.Println("[fabric] Closing auction")
+	log.Println("[fabric] Conclude auction")
 	_, err = assetClient.CloseAuction(auctionID)
 	check(err)
 
@@ -127,6 +129,7 @@ func close(auctionID int) {
 	t = time.Now()
 	cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
 
+	//@reset
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 }
 
@@ -138,16 +141,17 @@ func check_status(auctionID int) {
 
 }
 
-func load_auctioner(name string) {
+func load_auctioner(name string) string {
 	users, err := ecomm.ReadUsersFromFile(userInfoFile)
 	check(err)
 
 	for _, user := range users {
 		if name == user.UserID {
-			auc_key = user.KeyFile
-			return
+			return user.KeyFile
 		}
 	}
+
+	return "../../keys/key1"
 }
 
 func check(err error) {

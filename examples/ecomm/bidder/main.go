@@ -21,8 +21,6 @@ import (
 )
 
 var (
-	//zkNodes = "localhost:2181"
-	//Endpoint = "localhost:8545"
 	platform = "eth"
 
 	usr_name = "Bidder 1"
@@ -32,7 +30,6 @@ var (
 	quoClient *ethclient.Client
 
 	assetClient *ecomm.AssetClient
-	// signer *cclib.Signer
 )
 
 const (
@@ -45,27 +42,27 @@ const (
 )
 
 func main() {
+	// load clients
 	var err error
 	ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
 	check(err)
-
 	quoClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
 	check(err)
-
 	assetClient = ecomm.NewAssetClient()
 
+	// Handle bash command
 	command := flag.String("c", "", "command")
-
 	id_ := flag.String("id", "", "Auction ID")
 	amount_ := flag.String("amt", "", "Bid amount")
-	//score_ := flag.String("s", "", "Auction rating")
-	feedback := flag.String("fb", "", "Detail feedback")
+	feedback := flag.String("fb", "", "Detail feedback with format 'score@comments'")
 
 	flag.StringVar(&platform, "p", platform, "platform")
 	flag.StringVar(&usr_name, "usr", usr_name, "Load User/Bidder Information")
 	flag.Parse()
 
+	fmt.Println("Load User/Bidder: ", usr_name)
 	bid_key = load_bidder_key(usr_name)
+
 	switch *command {
 	case "bid":
 		amount := new(big.Int)
@@ -105,6 +102,7 @@ func bidAuction(auction_id int, amount *big.Int) {
 	check(err)
 
 	auction_addr := common.HexToAddress(a.EthAddr)
+	// @todo: require platform either is 'quo' or 'eth'
 	if platform != "eth" {
 		auction_addr = common.HexToAddress(a.QuorumAddr)
 		client = quoClient
@@ -116,6 +114,8 @@ func bidAuction(auction_id int, amount *big.Int) {
 
 	bidT, err := cclib.NewTransactor(bid_key, "password")
 	check(err)
+
+	// @todo: Check if this is a valid highest bid
 
 	// log
 	payload, _ := json.Marshal(&ecomm.Bid{
@@ -129,16 +129,15 @@ func bidAuction(auction_id int, amount *big.Int) {
 
 	cclib.LogEventToFile(logInfoFile, ecomm.BidEvent, payload, t, timeInfoFile)
 
+	// @todo: Make approve and bid in a single transaction
 	// Approve amount of bid through ERC20 contract
 	MDAI, _ := eth_stable_coin.NewEthStableCoin(erc20_address, client)
 	tx, _ := MDAI.Approve(bidT, auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	ecomm.WaitTx(client, tx, "Approve Auction Contract's allowance")
 
-	// alw, err := MDAI.Allowance(&bind.CallOpts{}, bidT.From, auction_addr)
 	tx, err = auction_contract.Bid(bidT, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	check(err)
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, auction_addr))
-	//debugTransaction(tx)
 
 	// log
 	t = time.Now()
@@ -148,7 +147,7 @@ func bidAuction(auction_id int, amount *big.Int) {
 		Hash:     receipt.TxHash,
 	})
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	//cclib.LastEventTimestamp.Set(t, timeInfoFile)
 }
 
 func check_winner(auction_id int) {

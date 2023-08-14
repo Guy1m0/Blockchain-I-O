@@ -16,8 +16,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-//var mutex sync.Mutex
-
+// fabric relayer
 func handleAddAssetEvent(eventPayload string) error {
 	log.Println("[fabric] Creating auction")
 
@@ -34,26 +33,28 @@ func handleAddAssetEvent(eventPayload string) error {
 	asset, err := assetClient.GetAsset(eventDetail)
 	check(err)
 
+	// @todo: publish events which handled by relayer on eth and quo
+
 	log.Println("[ethereum] Deploying auction")
 
-	t = time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
-
 	ethAddr, receipt_eth := ecomm.DeployCrossChainAuction(ethClient, eth_ERC20, asset.ID, root_key)
-	payload, _ = json.Marshal(&ecomm.Tx{
+	payload_eth, _ := json.Marshal(&ecomm.Tx{
 		Platform: "eth",
 		Type:     "newAuction",
 		Hash:     receipt_eth.TxHash,
 	})
 	check(err)
 
+	// elimiate the effects caused by some unknown reasons that relayer detects
+	// events before the related tx mined in original platform
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload_eth, t, timeInfoFile)
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	log.Println("[quorum] Deploying auction")
 	quoAddr, receipt_quo := ecomm.DeployCrossChainAuction(quoClient, quo_ERC20, asset.ID, root_key)
-	payload, err = json.Marshal(&ecomm.Tx{
+	payload_quo, err := json.Marshal(&ecomm.Tx{
 		Platform: "quo",
 		Type:     "newAuction",
 		Hash:     receipt_quo.TxHash,
@@ -61,7 +62,7 @@ func handleAddAssetEvent(eventPayload string) error {
 	check(err)
 
 	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload_quo, t, timeInfoFile)
 	// @reset
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
@@ -79,12 +80,13 @@ func handleAddAssetEvent(eventPayload string) error {
 	return err
 }
 
+// fabric relayer
 func handleStartAuctionEvent(eventPayload string) error {
 	log.Println("[kafka] Publish Auction Creating Event")
 
-	t := time.Now()
+	//t := time.Now()
 	payload, _ := json.Marshal(eventPayload)
-	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
+	//cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
 
 	parts := strings.SplitN(eventPayload, ": ", 2)
 	if len(parts) < 2 {
@@ -101,10 +103,10 @@ func handleStartAuctionEvent(eventPayload string) error {
 	// Listen new auction
 	onNewAuction(a)
 
-	payload, _ = json.Marshal(a)
+	//payload, _ = json.Marshal(a)
 
 	// @reset timer
-	t = time.Now()
+	t := time.Now()
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 	err = ccsvc.Publish(ecomm.AuctionStartingEvent, payload)
 
@@ -256,7 +258,7 @@ func handleDecisionMadeEvent(eventPayload ecomm.DecisionMadeEvent, t time.Time) 
 	return nil
 }
 
-func handleAuctionCancelEvent(eventPayload string) error {
+func handleCancelAuctionEvent(eventPayload string) error {
 	log.Println("[ETH/QUO] Clase auctions on both platforms")
 
 	t := time.Now()

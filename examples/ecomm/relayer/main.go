@@ -58,6 +58,11 @@ func main() {
 	quo_ERC20 = erc20_info.QuoERC20
 	fabric_ERC20 = erc20_info.FabricTokenName
 
+	// @todo: separate ccsvc relayer in different platorms
+	// and can not directly detects events on other platform if
+	// and only if such events published by 'local' relayer
+
+	// @todo: deploy 3 relayers monitor Fabric, Eth and Quo respectively
 	ccsvc.Register(ecomm.BidEvent, logEvent)
 	ccsvc.Register(ecomm.AuctionStartingEvent, logEvent)
 	ccsvc.Register(ecomm.AuctionClosingEvent, logEvent)

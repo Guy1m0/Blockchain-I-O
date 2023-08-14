@@ -61,7 +61,7 @@ func startListeningForAssetEvents(client *ecomm.AssetClient) error {
 				return err
 			}
 		case event := <-notifiers[3]:
-			err := handleAuctionCancelEvent(string(event.Payload))
+			err := handleCancelAuctionEvent(string(event.Payload))
 			if err != nil {
 				return err
 			}
