@@ -30,6 +30,7 @@ var (
 )
 
 const (
+	platform = "eth"
 	root_key = "../../keys/key0"
 	password = "password"
 
@@ -38,6 +39,9 @@ const (
 )
 
 func main() {
+
+	flag.StringVar(&platform, "p", platform, "Monitors wich platform")
+
 	flag.StringVar(&zkNodes, "zk", zkNodes, "comma separated zoolkeeper nodes")
 	flag.Parse()
 
