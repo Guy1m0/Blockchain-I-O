@@ -2,12 +2,14 @@ package ecomm
 
 import (
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math/big"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
@@ -239,6 +241,52 @@ func StartAuction(assetClient *AssetClient, assetID, ethAddr, quorumAddr string)
 	a, err := assetClient.GetAuction(auctionID)
 	check(err)
 	return a
+}
+
+var mu sync.Mutex
+
+func UpdateCSVLog(filePath, event, eventID, cost string, eventTime map[string]time.Time) error {
+	mu.Lock()
+	defer mu.Unlock()
+
+	// Open CSV for appending
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	// Create a new log entry
+	log := EventLog{
+		Event:   event,
+		EventID: eventID,
+		Cost:    cost,
+	}
+
+	if t, ok := eventTime["Start"]; ok {
+		log.StartTime = t
+	}
+	if t, ok := eventTime["End"]; ok {
+		log.EndTime = t
+	}
+	if t, ok := eventTime["KafkaReceived"]; ok {
+		log.KafkaReceived = t
+	}
+
+	// Write the new log entry to the CSV
+	err = writer.Write([]string{
+		log.Event,
+		log.EventID,
+		log.StartTime.String(),
+		log.EndTime.String(),
+		log.KafkaReceived.String(),
+		log.Cost,
+	})
+
+	return err
 }
 
 func check(err error) {
