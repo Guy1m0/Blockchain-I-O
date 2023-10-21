@@ -18,11 +18,13 @@ import (
 
 // fabric relayer
 func handleAddAssetEvent(eventPayload string) error {
+	t := time.Now()
+
 	log.Println("[fabric] Creating auction")
 
-	t := time.Now()
+	// t := time.Now()
 	payload, _ := json.Marshal(eventPayload)
-	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
+	// cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
 
 	parts := strings.SplitN(eventPayload, ": ", 2)
 	if len(parts) != 2 {
@@ -33,38 +35,47 @@ func handleAddAssetEvent(eventPayload string) error {
 	asset, err := assetClient.GetAsset(eventDetail)
 	check(err)
 
+	ecomm.UpdateLog(logInfoFile, ecomm.AssetAddingEvent, eventDetail, t, "", 0)
+	ccsvc.Publish(ecomm.AssetAddingEvent, payload)
+
 	// @todo: publish events which handled by relayer on eth and quo
 
 	log.Println("[ethereum] Deploying auction")
+	t = time.Now()
 
 	ethAddr, receipt_eth := ecomm.DeployCrossChainAuction(ethClient, eth_ERC20, asset.ID, root_key)
-	payload_eth, _ := json.Marshal(&ecomm.Tx{
-		Platform: "eth",
-		Type:     "newAuction",
-		Hash:     receipt_eth.TxHash,
-	})
-	check(err)
+	cost := receipt_eth.GasUsed
+	note := "eth cost:" + strconv.FormatUint(cost, 10)
+
+	// payload_eth, _ := json.Marshal(&ecomm.Tx{
+	// 	Platform: "eth",
+	// 	Type:     "newAuction",
+	// 	Hash:     receipt_eth.TxHash,
+	// })
+	// check(err)
 
 	// elimiate the effects caused by some unknown reasons that relayer detects
 	// events before the related tx mined in original platform
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload_eth, t, timeInfoFile)
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	// t = time.Now()
+	// cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload_eth, t, timeInfoFile)
+	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	log.Println("[quorum] Deploying auction")
 	quoAddr, receipt_quo := ecomm.DeployCrossChainAuction(quoClient, quo_ERC20, asset.ID, root_key)
-	payload_quo, err := json.Marshal(&ecomm.Tx{
-		Platform: "quo",
-		Type:     "newAuction",
-		Hash:     receipt_quo.TxHash,
-	})
-	check(err)
+	cost += receipt_eth.GasUsed
+	note += " quo cost:" + strconv.FormatUint(receipt_quo.GasUsed, 10)
+	// payload_quo, err := json.Marshal(&ecomm.Tx{
+	// 	Platform: "quo",
+	// 	Type:     "newAuction",
+	// 	Hash:     receipt_quo.TxHash,
+	// })
+	// check(err)
 
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload_quo, t, timeInfoFile)
-	// @reset
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	// t = time.Now()
+	// cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload_quo, t, timeInfoFile)
+	// // @reset
+	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	fmt.Println("[fabric] Creating auction")
 
@@ -73,9 +84,15 @@ func handleAddAssetEvent(eventPayload string) error {
 		EthAddr:    ethAddr,
 		QuorumAddr: quoAddr,
 	}
-	payload, _ = json.Marshal(args)
-	_, err = assetClient.StartAuction(args)
-	cclib.LogEventToFile(logInfoFile, ecomm.AuctionStartingEvent, payload, t, timeInfoFile)
+	//payload, _ = json.Marshal(args)
+	//output, err := assetClient.StartAuction(args)
+	//log.Print("Return from StartAuction:", output)
+
+	fmt.Println("args:", args)
+
+	check(err)
+	//ecomm.UpdateLog(logInfoFile, ecomm.AuctionStartingEvent, asset.ID, t, note, cost)
+	//cclib.LogEventToFile(logInfoFile, ecomm.AuctionStartingEvent, payload, t, timeInfoFile)
 
 	return err
 }
@@ -355,7 +372,29 @@ func handleAuctionClosedEvent(eventPayload string) error {
 // 	}
 // }
 
-func logEvent(payload []byte) {
+func logEvent(eventPayload []byte) {
 	t := time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.KafkaReceivedEvent, payload, t, timeInfoFile)
+	var result, event string
+	err := json.Unmarshal([]byte(eventPayload), &result)
+	check(err)
+
+	parts := strings.SplitN(result, ": ", 2)
+	// if len(parts) != 2 {
+	// 	return fmt.Errorf("received unexpected event: %s", eventPayload)
+	// }
+
+	switch parts[0] {
+	case "Asset added":
+		event = ecomm.AssetAddingEvent
+	case "Auction start":
+		event = ecomm.AuctionStartingEvent
+	case "Auction cancel":
+		event = ecomm.AuctionCancelingEvent
+	case "Auction closing":
+		event = ecomm.AuctionClosingEvent
+
+	}
+	log.Println("Kafka received event:", event, "with ID:", parts[1])
+	//cclib.LogEventToFile(logInfoFile, ecomm.KafkaReceivedEvent, payload, t, timeInfoFile)
+	ecomm.UpdateLog(logInfoFile, event, parts[1], t, "", 0)
 }

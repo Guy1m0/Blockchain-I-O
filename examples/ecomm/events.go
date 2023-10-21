@@ -8,20 +8,20 @@ import (
 )
 
 const (
-	CommitAuctionResultEvent = "eth_quo.cmt_result"
-	AbortAuctionResultEvent  = "eth_quo.abt_result"
+	AssetAddingEvent     = "auctioner.add_asset"
+	AuctionStartingEvent = "relayer.start_auction"
 
-	AssetAddingEvent       = "fabric.add_asset"
-	AuctionStartingEvent   = "ccsvc.start_auction"
-	AuctionFinalizingEvent = "ccsvc.fin_auction"
-	AuctionClosingEvent    = "fabric.close_auction"
-	AuctionCancelingEvent  = "fabric.cancel_auction"
+	AuctionClosingEvent    = "auctioner.close_auction"
+	AuctionCancelingEvent  = "auctioner.cancel_auction"
+	AuctionFinalizingEvent = "relayer.fin_auction"
 
 	// tx_mined on eth/quo
 	// end AucCrEvt
 
-	BidEvent      = "eth_quo.bid_auc"
-	WithdrawEvent = "eth_quo.withdraw"
+	BidEvent                 = "bidder.bid_auc"
+	WithdrawEvent            = "eth_quo.withdraw"
+	CommitAuctionResultEvent = "bidder.cmt_result"
+	AbortAuctionResultEvent  = "bidder.abt_result"
 
 	TransactionMinedEvent = "eth_quo.tx_mined"
 	//SignAuctionResultEvent = "eth_quo.signed_result"

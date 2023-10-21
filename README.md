@@ -46,7 +46,7 @@ sudo ./install.sh
 Start kafka
 ```bash
 cd kafka
-./docker-compose up -d
+docker-compose up -d
 ```
 
 Start Fabric network
@@ -235,8 +235,14 @@ Can check posted events on kafak to see which platform receives hightest bid ear
 
 5. Need two instances of ccsvc to publish and handle events
 
+## Feadback from Reviewers
+1.  Some details for the Table 1 experiment - is it for a single submitted order? If so, how many runs is it averaged over etc.
+2.  There are other experiments that could have been performed, for ex. the scalability of the system, if 1000 orders were submitted in parallel.
+
+
 ## Todo
 
+0. one relayer for one BC platform & debug FinAuction 
 1. Emit event for 'AddAsset'
 2. Check same name for new asset
 3. Add basic feedback system 

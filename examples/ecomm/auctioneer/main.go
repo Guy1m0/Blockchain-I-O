@@ -19,7 +19,7 @@ const (
 
 	userInfoFile  = "../user_info.json"
 	erc20InfoFile = "../erc20_info.json"
-	logInfoFile   = "../log.json"
+	logInfoFile   = "../log.csv"
 	timeInfoFile  = "../timer"
 )
 
@@ -65,24 +65,27 @@ func main() {
 func create(asset_name string) {
 	// @reset timer
 	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
-	asset := &ecomm.Asset{
-		ID:    asset_name,
-		Owner: aucT.From.Hex(),
-	}
+	// asset := &ecomm.Asset{
+	// 	ID:    asset_name,
+	// 	Owner: aucT.From.Hex(),
+	// }
 	// @todo: add signature
-
+	ecomm.UpdateLog(logInfoFile, ecomm.AssetAddingEvent, asset_name, t, "", 0)
 	log.Println("[fabric] Adding asset")
 	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex())
 	check(err)
 
-	payload, _ := json.Marshal(asset)
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.AssetAddingEvent, payload, t, timeInfoFile)
+	//payload, _ := json.Marshal(asset)
+	log.Println("current time:", t)
 
-	// @reset
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	//ecomm.UpdateLog(logInfoFile, ecomm.AssetAddingEvent, asset_name, t, "", 0)
+	// t = time.Now()
+	// cclib.LogEventToFile(logInfoFile, ecomm.AssetAddingEvent, payload, t, timeInfoFile)
+
+	// // @reset
+	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
 }
 
 func cancel(auctionID int) {

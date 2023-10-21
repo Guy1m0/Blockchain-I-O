@@ -1,271 +1,70 @@
 {
-  "ElapsedTime": "0s",
+  "ElapsedTime": "2.02827s",
   "Event": "fabric.add_asset",
   "Payload": {
-    "ID": "nft1",
+    "ID": "NFT1",
     "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
     "PendingAuctionID": 0
   },
-  "Time": "2023-08-11T17:14:02+08:00"
+  "Time": "2023-10-21T21:39:42+08:00"
 }
 {
-  "ElapsedTime": "2.02904s",
-  "Event": "relayer.detected",
-  "Payload": "Asset added: nft1",
-  "Time": "2023-08-11T17:14:04+08:00"
-}
-{
-  "ElapsedTime": "2.548656s",
-  "Event": "eth_quo.tx_mined",
+  "ElapsedTime": "2.02576s",
+  "Event": "fabric.add_asset",
   "Payload": {
-    "Hash": "0x883fe8dbe6389c3ab0ad28bc79ca76eb03048107ec50c7b06497c2290041a07d",
-    "Platform": "eth",
-    "Type": "newAuction"
+    "ID": "NFT2",
+    "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
+    "PendingAuctionID": 0
   },
-  "Time": "2023-08-11T17:14:07+08:00"
+  "Time": "2023-10-21T21:45:30+08:00"
 }
 {
-  "ElapsedTime": "1.557891s",
-  "Event": "eth_quo.tx_mined",
+  "ElapsedTime": "2.026006s",
+  "Event": "auctioner.add_asset",
   "Payload": {
-    "Hash": "0x1cbf3396c7a5070f0a442a9de175e3228964442ccbaa967298be63950d811101",
-    "Platform": "quo",
-    "Type": "newAuction"
+    "ID": "NFT3",
+    "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
+    "PendingAuctionID": 0
   },
-  "Time": "2023-08-11T17:14:08+08:00"
+  "Time": "2023-10-21T21:46:34+08:00"
 }
 {
-  "ElapsedTime": "0s",
-  "Event": "ccsvc.start_auction",
+  "ElapsedTime": "2.026257s",
+  "Event": "auctioner.add_asset",
   "Payload": {
-    "AssetID": "nft1",
-    "EthAddr": "0x11285cbBDAEE1F046460a387D9a5F0D2352DdAba",
-    "QuorumAddr": "0x37D7951C4F8Ff6a97bCDB78299d2A18143121D98",
-    "Signature": null
+    "ID": "NFT4",
+    "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
+    "PendingAuctionID": 0
   },
-  "Time": "2023-08-11T17:14:08+08:00"
+  "Time": "2023-10-21T21:53:57+08:00"
 }
 {
-  "ElapsedTime": "2.021385s",
-  "Event": "relayer.detected",
-  "Payload": "Auction start: 1",
-  "Time": "2023-08-11T17:14:10+08:00"
-}
-{
-  "ElapsedTime": "2.02713s",
-  "Event": "kafka.received",
+  "ElapsedTime": "2.026988s",
+  "Event": "auctioner.add_asset",
   "Payload": {
-    "AssetID": "nft1",
-    "EthAddr": "0x11285cbBDAEE1F046460a387D9a5F0D2352DdAba",
-    "HighestBid": 0,
-    "HighestBidPlatform": "",
-    "HighestBidder": "",
-    "ID": 1,
-    "QuorumAddr": "0x37D7951C4F8Ff6a97bCDB78299d2A18143121D98",
-    "Status": "open"
+    "ID": "NFT5",
+    "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
+    "PendingAuctionID": 0
   },
-  "Time": "2023-08-11T17:14:10+08:00"
+  "Time": "2023-10-21T22:12:46+08:00"
 }
 {
-  "ElapsedTime": "0s",
-  "Event": "eth_quo.bid_auc",
+  "ElapsedTime": "2.023993s",
+  "Event": "auctioner.add_asset",
   "Payload": {
-    "AssetID": "nft1",
-    "AuctionAddr": "0x11285cbbdaee1f046460a387d9a5f0d2352ddaba",
-    "AuctionID": 1,
-    "BidAmount": 5,
-    "Bidder": "0xd0a73fe9d44184e9f1264ce2097064212e67ebfe",
-    "Platform": "eth"
+    "ID": "NFT6",
+    "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
+    "PendingAuctionID": 0
   },
-  "Time": "2023-08-11T17:14:49+08:00"
+  "Time": "2023-10-21T22:17:01+08:00"
 }
 {
-  "ElapsedTime": "4.351243s",
-  "Event": "relayer.detected",
+  "ElapsedTime": "2.023978s",
+  "Event": "auctioner.add_asset",
   "Payload": {
-    "AuctionAddr": "0x11285cbBDAEE1F046460a387D9a5F0D2352DdAba",
-    "AuctionID": 1,
-    "HighestBid": 5000000000000000,
-    "HighestBidder": "0xD0A73Fe9D44184e9F1264ce2097064212E67EbFE",
-    "Platform": "eth",
-    "Signature": null
+    "ID": "NFT7",
+    "Owner": "0xAC5580aD28A3c0e044A52541785bFd34c753D3Bf",
+    "PendingAuctionID": 0
   },
-  "Time": "2023-08-11T17:14:54+08:00"
-}
-{
-  "ElapsedTime": "2.93ms",
-  "Event": "kafka.received",
-  "Payload": {
-    "AuctionAddr": "0x11285cbBDAEE1F046460a387D9a5F0D2352DdAba",
-    "AuctionID": 1,
-    "HighestBid": 5000000000000000,
-    "HighestBidder": "0xD0A73Fe9D44184e9F1264ce2097064212E67EbFE",
-    "Platform": "eth",
-    "Signature": null
-  },
-  "Time": "2023-08-11T17:14:54+08:00"
-}
-{
-  "ElapsedTime": "229.929ms",
-  "Event": "eth_quo.tx_mined",
-  "Payload": {
-    "Hash": "0x8aa0e30e6ee58d3c84210e867ea829323dea8b88c3becb1e703345fe5aace642",
-    "Platform": "eth",
-    "Type": "Bid"
-  },
-  "Time": "2023-08-11T17:14:54+08:00"
-}
-{
-  "ElapsedTime": "0s",
-  "Event": "eth_quo.bid_auc",
-  "Payload": {
-    "AssetID": "nft1",
-    "AuctionAddr": "0x37d7951c4f8ff6a97bcdb78299d2a18143121d98",
-    "AuctionID": 1,
-    "BidAmount": 7,
-    "Bidder": "0xd3cf32a24e4527cf84ef0c8d571f8a77f6481984",
-    "Platform": "quo"
-  },
-  "Time": "2023-08-11T17:15:36+08:00"
-}
-{
-  "ElapsedTime": "1.578203s",
-  "Event": "relayer.detected",
-  "Payload": {
-    "AuctionAddr": "0x37D7951C4F8Ff6a97bCDB78299d2A18143121D98",
-    "AuctionID": 1,
-    "HighestBid": 7000000000000000,
-    "HighestBidder": "0xd3CF32A24e4527Cf84EF0c8d571f8a77F6481984",
-    "Platform": "quo",
-    "Signature": null
-  },
-  "Time": "2023-08-11T17:15:38+08:00"
-}
-{
-  "ElapsedTime": "2.067ms",
-  "Event": "kafka.received",
-  "Payload": {
-    "AuctionAddr": "0x37D7951C4F8Ff6a97bCDB78299d2A18143121D98",
-    "AuctionID": 1,
-    "HighestBid": 7000000000000000,
-    "HighestBidder": "0xd3CF32A24e4527Cf84EF0c8d571f8a77F6481984",
-    "Platform": "quo",
-    "Signature": null
-  },
-  "Time": "2023-08-11T17:15:38+08:00"
-}
-{
-  "ElapsedTime": "998.588ms",
-  "Event": "eth_quo.tx_mined",
-  "Payload": {
-    "Hash": "0x34b2a9ed60db31691728dc39e9a855e0f7baae3a4cd945d2637fd67a1a05f060",
-    "Platform": "quo",
-    "Type": "Bid"
-  },
-  "Time": "2023-08-11T17:15:39+08:00"
-}
-{
-  "ElapsedTime": "0s",
-  "Event": "eth_quo.bid_auc",
-  "Payload": {
-    "AssetID": "nft1",
-    "AuctionAddr": "0x11285cbbdaee1f046460a387d9a5f0d2352ddaba",
-    "AuctionID": 1,
-    "BidAmount": 10,
-    "Bidder": "0xd0a73fe9d44184e9f1264ce2097064212e67ebfe",
-    "Platform": "eth"
-  },
-  "Time": "2023-08-11T17:16:09+08:00"
-}
-{
-  "ElapsedTime": "4.463244s",
-  "Event": "relayer.detected",
-  "Payload": {
-    "AuctionAddr": "0x11285cbBDAEE1F046460a387D9a5F0D2352DdAba",
-    "AuctionID": 1,
-    "HighestBid": 10000000000000000,
-    "HighestBidder": "0xD0A73Fe9D44184e9F1264ce2097064212E67EbFE",
-    "Platform": "eth",
-    "Signature": null
-  },
-  "Time": "2023-08-11T17:16:14+08:00"
-}
-{
-  "ElapsedTime": "2.477ms",
-  "Event": "kafka.received",
-  "Payload": {
-    "AuctionAddr": "0x11285cbBDAEE1F046460a387D9a5F0D2352DdAba",
-    "AuctionID": 1,
-    "HighestBid": 10000000000000000,
-    "HighestBidder": "0xD0A73Fe9D44184e9F1264ce2097064212E67EbFE",
-    "Platform": "eth",
-    "Signature": null
-  },
-  "Time": "2023-08-11T17:16:14+08:00"
-}
-{
-  "ElapsedTime": "102.129ms",
-  "Event": "eth_quo.tx_mined",
-  "Payload": {
-    "Hash": "0xbd42d40a107f036ce7487182686b4d7b570fcbfaf6d17e652fd4c1ddc2c3284b",
-    "Platform": "eth",
-    "Type": "Bid"
-  },
-  "Time": "2023-08-11T17:16:14+08:00"
-}
-{
-  "ElapsedTime": "0s",
-  "Event": "fabric.close_auction",
-  "Payload": {
-    "AssetID": "nft1",
-    "EthAddr": "0x11285cbBDAEE1F046460a387D9a5F0D2352DdAba",
-    "HighestBid": 0,
-    "HighestBidPlatform": "",
-    "HighestBidder": "",
-    "ID": 1,
-    "QuorumAddr": "0x37D7951C4F8Ff6a97bCDB78299d2A18143121D98",
-    "Status": "open"
-  },
-  "Time": "2023-08-11T17:16:54+08:00"
-}
-{
-  "ElapsedTime": "2.031752s",
-  "Event": "relayer.detected",
-  "Payload": "Auction closing: 1",
-  "Time": "2023-08-11T17:16:56+08:00"
-}
-{
-  "ElapsedTime": "2.003575s",
-  "Event": "eth_quo.tx_mined",
-  "Payload": {
-    "Hash": "0xa352ff274651baf4eb8caaad916fafa6427750d3efca1543239edb911c34a671",
-    "Platform": "eth",
-    "Type": "CloseAuction"
-  },
-  "Time": "2023-08-11T17:16:58+08:00"
-}
-{
-  "ElapsedTime": "1.006218s",
-  "Event": "eth_quo.tx_mined",
-  "Payload": {
-    "Hash": "0xfbc23686427ab331b8efda763f897a5972d1f948d9b47a82a7ce630063420351",
-    "Platform": "quo",
-    "Type": "CloseAuction"
-  },
-  "Time": "2023-08-11T17:16:59+08:00"
-}
-{
-  "ElapsedTime": "1.008994s",
-  "Event": "kafka.received",
-  "Payload": {
-    "AssetID": "nft1",
-    "EthAddr": "0x11285cbBDAEE1F046460a387D9a5F0D2352DdAba",
-    "HighestBid": 0,
-    "HighestBidPlatform": "eth",
-    "HighestBidder": "",
-    "ID": 1,
-    "QuorumAddr": "0x37D7951C4F8Ff6a97bCDB78299d2A18143121D98",
-    "Status": "closing"
-  },
-  "Time": "2023-08-11T17:16:59+08:00"
+  "Time": "2023-10-21T22:19:47+08:00"
 }
