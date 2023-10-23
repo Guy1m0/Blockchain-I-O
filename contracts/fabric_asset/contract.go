@@ -93,7 +93,7 @@ func (cc *SmartContract) StartAuction(
 	}
 
 	// Emit an event when an auction is started
-	eventPayload := fmt.Sprintf("Auction start: %d", auction.ID)
+	eventPayload := fmt.Sprintf("Auction start: %d", auction.AssetID)
 	err = ctx.GetStub().SetEvent("StartAuction", []byte(eventPayload))
 	if err != nil {
 		return fmt.Errorf("error setting event: %v", err)
@@ -129,7 +129,7 @@ func (cc *SmartContract) CancelAuction(
 	}
 
 	// Emit an event when an auction is started
-	eventPayload := fmt.Sprintf("Auction cancel: %d", auction.ID)
+	eventPayload := fmt.Sprintf("Auction cancel: %d", auction.AssetID)
 	err = ctx.GetStub().SetEvent("CancelAuction", []byte(eventPayload))
 	if err != nil {
 		return fmt.Errorf("error setting event: %v", err)
@@ -156,7 +156,7 @@ func (cc *SmartContract) CloseAuction(
 	}
 
 	// Emit an event when an auction is started
-	eventPayload := fmt.Sprintf("Auction closing: %d", auction.ID)
+	eventPayload := fmt.Sprintf("Auction closing: %d", auction.AssetID)
 	err = ctx.GetStub().SetEvent("CloseAuction", []byte(eventPayload))
 	if err != nil {
 		return fmt.Errorf("error setting event: %v", err)
@@ -201,9 +201,9 @@ func (cc *SmartContract) FinAuction(
 		return err
 	}
 
-	eventPayload := fmt.Sprintf("Owner no change for asset: %s", auction.AssetID)
+	eventPayload := fmt.Sprintf("Remain: %s", auction.AssetID)
 	if prcd {
-		eventPayload = fmt.Sprintf("Owner changed for asset: %s", auction.AssetID)
+		eventPayload = fmt.Sprintf("Change: %s", auction.AssetID)
 		asset.Owner = auction.HighestBidder
 	}
 
