@@ -31,11 +31,11 @@ func handleAddAssetEvent(eventPayload string) error {
 		return fmt.Errorf("received unexpected event: %s", eventPayload)
 	}
 
-	eventDetail := parts[1]
-	asset, err := assetClient.GetAsset(eventDetail)
+	assetID := parts[1]
+	asset, err := assetClient.GetAsset(assetID)
 	check(err)
 
-	ecomm.UpdateLog(logInfoFile, ecomm.AssetAddingEvent, eventDetail, t, "", 0)
+	ecomm.UpdateLog(logInfoFile, ecomm.AssetAddingEvent, assetID, t, "", 0)
 	ccsvc.Publish(ecomm.AssetAddingEvent, payload)
 
 	// @todo: publish events which handled by relayer on eth and quo
@@ -85,13 +85,13 @@ func handleAddAssetEvent(eventPayload string) error {
 		QuorumAddr: quoAddr,
 	}
 	//payload, _ = json.Marshal(args)
-	//output, err := assetClient.StartAuction(args)
+	_, err = assetClient.StartAuction(args)
 	//log.Print("Return from StartAuction:", output)
 
-	fmt.Println("args:", args)
+	//fmt.Println("args:", args)
 
 	check(err)
-	//ecomm.UpdateLog(logInfoFile, ecomm.AuctionStartingEvent, asset.ID, t, note, cost)
+	ecomm.UpdateLog(logInfoFile, ecomm.AuctionStartingEvent, assetID, t, note, cost)
 	//cclib.LogEventToFile(logInfoFile, ecomm.AuctionStartingEvent, payload, t, timeInfoFile)
 
 	return err
@@ -99,6 +99,7 @@ func handleAddAssetEvent(eventPayload string) error {
 
 // fabric relayer
 func handleStartAuctionEvent(eventPayload string) error {
+	t := time.Now()
 	log.Println("[kafka] Publish Auction Creating Event")
 
 	//t := time.Now()
@@ -110,8 +111,13 @@ func handleStartAuctionEvent(eventPayload string) error {
 		return fmt.Errorf("received unexpected event: %s", eventPayload)
 	}
 
-	eventDetail := parts[1]
-	auctionID, _ := strconv.Atoi(eventDetail)
+	assetID := parts[1]
+	fmt.Println("Received eventPayload:", eventPayload)
+	ecomm.UpdateLog(logInfoFile, ecomm.AuctionStartingEvent, assetID, t, "", 0)
+
+	asset, _ := assetClient.GetAsset(assetID)
+
+	auctionID := asset.PendingAuctionID
 	//fmt.Println("Auction ID:", auctionID, "eventPayload:", eventPayload)
 	a, err := assetClient.GetAuction(auctionID)
 	check(err)
@@ -123,8 +129,8 @@ func handleStartAuctionEvent(eventPayload string) error {
 	//payload, _ = json.Marshal(a)
 
 	// @reset timer
-	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	// t := time.Now()
+	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
 	err = ccsvc.Publish(ecomm.AuctionStartingEvent, payload)
 
 	return err
