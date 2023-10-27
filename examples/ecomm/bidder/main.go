@@ -37,7 +37,7 @@ const (
 
 	erc20InfoFile = "../erc20_info.json"
 	userInfoFile  = "../user_info.json"
-	logInfoFile   = "../log.json"
+	logInfoFile   = "../log.csv"
 	timeInfoFile  = "../timer"
 )
 
@@ -91,7 +91,8 @@ func main() {
 func bidAuction(auction_id int, amount *big.Int) {
 	// @reset timer
 	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+
+	//cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	var erc20_info ecomm.Erc20Info
 	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
@@ -118,35 +119,41 @@ func bidAuction(auction_id int, amount *big.Int) {
 	// @todo: Check if this is a valid highest bid
 
 	// log
-	payload, _ := json.Marshal(&ecomm.Bid{
-		Bidder:      bidT.From,
-		BidAmount:   *amount,
-		AuctionAddr: auction_addr,
-		Platform:    platform,
-		AuctionID:   auction_id,
-		AssetID:     a.AssetID,
-	})
+	// payload, _ := json.Marshal(&ecomm.Bid{
+	// 	Bidder:      bidT.From,
+	// 	BidAmount:   *amount,
+	// 	AuctionAddr: auction_addr,
+	// 	Platform:    platform,
+	// 	AuctionID:   auction_id,
+	// 	AssetID:     a.AssetID,
+	// })
 
-	cclib.LogEventToFile(logInfoFile, ecomm.BidEvent, payload, t, timeInfoFile)
+	//cclib.LogEventToFile(logInfoFile, ecomm.BidEvent, payload, t, timeInfoFile)
 
 	// @todo: Make approve and bid in a single transaction
 	// Approve amount of bid through ERC20 contract
 	MDAI, _ := eth_stable_coin.NewEthStableCoin(erc20_address, client)
-	tx, _ := MDAI.Approve(bidT, auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
-	ecomm.WaitTx(client, tx, "Approve Auction Contract's allowance")
+	tx1, _ := MDAI.Approve(bidT, auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
+	// ecomm.WaitTx(client, tx, "Approve Auction Contract's allowance")
 
-	tx, err = auction_contract.Bid(bidT, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
+	tx2, err := auction_contract.Bid(bidT, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	check(err)
-	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, auction_addr))
-
+	receipt1 := ecomm.WaitTx(client, tx1, "Approve Auction Contract's allowance")
+	receipt2 := ecomm.WaitTx(client, tx2, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, auction_addr))
+	note := "Approve:" + strconv.FormatUint(receipt1.GasUsed, 10)
+	note += " Bid:" + strconv.FormatUint(receipt2.GasUsed, 10)
+	total_cost := receipt1.GasUsed + receipt2.GasUsed
+	print("First TX mined at", receipt1.BlockNumber, "Second TX mined at", receipt2.BlockNumber)
+	eventID := a.AssetID + "_" + platform + "_" + amount.String()
+	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, t, note, total_cost)
 	// log
-	t = time.Now()
-	payload, _ = json.Marshal(&ecomm.Tx{
-		Platform: platform,
-		Type:     "Bid",
-		Hash:     receipt.TxHash,
-	})
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	//t = time.Now()
+	// payload, _ = json.Marshal(&ecomm.Tx{
+	// 	Platform: platform,
+	// 	Type:     "Bid",
+	// 	Hash:     receipt.TxHash,
+	// })
+	// cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
 	//cclib.LastEventTimestamp.Set(t, timeInfoFile)
 }
 
