@@ -1,4 +1,4 @@
-package relayer
+package main
 
 import (
 	"context"
@@ -118,10 +118,10 @@ func startListeningForAuctionEvents(auction_id int, address string, platform str
 			err := contractAbi.UnpackIntoInterface(&event, "HighestBidIncreased", vLog.Data)
 			check(err)
 
-			result := ecomm.AuctionResult{
+			result := ecomm.Bid{
 				Platform:    platform,
 				AuctionID:   auction_id,
-				AuctionAddr: address,
+				AuctionAddr: auction_addr,
 			}
 			// call handler
 			handleHighestBidIncreasedEvent(event, result, t)
@@ -140,7 +140,8 @@ func startListeningForAuctionEvents(auction_id int, address string, platform str
 
 			// Unsubscribe and break out of the loop
 			sub.Unsubscribe()
-			break
+			return
+			// break
 		}
 	}
 

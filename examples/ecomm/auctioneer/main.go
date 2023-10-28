@@ -72,13 +72,14 @@ func create(asset_name string) {
 	// 	Owner: aucT.From.Hex(),
 	// }
 	// @todo: add signature
-	ecomm.UpdateLog(logInfoFile, ecomm.AssetAddingEvent, asset_name, t, "", 0)
+
 	log.Println("[fabric] Adding asset")
 	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex())
 	check(err)
+	ecomm.UpdateLog(logInfoFile, ecomm.AssetAddingEvent, asset_name, t, "", 0)
 
 	//payload, _ := json.Marshal(asset)
-	log.Println("current time:", t)
+	//log.Println("current time:", t)
 
 	//ecomm.UpdateLog(logInfoFile, ecomm.AssetAddingEvent, asset_name, t, "", 0)
 	// t = time.Now()

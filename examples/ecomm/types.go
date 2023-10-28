@@ -1,6 +1,7 @@
 package ecomm
 
 import (
+	"encoding/json"
 	"math/big"
 	"strconv"
 
@@ -29,33 +30,32 @@ type Erc20Info struct {
 }
 
 type Asset struct {
-	ID               string
-	Owner            string
-	PendingAuctionID int
+	ID               string `json:"id"`
+	Owner            string `json:"owner"`
+	PendingAuctionID int    `json:"pendingAuctionId"`
 }
 
 type Auction struct {
-	ID         int
-	AssetID    string
-	EthAddr    string
-	QuorumAddr string
+	ID         int    `json:"id"`
+	AssetID    string `json:"assetId"`
+	EthAddr    string `json:"ethAddr"`
+	QuorumAddr string `json:"quorumAddr"`
+	Status     string `json:"status"`
 
-	Status string
-
-	HighestBid         big.Int
-	HighestBidder      string
-	HighestBidPlatform string
+	HighestBid         big.Int `json:"highestBid"`
+	HighestBidder      string  `json:"highestBidder"`
+	HighestBidPlatform string  `json:"highestBidPlatform"`
 }
 
 type Bid struct {
-	Bidder common.Address
+	Bidder      common.Address `json:"bidder"`
+	BidAmount   big.Int        `json:"bidAmount"`
+	AuctionAddr common.Address `json:"auctionAddr"`
 
-	BidAmount   big.Int
-	AuctionAddr common.Address
-	Platform    string
+	Platform string `json:"platform"`
 
-	AuctionID int
-	AssetID   string
+	AuctionID int    `json:"auctionID"`
+	AssetID   string `json:"assetID"`
 }
 
 type Tx struct {
@@ -88,7 +88,7 @@ type AuctionResult struct {
 	AuctionID   int
 	AuctionAddr string
 
-	HighestBid    int
+	HighestBid    big.Int
 	HighestBidder string
 
 	Signature []byte
@@ -99,6 +99,11 @@ type SignedAuctionResult struct {
 	Signature []byte
 }
 
+type EventWrapper struct {
+	Type   string          `json:"type"`
+	Result json.RawMessage `json:"result"`
+}
+
 func (ar *AuctionResult) Hash() []byte {
 	h := sha3.New256()
 
@@ -106,7 +111,7 @@ func (ar *AuctionResult) Hash() []byte {
 	h.Write([]byte(strconv.Itoa(ar.AuctionID)))
 	h.Write([]byte(ar.AuctionAddr))
 
-	h.Write([]byte(strconv.Itoa(ar.HighestBid)))
+	h.Write([]byte(ar.HighestBid.String()))
 	h.Write([]byte(ar.HighestBidder))
 
 	h.Write([]byte(""))

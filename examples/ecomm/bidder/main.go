@@ -134,16 +134,17 @@ func bidAuction(auction_id int, amount *big.Int) {
 	// Approve amount of bid through ERC20 contract
 	MDAI, _ := eth_stable_coin.NewEthStableCoin(erc20_address, client)
 	tx1, _ := MDAI.Approve(bidT, auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
-	// ecomm.WaitTx(client, tx, "Approve Auction Contract's allowance")
-
-	tx2, err := auction_contract.Bid(bidT, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
-	check(err)
 	receipt1 := ecomm.WaitTx(client, tx1, "Approve Auction Contract's allowance")
+
+	tx2, _ := auction_contract.Bid(bidT, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	receipt2 := ecomm.WaitTx(client, tx2, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, auction_addr))
+
 	note := "Approve:" + strconv.FormatUint(receipt1.GasUsed, 10)
 	note += " Bid:" + strconv.FormatUint(receipt2.GasUsed, 10)
+
 	total_cost := receipt1.GasUsed + receipt2.GasUsed
-	print("First TX mined at", receipt1.BlockNumber, "Second TX mined at", receipt2.BlockNumber)
+	print("TX mined at ", receipt1.BlockNumber, "\nTX mined at ", receipt2.BlockNumber, "\n")
+
 	eventID := a.AssetID + "_" + platform + "_" + amount.String()
 	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, t, note, total_cost)
 	// log
@@ -234,7 +235,7 @@ func sign_auction_result(auction_id int, prcd bool) {
 		AuctionID:   auction_id,
 		AuctionAddr: auction_addr.Hex(),
 
-		HighestBid:    int(highestBid.Int64()),
+		HighestBid:    *highestBid,
 		HighestBidder: bidT.From.Hex(),
 	}
 

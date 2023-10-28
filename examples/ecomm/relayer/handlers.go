@@ -1,4 +1,4 @@
-package relayer
+package main
 
 import (
 	"encoding/json"
@@ -37,7 +37,10 @@ func handleAddAssetEvent(eventPayload string) error {
 
 	ecomm.UpdateLog(logInfoFile, ecomm.AssetAddingEvent, assetID, t, "", 0)
 
-	payload, _ := json.Marshal(asset)
+	payloadJSON, _ := json.Marshal(asset)
+	wrapper := ecomm.EventWrapper{Type: "Asset", Result: payloadJSON}
+	payload, _ := json.Marshal(wrapper)
+
 	ccsvc.Publish(ecomm.AssetAddingEvent, payload)
 
 	// @todo: publish events which handled by relayer on eth and quo
@@ -121,19 +124,23 @@ func handleStartAuctionEvent(eventPayload string) error {
 
 	auctionID := asset.PendingAuctionID
 	//fmt.Println("Auction ID:", auctionID, "eventPayload:", eventPayload)
-	a, err := assetClient.GetAuction(auctionID)
+	auction, err := assetClient.GetAuction(auctionID)
 	check(err)
 
-	log.Println("[fabirc] Start Auction with ID: ", a.ID)
+	log.Println("[fabirc] Start Auction with ID: ", auction.ID)
 	// Listen new auction
-	onNewAuction(a)
+	onNewAuction(auction)
 
 	//payload, _ = json.Marshal(a)
 
 	// @reset timer
 	// t := time.Now()
 	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
-	payload, _ := json.Marshal(a)
+
+	payloadJSON, _ := json.Marshal(auction)
+	wrapper := ecomm.EventWrapper{Type: "Auction", Result: payloadJSON}
+	payload, _ := json.Marshal(wrapper)
+
 	err = ccsvc.Publish(ecomm.AuctionStartingEvent, payload)
 
 	return err
@@ -143,14 +150,17 @@ func handleStartAuctionEvent(eventPayload string) error {
 func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreasedEvent, bid ecomm.Bid, t time.Time) error {
 	log.Printf("[%s] HighestBid Increased Event", strings.ToUpper(bid.Platform))
 
-	eventID := eventPayload.AsseetID + "_" + bid.Platform + "_" + eventPayload.Amount.String()
+	eventID := eventPayload.Id + "_" + bid.Platform + "_" + eventPayload.Amount.String()
 	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, t, "", 0)
 
-	bid.BidAmount = eventPayload.Amount
-	result.HighestBidder = eventPayload.Bidder.Hex()
+	bid.BidAmount = *eventPayload.Amount
+	bid.Bidder = eventPayload.Bidder
+	bid.AssetID = eventPayload.Id
 
 	//t := time.Now()
-	payload, _ := json.Marshal(result)
+	payloadJSON, _ := json.Marshal(bid)
+	wrapper := ecomm.EventWrapper{Type: "Bid", Result: payloadJSON}
+	payload, _ := json.Marshal(wrapper)
 	//cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
 
 	// // Check later if really need this
@@ -278,8 +288,10 @@ func handleDecisionMadeEvent(eventPayload ecomm.DecisionMadeEvent, t time.Time) 
 		auction, _ := assetClient.GetAuction(result.AuctionID)
 		asset, _ := assetClient.GetAsset(auction.AssetID)
 
-		amt := big.NewInt(int64(result.HighestBid))
-		quotient := new(big.Int).Div(amt, ecomm.DecimalB)
+		amt := result.HighestBid
+		//amt, _ := new(big.Int).SetString(result.HighestBid, 10)
+		//big.NewInt(int64(result.HighestBid))
+		quotient := new(big.Int).Div(&amt, ecomm.DecimalB)
 		fabric_ERC20_contract.Transfer(asset.Owner, quotient.String())
 	}
 
@@ -387,27 +399,40 @@ func handleAuctionClosedEvent(eventPayload string) error {
 
 func logEvent(eventPayload []byte) {
 	t := time.Now()
-	var result, event string
-	err := json.Unmarshal([]byte(eventPayload), &result)
+	var wrapper ecomm.EventWrapper
+	var event, eventID string
+	err := json.Unmarshal([]byte(eventPayload), &wrapper)
 	check(err)
 
-	parts := strings.SplitN(result, ": ", 2)
-	// if len(parts) != 2 {
-	// 	return fmt.Errorf("received unexpected event: %s", eventPayload)
-	// }
+	switch wrapper.Type {
+	case "Asset":
+		var asset ecomm.Asset
+		err = json.Unmarshal(wrapper.Result, &asset)
+		check(err)
 
-	switch parts[0] {
-	case "Asset added":
 		event = ecomm.AssetAddingEvent
-	case "Auction start":
-		event = ecomm.AuctionStartingEvent
-	case "Auction cancel":
-		event = ecomm.AuctionCancelingEvent
-	case "Auction closing":
-		event = ecomm.AuctionClosingEvent
+		eventID = asset.ID
+		//fmt.Printf("Received Asset: %+v\n", asset)
+	case "Auction":
+		var auction ecomm.Auction
+		err = json.Unmarshal(wrapper.Result, &auction)
+		check(err)
 
+		event = ecomm.AuctionStartingEvent
+		eventID = auction.AssetID
+		//fmt.Printf("Received Auction: %+v\n", auction)
+	case "Bid":
+		var bid ecomm.Bid
+		err = json.Unmarshal(wrapper.Result, &bid)
+		check(err)
+
+		event = ecomm.BidEvent
+		eventID = bid.AssetID
+		//fmt.Printf("Received Bid: %+v\n", bid)
+	default:
+		fmt.Printf("Unknown type: %s\n", wrapper.Type)
 	}
-	log.Println("Kafka received event:", event, "with ID:", parts[1])
+	//log.Println("Kafka received event:", event, "with ID:", eventID)
 	//cclib.LogEventToFile(logInfoFile, ecomm.KafkaReceivedEvent, payload, t, timeInfoFile)
-	ecomm.UpdateLog(logInfoFile, event, parts[1], t, "", 0)
+	ecomm.UpdateLog(logInfoFile, event, eventID, t, "", 0)
 }

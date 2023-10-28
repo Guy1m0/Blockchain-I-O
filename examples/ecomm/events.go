@@ -33,16 +33,11 @@ const (
 	// end with BiddingAuctionEvent
 )
 
-type SignedAuctionResult struct {
-	AuctionResult
-	Signature []byte
-}
-
 type HighestBidIncreasedEvent struct {
-	AsseetID string
-	Bidder   common.Address
-	Amount   *big.Int
-	Raw      types.Log // Blockchain specific contextual infos
+	Id     string
+	Bidder common.Address
+	Amount *big.Int
+	Raw    types.Log // Blockchain specific contextual infos
 }
 
 type DecisionMadeEvent struct {
