@@ -1,4 +1,4 @@
-package main
+package relayer
 
 import (
 	"encoding/json"
@@ -23,7 +23,7 @@ func handleAddAssetEvent(eventPayload string) error {
 	log.Println("[fabric] Creating auction")
 
 	// t := time.Now()
-	payload, _ := json.Marshal(eventPayload)
+
 	// cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
 
 	parts := strings.SplitN(eventPayload, ": ", 2)
@@ -36,6 +36,8 @@ func handleAddAssetEvent(eventPayload string) error {
 	check(err)
 
 	ecomm.UpdateLog(logInfoFile, ecomm.AssetAddingEvent, assetID, t, "", 0)
+
+	payload, _ := json.Marshal(asset)
 	ccsvc.Publish(ecomm.AssetAddingEvent, payload)
 
 	// @todo: publish events which handled by relayer on eth and quo
@@ -103,7 +105,7 @@ func handleStartAuctionEvent(eventPayload string) error {
 	log.Println("[kafka] Publish Auction Creating Event")
 
 	//t := time.Now()
-	payload, _ := json.Marshal(eventPayload)
+
 	//cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
 
 	parts := strings.SplitN(eventPayload, ": ", 2)
@@ -131,20 +133,25 @@ func handleStartAuctionEvent(eventPayload string) error {
 	// @reset timer
 	// t := time.Now()
 	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	payload, _ := json.Marshal(a)
 	err = ccsvc.Publish(ecomm.AuctionStartingEvent, payload)
 
 	return err
 }
 
-func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreasedEvent, result ecomm.AuctionResult, t time.Time) error {
-	log.Printf("[%s] HighestBid Increased Event", strings.ToUpper(result.Platform))
+// Smart Contract handler
+func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreasedEvent, bid ecomm.Bid, t time.Time) error {
+	log.Printf("[%s] HighestBid Increased Event", strings.ToUpper(bid.Platform))
 
-	result.HighestBid = int(eventPayload.Amount.Int64())
+	eventID := eventPayload.AsseetID + "_" + bid.Platform + "_" + eventPayload.Amount.String()
+	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, t, "", 0)
+
+	bid.BidAmount = eventPayload.Amount
 	result.HighestBidder = eventPayload.Bidder.Hex()
 
 	//t := time.Now()
 	payload, _ := json.Marshal(result)
-	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
+	//cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
 
 	// // Check later if really need this
 	// auctionResultsMu.Lock()
@@ -152,8 +159,8 @@ func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreasedEvent,
 	// auctionResultsMu.Unlock()
 
 	// @reset
-	t = time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	//t = time.Now()
+	//cclib.LastEventTimestamp.Set(t, timeInfoFile)
 	ccsvc.Publish(ecomm.BidEvent, payload)
 
 	return nil

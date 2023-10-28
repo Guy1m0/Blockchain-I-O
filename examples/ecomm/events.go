@@ -39,9 +39,10 @@ type SignedAuctionResult struct {
 }
 
 type HighestBidIncreasedEvent struct {
-	Bidder common.Address
-	Amount *big.Int
-	Raw    types.Log // Blockchain specific contextual infos
+	AsseetID string
+	Bidder   common.Address
+	Amount   *big.Int
+	Raw      types.Log // Blockchain specific contextual infos
 }
 
 type DecisionMadeEvent struct {

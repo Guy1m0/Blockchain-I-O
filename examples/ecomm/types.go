@@ -42,7 +42,7 @@ type Auction struct {
 
 	Status string
 
-	HighestBid         int
+	HighestBid         big.Int
 	HighestBidder      string
 	HighestBidPlatform string
 }
@@ -91,6 +91,11 @@ type AuctionResult struct {
 	HighestBid    int
 	HighestBidder string
 
+	Signature []byte
+}
+
+type SignedAuctionResult struct {
+	AuctionResult
 	Signature []byte
 }
 

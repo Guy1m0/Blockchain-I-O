@@ -28,7 +28,7 @@ contract Auction {
     int private score;
 
     // Events that will be emitted on changes.
-    event HighestBidIncreased(address bidder, uint amount);
+    event HighestBidIncreased(string id, address bidder, uint amount);
     event WithdarwBid(address bidder, uint amount);
     event DecisionMade(address winner, uint amount, string id, bool prcd, string jsonString);
     event WaitResponse(address winner);
@@ -65,7 +65,7 @@ contract Auction {
         // Update the highest bid and highest bidder
         highestBidder = msg.sender;
         highestBid = bidAmount;
-        emit HighestBidIncreased(msg.sender, bidAmount);
+        emit HighestBidIncreased(asset_id, msg.sender, bidAmount);
     }
 
 
