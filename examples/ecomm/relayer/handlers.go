@@ -195,6 +195,8 @@ func handleCloseAuctionEvent(eventPayload string) error {
 	a, err := assetClient.GetAuction(auctionID)
 	check(err)
 
+	//var aucResult ecomm.AuctionResult
+
 	// load auction contract
 	eth_auction_addr := common.HexToAddress(a.EthAddr)
 	eth_auction_contract, err := eth_auction.NewEthAuction(eth_auction_addr, ethClient)
@@ -212,12 +214,12 @@ func handleCloseAuctionEvent(eventPayload string) error {
 
 	eth_bool := false
 	quo_bool := true
-	a.HighestBidPlatform = "eth"
+	//a.HighestBidPlatform = "eth"
 	//a.HighestBid = eth_highestBid
 	if eth_highestBid.Cmp(quo_highestBid) < 0 {
 		eth_bool = true
 		quo_bool = false
-		a.HighestBidPlatform = "quo"
+		//a.HighestBidPlatform = "quo"
 	}
 
 	log.Println("[ETH/QUO] Change contract state")
@@ -231,35 +233,35 @@ func handleCloseAuctionEvent(eventPayload string) error {
 	// Change Auction Contract on Eth
 	tx, _ := eth_auction_contract.CloseAuction(authT, eth_bool)
 	receipt := ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDING'", eth_auction_addr))
+	fmt.Printf(receipt.TxHash.Hex())
+	// payload, err = json.Marshal(&ecomm.Tx{
+	// 	Platform: "eth",
+	// 	Type:     "CloseAuction",
+	// 	Hash:     receipt.TxHash,
+	// })
+	// check(err)
 
-	payload, err = json.Marshal(&ecomm.Tx{
-		Platform: "eth",
-		Type:     "CloseAuction",
-		Hash:     receipt.TxHash,
-	})
-	check(err)
-
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	// t = time.Now()
+	// cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	// Change Auction Contract on Quo
 	tx, _ = quo_auction_contract.CloseAuction(authT, quo_bool)
 	receipt = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDING'", quo_auction_addr))
 
-	payload, err = json.Marshal(&ecomm.Tx{
-		Platform: "quo",
-		Type:     "CloseAuction",
-		Hash:     receipt.TxHash,
-	})
-	check(err)
+	// payload, err = json.Marshal(&ecomm.Tx{
+	// 	Platform: "quo",
+	// 	Type:     "CloseAuction",
+	// 	Hash:     receipt.TxHash,
+	// })
+	// check(err)
 
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
-	//cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	// t = time.Now()
+	// cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	// //cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
-	payload, _ = json.Marshal(a)
-	ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
+	// payload, _ = json.Marshal(a)
+	// ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
 
 	return nil
 }
@@ -397,7 +399,7 @@ func handleAuctionClosedEvent(eventPayload string) error {
 // 	}
 // }
 
-func logEvent(eventPayload []byte) {
+func chainCodeEvent(eventPayload []byte) {
 	t := time.Now()
 	var wrapper ecomm.EventWrapper
 	var event, eventID string
@@ -421,18 +423,34 @@ func logEvent(eventPayload []byte) {
 		event = ecomm.AuctionStartingEvent
 		eventID = auction.AssetID
 		//fmt.Printf("Received Auction: %+v\n", auction)
-	case "Bid":
-		var bid ecomm.Bid
-		err = json.Unmarshal(wrapper.Result, &bid)
-		check(err)
+	// case "Bid":
+	// 	var bid ecomm.Bid
+	// 	err = json.Unmarshal(wrapper.Result, &bid)
+	// 	check(err)
 
-		event = ecomm.BidEvent
-		eventID = bid.AssetID
-		//fmt.Printf("Received Bid: %+v\n", bid)
+	// 	event = ecomm.BidEvent
+	// 	eventID = bid.AssetID
+	//fmt.Printf("Received Bid: %+v\n", bid)
 	default:
 		fmt.Printf("Unknown type: %s\n", wrapper.Type)
 	}
 	//log.Println("Kafka received event:", event, "with ID:", eventID)
 	//cclib.LogEventToFile(logInfoFile, ecomm.KafkaReceivedEvent, payload, t, timeInfoFile)
+	ecomm.UpdateLog(logInfoFile, event, eventID, t, "", 0)
+}
+
+func smartContractEvent(eventPayload []byte) {
+	t := time.Now()
+	var wrapper ecomm.EventWrapper
+	var event, eventID string
+	err := json.Unmarshal([]byte(eventPayload), &wrapper)
+	check(err)
+
+	var bid ecomm.Bid
+	err = json.Unmarshal(wrapper.Result, &bid)
+	check(err)
+
+	event = ecomm.BidEvent
+	eventID = bid.AssetID
 	ecomm.UpdateLog(logInfoFile, event, eventID, t, "", 0)
 }

@@ -67,12 +67,12 @@ func main() {
 	// and only if such events published by 'local' relayer
 
 	// @todo: deploy 3 relayers monitor Fabric, Eth and Quo respectively
-	ccsvc.Register(ecomm.AssetAddingEvent, logEvent)
-	ccsvc.Register(ecomm.BidEvent, logEvent)
-	ccsvc.Register(ecomm.AuctionStartingEvent, logEvent)
-	ccsvc.Register(ecomm.AuctionClosingEvent, logEvent)
-	ccsvc.Register(ecomm.AuctionCancelingEvent, logEvent)
-	ccsvc.Register(ecomm.AuctionFinalizingEvent, logEvent)
+	ccsvc.Register(ecomm.AssetAddingEvent, chainCodeEvent)
+	ccsvc.Register(ecomm.BidEvent, smartContractEvent)
+	ccsvc.Register(ecomm.AuctionStartingEvent, chainCodeEvent)
+	ccsvc.Register(ecomm.AuctionClosingEvent, chainCodeEvent)
+	ccsvc.Register(ecomm.AuctionCancelingEvent, chainCodeEvent)
+	ccsvc.Register(ecomm.AuctionFinalizingEvent, chainCodeEvent)
 
 	err := ccsvc.Start(true)
 	check(err)
