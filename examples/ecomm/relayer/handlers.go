@@ -150,10 +150,11 @@ func handleStartAuctionEvent(eventPayload string) error {
 func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreasedEvent, bid ecomm.Bid, t time.Time) error {
 	log.Printf("[%s] HighestBid Increased Event", strings.ToUpper(bid.Platform))
 
-	eventID := eventPayload.Id + "_" + bid.Platform + "_" + eventPayload.Amount.String()
+	amount := new(big.Int).Div(eventPayload.Amount, ecomm.DecimalB).String()
+	eventID := eventPayload.Id + "_" + bid.Platform + "_" + amount
 	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, t, "", 0)
 
-	bid.BidAmount = *eventPayload.Amount
+	bid.BidAmount = amount
 	bid.Bidder = eventPayload.Bidder
 	bid.AssetID = eventPayload.Id
 
@@ -451,6 +452,6 @@ func smartContractEvent(eventPayload []byte) {
 	check(err)
 
 	event = ecomm.BidEvent
-	eventID = bid.AssetID
+	eventID = bid.AssetID + "_" + bid.Platform + "_" + bid.BidAmount
 	ecomm.UpdateLog(logInfoFile, event, eventID, t, "", 0)
 }

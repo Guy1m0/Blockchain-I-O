@@ -42,14 +42,14 @@ type Auction struct {
 	QuorumAddr string `json:"quorumAddr"`
 	Status     string `json:"status"`
 
-	HighestBid         string `json:"highestBid"`
-	HighestBidder      string `json:"highestBidder"`
-	HighestBidPlatform string `json:"highestBidPlatform"`
+	// HighestBid         string `json:"highestBid"`
+	// HighestBidder      string `json:"highestBidder"`
+	// HighestBidPlatform string `json:"highestBidPlatform"`
 }
 
 type Bid struct {
 	Bidder      common.Address `json:"bidder"`
-	BidAmount   big.Int        `json:"bidAmount"`
+	BidAmount   string         `json:"bidAmount"`
 	AuctionAddr common.Address `json:"auctionAddr"`
 
 	Platform string `json:"platform"`
