@@ -102,6 +102,9 @@ func bidAuction(auction_id int, amount *big.Int) {
 	a, err := assetClient.GetAuction(auction_id)
 	check(err)
 
+	eventID := a.AssetID + "_" + platform + "_" + amount.String()
+	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, t, "", 0)
+
 	auction_addr := common.HexToAddress(a.EthAddr)
 	// @todo: require platform either is 'quo' or 'eth'
 	if platform != "eth" {
@@ -143,10 +146,9 @@ func bidAuction(auction_id int, amount *big.Int) {
 	note += " Bid:" + strconv.FormatUint(receipt2.GasUsed, 10)
 
 	total_cost := receipt1.GasUsed + receipt2.GasUsed
-	print("TX mined at ", receipt1.BlockNumber, "\nTX mined at ", receipt2.BlockNumber, "\n")
+	ecomm.UpdateCost(logInfoFile, ecomm.BidEvent, eventID, total_cost, note)
+	//print("TX mined at ", receipt1.BlockNumber, "\nTX mined at ", receipt2.BlockNumber, "\n")
 
-	eventID := a.AssetID + "_" + platform + "_" + amount.String()
-	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, t, note, total_cost)
 	// log
 	//t = time.Now()
 	// payload, _ = json.Marshal(&ecomm.Tx{

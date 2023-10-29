@@ -133,6 +133,46 @@ func UpdateLog(filePath, event, eventID string, record_time time.Time, note stri
 	return &event_log, nil
 }
 
+func UpdateCost(filePath, eventName, eventID string, cost uint64, note string) error {
+	mu.Lock()
+	defer mu.Unlock()
+	// 1. Open the CSV file
+	file, err := os.OpenFile(filePath, os.O_RDWR, 0666)
+	check(err)
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	check(err)
+
+	// 2. Find the correct row using eventName and eventID
+	for _, record := range records {
+		if record[0] == eventID && record[1] == eventName {
+			// 3. Update the cost
+			record[5] = strconv.FormatUint(cost, 10)
+
+			if note != "" {
+				record[6] = note
+			}
+
+			// Write back to the CSV file
+			writer := csv.NewWriter(file)
+			err := writer.WriteAll(records)
+			check(err)
+			writer.Flush()
+			break
+		}
+	}
+	file.Truncate(0)
+	file.Seek(0, 0)
+
+	writer := csv.NewWriter(file)
+	if err := writer.WriteAll(records); err != nil {
+		return err
+	}
+	return nil
+}
+
 // func parseTime(s string) time.Time {
 // 	const layout = "2006-01-02 15:04:05.99999 -0700 -07"
 // 	t, _ := time.Parse(layout, s)
