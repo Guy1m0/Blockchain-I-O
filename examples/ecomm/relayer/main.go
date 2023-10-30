@@ -68,11 +68,13 @@ func main() {
 
 	// @todo: deploy 3 relayers monitor Fabric, Eth and Quo respectively
 	ccsvc.Register(ecomm.AssetAddingEvent, chainCodeEvent)
-	ccsvc.Register(ecomm.BidEvent, smartContractEvent)
 	ccsvc.Register(ecomm.AuctionStartingEvent, chainCodeEvent)
 	ccsvc.Register(ecomm.AuctionClosingEvent, chainCodeEvent)
 	ccsvc.Register(ecomm.AuctionCancelingEvent, chainCodeEvent)
 	ccsvc.Register(ecomm.AuctionFinalizingEvent, chainCodeEvent)
+
+	ccsvc.Register(ecomm.BidEvent, smartContractEvent)
+	ccsvc.Register(ecomm.WithdrawEvent, smartContractEvent)
 
 	err := ccsvc.Start(true)
 	check(err)

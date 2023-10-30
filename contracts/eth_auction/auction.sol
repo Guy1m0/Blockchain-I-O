@@ -29,7 +29,7 @@ contract Auction {
 
     // Events that will be emitted on changes.
     event HighestBidIncreased(string id, address bidder, uint amount);
-    event WithdarwBid(address bidder, uint amount);
+    event WithdrawBid(string id, address bidder, uint amount);
     event DecisionMade(address winner, uint amount, string id, bool prcd, string jsonString);
     event WaitResponse(address winner);
     event RateAuction(string id, int rating, string review);
@@ -82,7 +82,7 @@ contract Auction {
                 return false;
             }
         }
-        emit WithdarwBid(msg.sender, amount);
+        emit WithdrawBid(asset_id,msg.sender, amount);
         return true;
     }
 

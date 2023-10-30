@@ -3,7 +3,6 @@ package ecomm
 import (
 	"encoding/csv"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -39,11 +38,11 @@ func (e EventLog) toSlice() []string {
 	}
 }
 
-func UpdateLog(filePath, event, eventID string, record_time time.Time, note string, cost uint64) (*EventLog, error) {
+func LogEvent(filePath, event, eventID string, record_time time.Time, note string, cost uint64) (*EventLog, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	log.Print("Update Log.csv for event:", event, " with id:", eventID, " at time:", record_time)
+	//log.Print("Update Log.csv for event:", event, " with id:", eventID, " at time:", record_time)
 	file, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return nil, err
@@ -70,7 +69,7 @@ func UpdateLog(filePath, event, eventID string, record_time time.Time, note stri
 	var existingIndex = -1
 	for i, record := range records {
 		if record[0] == eventID && record[1] == event {
-			fmt.Println("Find record: ", record)
+			//fmt.Println("Find record: ", record)
 			existingIndex = i
 			break
 		}
@@ -83,7 +82,7 @@ func UpdateLog(filePath, event, eventID string, record_time time.Time, note stri
 		event_log.Cost = cost
 		event_log.Note = note
 
-		log.Println("Save time:", event_log.StartTime)
+		//log.Println("Save time:", event_log.StartTime)
 
 		records = append(records, event_log.toSlice())
 	} else {
@@ -97,7 +96,7 @@ func UpdateLog(filePath, event, eventID string, record_time time.Time, note stri
 			Note:          records[existingIndex][6],
 		}
 
-		log.Println("StartTime: ", event_log.StartTime, "from: ", records[existingIndex][2])
+		//log.Println("StartTime: ", event_log.StartTime, "from: ", records[existingIndex][2])
 
 		if event_log.EndTime.IsZero() {
 			event_log.EndTime = record_time
@@ -133,7 +132,7 @@ func UpdateLog(filePath, event, eventID string, record_time time.Time, note stri
 	return &event_log, nil
 }
 
-func UpdateCost(filePath, eventName, eventID string, cost uint64, note string) error {
+func UpdateLog(filePath, eventName, eventID string, cost uint64, note string) error {
 	mu.Lock()
 	defer mu.Unlock()
 	// 1. Open the CSV file
@@ -149,8 +148,9 @@ func UpdateCost(filePath, eventName, eventID string, cost uint64, note string) e
 	for _, record := range records {
 		if record[0] == eventID && record[1] == eventName {
 			// 3. Update the cost
-			record[5] = strconv.FormatUint(cost, 10)
-
+			if cost != 0 {
+				record[5] = strconv.FormatUint(cost, 10)
+			}
 			if note != "" {
 				record[6] = note
 			}

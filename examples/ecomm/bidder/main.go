@@ -89,10 +89,7 @@ func main() {
 
 // also no relayer involved, 'locally' make bid
 func bidAuction(auction_id int, amount *big.Int) {
-	// @reset timer
 	t := time.Now()
-
-	//cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	var erc20_info ecomm.Erc20Info
 	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
@@ -101,9 +98,6 @@ func bidAuction(auction_id int, amount *big.Int) {
 
 	a, err := assetClient.GetAuction(auction_id)
 	check(err)
-
-	eventID := a.AssetID + "_" + platform + "_" + amount.String()
-	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, t, "", 0)
 
 	auction_addr := common.HexToAddress(a.EthAddr)
 	// @todo: require platform either is 'quo' or 'eth'
@@ -119,19 +113,8 @@ func bidAuction(auction_id int, amount *big.Int) {
 	bidT, err := cclib.NewTransactor(bid_key, "password")
 	check(err)
 
-	// @todo: Check if this is a valid highest bid
-
-	// log
-	// payload, _ := json.Marshal(&ecomm.Bid{
-	// 	Bidder:      bidT.From,
-	// 	BidAmount:   *amount,
-	// 	AuctionAddr: auction_addr,
-	// 	Platform:    platform,
-	// 	AuctionID:   auction_id,
-	// 	AssetID:     a.AssetID,
-	// })
-
-	//cclib.LogEventToFile(logInfoFile, ecomm.BidEvent, payload, t, timeInfoFile)
+	eventID := a.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
+	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, t, "", 0)
 
 	// @todo: Make approve and bid in a single transaction
 	// Approve amount of bid through ERC20 contract
@@ -142,22 +125,12 @@ func bidAuction(auction_id int, amount *big.Int) {
 	tx2, _ := auction_contract.Bid(bidT, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	receipt2 := ecomm.WaitTx(client, tx2, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, auction_addr))
 
-	note := "Approve:" + strconv.FormatUint(receipt1.GasUsed, 10)
-	note += " Bid:" + strconv.FormatUint(receipt2.GasUsed, 10)
+	note := "Cost: " + strconv.FormatUint(receipt1.GasUsed, 10)
+	note += " + " + strconv.FormatUint(receipt2.GasUsed, 10)
+	note += " Bid: MDAI " + big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB).String()
 
 	total_cost := receipt1.GasUsed + receipt2.GasUsed
-	ecomm.UpdateCost(logInfoFile, ecomm.BidEvent, eventID, total_cost, note)
-	//print("TX mined at ", receipt1.BlockNumber, "\nTX mined at ", receipt2.BlockNumber, "\n")
-
-	// log
-	//t = time.Now()
-	// payload, _ = json.Marshal(&ecomm.Tx{
-	// 	Platform: platform,
-	// 	Type:     "Bid",
-	// 	Hash:     receipt.TxHash,
-	// })
-	// cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
-	//cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, total_cost, note)
 }
 
 func check_winner(auction_id int) {
@@ -326,45 +299,36 @@ func provide_feedback(auction_id int, feedback string) {
 }
 
 func withdraw(auction_id int) {
+	t := time.Now()
 	client := ethClient
 
 	//assetClient := ecomm.NewAssetClient() // return Fabric asset contract
-	a, err := assetClient.GetAuction(auction_id)
+	auction, err := assetClient.GetAuction(auction_id)
 	check(err)
 
-	auction_addr := common.HexToAddress(a.EthAddr)
+	auction_addr := common.HexToAddress(auction.EthAddr)
 	if platform != "eth" {
-		auction_addr = common.HexToAddress(a.QuorumAddr)
+		auction_addr = common.HexToAddress(auction.QuorumAddr)
 		client = quoClient
 	}
 
-	// @reset timer
-	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
-
 	bidT, err := cclib.NewTransactor(bid_key, "password")
 	check(err)
+	eventID := auction.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
 
-	// log
-	payload, _ := json.Marshal(a)
-	cclib.LogEventToFile(logInfoFile, ecomm.WithdrawEvent, payload, t, timeInfoFile)
+	ecomm.LogEvent(logInfoFile, ecomm.WithdrawEvent, eventID, t, "", 0)
 
 	auction_contract, err := eth_auction.NewEthAuction(auction_addr, client)
 	check(err)
 
 	tx, err := auction_contract.Withdraw(bidT)
 	check(err)
-	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Commit to vote on Auction ID: %d through contract: %s", a.ID, auction_addr))
+	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Withdraw bid on Auction ID: %d through contract: %s", auction.ID, auction_addr))
+
+	ecomm.UpdateLog(logInfoFile, ecomm.WithdrawEvent, eventID, receipt.GasUsed, "")
 	//debugTransaction(tx)
 	// log
-	payload, _ = json.Marshal(&ecomm.Tx{
-		Platform: platform,
-		Type:     "Withdraw",
-		Hash:     receipt.TxHash,
-	})
-
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.WithdrawEvent, payload, t, timeInfoFile)
+	/////////////
 }
 
 func check(err error) {

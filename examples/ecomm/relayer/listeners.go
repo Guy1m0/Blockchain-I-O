@@ -114,7 +114,7 @@ func startListeningForAuctionEvents(auction_id int, address string, platform str
 		switch vLog.Topics[0].Hex() {
 		case contractAbi.Events["HighestBidIncreased"].ID.Hex():
 			t := time.Now()
-			var event ecomm.HighestBidIncreasedEvent
+			var event ecomm.HighestBidIncreased
 			err := contractAbi.UnpackIntoInterface(&event, "HighestBidIncreased", vLog.Data)
 			check(err)
 
@@ -126,9 +126,22 @@ func startListeningForAuctionEvents(auction_id int, address string, platform str
 			// call handler
 			handleHighestBidIncreasedEvent(event, result, t)
 			fmt.Printf("New highest bid: %s by %s\n", event.Amount.String(), event.Bidder.Hex())
+		case contractAbi.Events["WithdrawBid"].ID.Hex():
+			t := time.Now()
+			var event ecomm.WithdrawBid
+			err := contractAbi.UnpackIntoInterface(&event, "WithdrawBid", vLog.Data)
+			check(err)
+
+			result := ecomm.Bid{
+				Platform:    platform,
+				AuctionID:   auction_id,
+				AuctionAddr: auction_addr,
+			}
+			// call handler
+			handleWithdrawBidEvent(event, result, t)
 
 		case contractAbi.Events["DecisionMade"].ID.Hex():
-			var event ecomm.DecisionMadeEvent
+			var event ecomm.DecisionMade
 			t := time.Now()
 
 			err := contractAbi.UnpackIntoInterface(&event, "DecisionMade", vLog.Data)

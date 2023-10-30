@@ -19,7 +19,7 @@ const (
 	// end AucCrEvt
 
 	BidEvent                 = "bidder.bid_auc"
-	WithdrawEvent            = "eth_quo.withdraw"
+	WithdrawEvent            = "bidder.withdraw"
 	CommitAuctionResultEvent = "bidder.cmt_result"
 	AbortAuctionResultEvent  = "bidder.abt_result"
 
@@ -33,14 +33,21 @@ const (
 	// end with BiddingAuctionEvent
 )
 
-type HighestBidIncreasedEvent struct {
+type HighestBidIncreased struct {
 	Id     string
 	Bidder common.Address
 	Amount *big.Int
 	Raw    types.Log // Blockchain specific contextual infos
 }
 
-type DecisionMadeEvent struct {
+type WithdrawBid struct {
+	Id     string
+	Bidder common.Address
+	Amount *big.Int
+	Raw    types.Log // Blockchain specific contextual infos
+}
+
+type DecisionMade struct {
 	Winner     common.Address
 	Amount     *big.Int
 	Id         string
@@ -49,7 +56,7 @@ type DecisionMadeEvent struct {
 	Raw        types.Log // Blockchain specific contextual infos
 }
 
-type WaitResponseEvent struct {
+type WaitResponse struct {
 	Winner common.Address
 	Raw    types.Log // Blockchain specific contextual infos
 }
