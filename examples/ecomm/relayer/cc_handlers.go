@@ -144,32 +144,25 @@ func handleCancelAuctionEvent(eventPayload string) error {
 }
 
 func handleCloseAuctionEvent(eventPayload string) error {
-	log.Println("[ETH/QUO] Determin winner")
-
 	t := time.Now()
-	payload, _ := json.Marshal(eventPayload)
-	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, payload, t, timeInfoFile)
-
 	parts := strings.SplitN(eventPayload, ": ", 2)
 	if len(parts) < 2 {
 		return fmt.Errorf("received unexpected event: %s", eventPayload)
-		// Now eventDetail contains the string after ": "
 	}
 
-	eventDetail := parts[1]
-	auctionID, _ := strconv.Atoi(eventDetail)
-
-	a, err := assetClient.GetAuction(auctionID)
+	auctionID, err := strconv.Atoi(parts[1])
 	check(err)
+	auction, err := assetClient.GetAuction(auctionID)
+	check(err)
+	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, t, "", 0)
 
-	//var aucResult ecomm.AuctionResult
-
+	log.Println("[ETH/QUO] Determin winner")
 	// load auction contract
-	eth_auction_addr := common.HexToAddress(a.EthAddr)
+	eth_auction_addr := common.HexToAddress(auction.EthAddr)
 	eth_auction_contract, err := eth_auction.NewEthAuction(eth_auction_addr, ethClient)
 	check(err)
 
-	quo_auction_addr := common.HexToAddress(a.QuorumAddr)
+	quo_auction_addr := common.HexToAddress(auction.QuorumAddr)
 	quo_auction_contract, err := eth_auction.NewEthAuction(quo_auction_addr, quoClient)
 	check(err)
 
@@ -181,12 +174,10 @@ func handleCloseAuctionEvent(eventPayload string) error {
 
 	eth_bool := false
 	quo_bool := true
-	//a.HighestBidPlatform = "eth"
-	//a.HighestBid = eth_highestBid
+
 	if eth_highestBid.Cmp(quo_highestBid) < 0 {
 		eth_bool = true
 		quo_bool = false
-		//a.HighestBidPlatform = "quo"
 	}
 
 	log.Println("[ETH/QUO] Change contract state")

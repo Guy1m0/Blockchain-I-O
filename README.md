@@ -42,6 +42,7 @@ sudo ./install.sh
 ```
 
 ## Blockchain I/O
+### Setup
 1. Setup Docker.
 Start kafka
 ```bash
@@ -56,14 +57,14 @@ cd fabric-samples/test-network
 ```
 
 2. Run Ethereum and Quroum.
+Go the networks' folders (poa or raft)
 ```bash
 cd ethereum/poa
 # cd ethereum/raft for Quorum
-./remove.sh
-./init.sh
-./start.sh
-
-# to stop ethereum after experiment
+./restart.sh
+```
+To stop after experiment
+```bash
 ./stop.sh
 ```
 NOTE: Check `log.txt` file to ensure that ethereum is running.
@@ -104,7 +105,9 @@ sudo go build .
 ```
 which is used to monitor all the activities on all three platforms. 
 
-7. Compile the `auctioneer` script and create new asset.
+### Place/Withdraw Bid
+
+1. Compile the `auctioneer` script and create new asset.
 ```bash
 cd examples/ecomm/auctioneer
 go build .
@@ -117,7 +120,7 @@ then
 
 which will return Auction ID in the terminal
 
-8. Place bid on Eth
+2. Place bid on Eth
 First compile 
 ```bash
 cd examples/ecomm/bidder
@@ -130,14 +133,25 @@ then place MDai `5` bidding on first asset
 ./bidder -c bid -amt 5 -id 1
 ```
 
-9. Place bid on Quo
+3. Place bid on Quo
 
 Load `Bidder 2` and then place MDai `7` on quo as follows
 ```bash
 ./bidder -c bid -usr "Bidder 2" -p quo -amt 7 -id 1
 ```
 
-10. Close Auction
+4. If Auctioneer cancel the Auction
+```bash
+./auctioneer -c cancel -id 1
+```
+
+Bidder can withdraw MDAI from auction contract
+```bash
+./bidder -c with -id 1
+```
+
+### Auction
+1. Close Auction
 
 Go to folder `examples/ecomm/auctioneer`
 then use following bash code
@@ -242,10 +256,5 @@ Can check posted events on kafak to see which platform receives hightest bid ear
 
 ## Todo
 
-0. one relayer for one BC platform & debug FinAuction 
-1. Emit event for 'AddAsset'
-2. Check same name for new asset
-3. Add basic feedback system 
-4. Auctioneer can also reject or accept auction result
-5. Publish event on kafka if and only if related event is emited by contract
-6. If no one bid on this auction but ended by auctioneer, relayer should finalize this auction on fabric
+1. Bidder place second bid which is higher than the privious one, SC just requires bidder to approve the additional allowance
+

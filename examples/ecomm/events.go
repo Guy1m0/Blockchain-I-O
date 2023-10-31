@@ -13,10 +13,9 @@ const (
 
 	AuctionClosingEvent    = "auctioner.close_auction"
 	AuctionCancelingEvent  = "auctioner.cancel_auction"
-	AuctionFinalizingEvent = "relayer.fin_auction"
+	AuctionFinalizingEvent = "auctioner.fin_auction"
 
-	// tx_mined on eth/quo
-	// end AucCrEvt
+	AuctionStateUpdatingEvent = "relayer.update_auction_state"
 
 	BidEvent                 = "bidder.bid_auc"
 	WithdrawEvent            = "bidder.withdraw"
