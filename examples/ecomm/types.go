@@ -17,16 +17,20 @@ type UserInfo struct {
 
 // may not need
 type AuctionInfo struct {
-	AssetID    string
-	ID         int
-	EthAddress common.Address
-	QuoAddress common.Address
+	EnglishAuc EnglishAuctionInfo
 }
 
-type Erc20Info struct {
+type ConractInfo struct {
 	FabricTokenName string
 	EthERC20        common.Address
 	QuoERC20        common.Address
+	EnglishAuction  EnglishAuctionInfo
+}
+
+type EnglishAuctionInfo struct {
+	Owner   common.Address
+	EthAddr common.Address
+	QuoAddr common.Address
 }
 
 type Asset struct {

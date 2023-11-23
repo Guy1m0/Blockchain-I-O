@@ -35,10 +35,10 @@ var (
 const (
 	password = "password"
 
-	erc20InfoFile = "../erc20_info.json"
-	userInfoFile  = "../user_info.json"
-	logInfoFile   = "../log.csv"
-	timeInfoFile  = "../timer"
+	contractInfoFile = "../contract_info.json"
+	userInfoFile     = "../user_info.json"
+	logInfoFile      = "../log.csv"
+	timeInfoFile     = "../timer"
 )
 
 func main() {
@@ -91,8 +91,8 @@ func main() {
 func bidAuction(auction_id int, amount *big.Int) {
 	t := time.Now()
 
-	var erc20_info ecomm.Erc20Info
-	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
+	var contract_info ecomm.ConractInfo
+	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
 	erc20_address := erc20_info.EthERC20
 	client := ethClient
 

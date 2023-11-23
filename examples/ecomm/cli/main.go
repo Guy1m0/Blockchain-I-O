@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -25,9 +26,9 @@ const (
 	bidder2Key   = "../../keys/key3"
 	password     = "password"
 
-	erc20InfoFile = "../erc20_info.json"
-	userInfoFile  = "../user_info.json"
-	logInfoFile   = "../log.json"
+	contractInfoFile = "../contract_info.json"
+	userInfoFile     = "../user_info.json"
+	logInfoFile      = "../log.json"
 )
 
 var (
@@ -87,12 +88,18 @@ func initialize(token_name string) {
 	eth_MDAI_addr, tx, eth_MDAI, _ := eth_stable_coin.DeployEthStableCoin(rootT, ethClient, big.NewInt(1))
 	ecomm.WaitTx(ethClient, tx, "Deploy ERC20 Stable Coin on Ethereum")
 
+	eth_english_addr, tx, _, _ := eth_english_auction.DeployEthEnglishAuction(rootT, ethClient, eth_MDAI_addr)
+	ecomm.WaitTx(ethClient, tx, "Deploy English Auction on Ethereum")
+
 	tx, err = eth_MDAI.Mint(rootT, rootT.From, supply)
 	check(err)
 	ecomm.WaitTx(ethClient, tx, "Mint ERC20 Stable Coin on Ethereum")
 
 	quo_MDAI_addr, tx, quo_MDAI, _ := eth_stable_coin.DeployEthStableCoin(rootT, quoClient, big.NewInt(1))
 	ecomm.WaitTx(quoClient, tx, "Deploy ERC20 Stable Coin on Quorum")
+
+	quo_english_addr, tx, _, _ := eth_english_auction.DeployEthEnglishAuction(rootT, quoClient, quo_MDAI_addr)
+	ecomm.WaitTx(quoClient, tx, "Deploy English Auction on Quorum")
 
 	tx, err = quo_MDAI.Mint(rootT, rootT.From, supply)
 	check(err)
@@ -110,10 +117,15 @@ func initialize(token_name string) {
 		check(err)
 	}
 
-	ecomm.WriteJsonFile(erc20InfoFile, ecomm.Erc20Info{
+	ecomm.WriteJsonFile(contractInfoFile, ecomm.ConractInfo{
 		FabricTokenName: token_name,
 		EthERC20:        eth_MDAI_addr,
 		QuoERC20:        quo_MDAI_addr,
+		EnglishAuction: ecomm.EnglishAuctionInfo{
+			Owner:   rootT.From,
+			QuoAddr: quo_english_addr,
+			EthAddr: eth_english_addr,
+		},
 	})
 }
 
@@ -161,8 +173,8 @@ func setup() {
 
 func display() {
 	DecimalB, _ := big.NewInt(0).SetString("1"+strings.Repeat("0", 15), 10)
-	var erc20_info ecomm.Erc20Info
-	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
+	// var contract_info ecomm.ConractInfo
+	// ecomm.ReadJsonFile(contractInfoFile, &contract_info)
 
 	users, err := ecomm.ReadUsersFromFile(userInfoFile)
 	check(err)
@@ -227,16 +239,16 @@ func add_user(user_id string, platform string, amount string) {
 }
 
 func load_ERC20() (*eth_stable_coin.EthStableCoin, *eth_stable_coin.EthStableCoin, *ecomm.Erc20Client) {
-	var erc20_info ecomm.Erc20Info
-	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
+	var contract_info ecomm.ConractInfo
+	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
 
-	eth_ERC20, err := eth_stable_coin.NewEthStableCoin(erc20_info.EthERC20, ethClient)
+	eth_ERC20, err := eth_stable_coin.NewEthStableCoin(contract_info.EthERC20, ethClient)
 	check(err)
 
-	quo_ERC20, err := eth_stable_coin.NewEthStableCoin(erc20_info.QuoERC20, quoClient)
+	quo_ERC20, err := eth_stable_coin.NewEthStableCoin(contract_info.QuoERC20, quoClient)
 	check(err)
 
-	fabric_ERC20 := ecomm.NewErc20Client(erc20_info.FabricTokenName)
+	fabric_ERC20 := ecomm.NewErc20Client(contract_info.FabricTokenName)
 
 	return eth_ERC20, quo_ERC20, fabric_ERC20
 }

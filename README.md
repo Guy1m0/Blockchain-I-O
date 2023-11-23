@@ -56,6 +56,11 @@ cd fabric-samples/test-network
 ./network.sh up createChannel -ca
 ```
 
+Stop Fabric network
+```bash
+./network.sh down
+```
+
 2. Run Ethereum and Quroum.
 Go the networks' folders (poa or raft)
 ```bash
