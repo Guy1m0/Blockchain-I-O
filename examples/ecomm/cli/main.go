@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_closed_bid_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
@@ -91,6 +92,9 @@ func initialize(token_name string) {
 	eth_english_addr, tx, _, _ := eth_english_auction.DeployEthEnglishAuction(rootT, ethClient, eth_MDAI_addr)
 	ecomm.WaitTx(ethClient, tx, "Deploy English Auction on Ethereum")
 
+	eth_closed_bid_addr, tx, _, _ := eth_closed_bid_auction.DeployEthClosedBidAuction(rootT, ethClient, eth_MDAI_addr)
+	ecomm.WaitTx(ethClient, tx, "Deploy Closed Bid Auction on Ethereum")
+
 	tx, err = eth_MDAI.Mint(rootT, rootT.From, supply)
 	check(err)
 	ecomm.WaitTx(ethClient, tx, "Mint ERC20 Stable Coin on Ethereum")
@@ -100,6 +104,9 @@ func initialize(token_name string) {
 
 	quo_english_addr, tx, _, _ := eth_english_auction.DeployEthEnglishAuction(rootT, quoClient, quo_MDAI_addr)
 	ecomm.WaitTx(quoClient, tx, "Deploy English Auction on Quorum")
+
+	quo_closed_bid_addr, tx, _, _ := eth_closed_bid_auction.DeployEthClosedBidAuction(rootT, quoClient, eth_MDAI_addr)
+	ecomm.WaitTx(quoClient, tx, "Deploy Closed Bid Auction on Quorum")
 
 	tx, err = quo_MDAI.Mint(rootT, rootT.From, supply)
 	check(err)
@@ -121,10 +128,15 @@ func initialize(token_name string) {
 		FabricTokenName: token_name,
 		EthERC20:        eth_MDAI_addr,
 		QuoERC20:        quo_MDAI_addr,
-		EnglishAuction: ecomm.EnglishAuctionInfo{
+		EnglishAuction: ecomm.AuctionInfo{
 			Owner:   rootT.From,
 			QuoAddr: quo_english_addr,
 			EthAddr: eth_english_addr,
+		},
+		ClosedBidAuction: ecomm.AuctionInfo{
+			Owner:   rootT.From,
+			QuoAddr: quo_closed_bid_addr,
+			EthAddr: eth_closed_bid_addr,
 		},
 	})
 }

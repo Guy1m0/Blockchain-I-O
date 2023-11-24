@@ -12,16 +12,17 @@ contract ClosedBidFirstPriceAuction {
     // Allowed withdrawals of previous bids
     mapping(address => uint) pendingReturns;
 
-    // Current state of the auction.
     mapping (uint => mapping(address => bytes32)) bidHashes;
-    address[] public highestBidder;
-    uint[] public highestBid;
-    string[] public status;
-    string[] public asset_id;
 
-    // feedback
-    bytes32[] private feedback;
-    int[] private score;
+
+    mapping(uint => address) public highestBidder;
+    mapping(uint => uint) public highestBid;
+    mapping(uint => string) public status;
+    mapping(uint => string) public asset_id;
+
+    // Feedback
+    mapping(address => bytes32) private feedback;
+    mapping(address => int) private score;
 
     // Events that will be emitted on changes.
     event NewBidHash(uint auction, string id, address bidder, bytes32 bidHash);
@@ -39,15 +40,15 @@ contract ClosedBidFirstPriceAuction {
         owner = msg.sender;
     }
 
-    function create(string memory _asset_id) public {
+    function create(string memory _auction_id, string memory _asset_id) public {
         require(msg.sender == owner, "Only owner can create new auction");
 
-        highestBidder.push(address(0));
-        highestBid.push(0);
-        status.push("open");
-        asset_id.push(_asset_id);
-        feedback.push(bytes32(0));
-        score.push(0);
+        // Initialize the auction with default values
+        highestBidder[_auction_id] = address(0);
+        highestBid[_auction_id] = 0;
+        status[_auction_id] = "open";
+        asset_id[_auction_id] = _asset_id;
+        // feedback and score are related to users, not auctions, so might not be set here
     }
 
     function bid(uint auctionId, bytes32 bidHash) public {

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -17,17 +18,26 @@ type UserInfo struct {
 
 // may not need
 type AuctionInfo struct {
-	EnglishAuc EnglishAuctionInfo
+	Owner   common.Address
+	EthAddr common.Address
+	QuoAddr common.Address
 }
 
 type ConractInfo struct {
-	FabricTokenName string
-	EthERC20        common.Address
-	QuoERC20        common.Address
-	EnglishAuction  EnglishAuctionInfo
+	FabricTokenName  string
+	EthERC20         common.Address
+	QuoERC20         common.Address
+	EnglishAuction   AuctionInfo
+	ClosedBidAuction AuctionInfo
 }
 
 type EnglishAuctionInfo struct {
+	Owner   common.Address
+	EthAddr common.Address
+	QuoAddr common.Address
+}
+
+type ClosedBidAuctionInfo struct {
 	Owner   common.Address
 	EthAddr common.Address
 	QuoAddr common.Address
@@ -44,11 +54,12 @@ type Auction struct {
 	AssetID    string `json:"assetId"`
 	EthAddr    string `json:"ethAddr"`
 	QuorumAddr string `json:"quorumAddr"`
-	Status     string `json:"status"`
 
-	// HighestBid         string `json:"highestBid"`
-	// HighestBidder      string `json:"highestBidder"`
-	// HighestBidPlatform string `json:"highestBidPlatform"`
+	Status string `json:"status"`
+
+	HighestBid         string `json:"highestBid"`
+	HighestBidder      string `json:"highestBidder"`
+	HighestBidPlatform string `json:"highestBidPlatform"`
 }
 
 type Bid struct {
@@ -132,4 +143,16 @@ type FinalizeAuctionArgs struct {
 	AuctionID    int
 	EthResult    CrossChainAuctionResult
 	QuorumResult CrossChainAuctionResult
+}
+
+func VerifySignature(hash, signature []byte, addr string) bool {
+	pubkey, err := crypto.SigToPub(hash, signature)
+	if err != nil {
+		return false
+	}
+
+	if addr == crypto.PubkeyToAddress(*pubkey).Hex() {
+		return true
+	}
+	return false
 }
