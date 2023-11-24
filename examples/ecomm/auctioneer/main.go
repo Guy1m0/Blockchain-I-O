@@ -17,10 +17,11 @@ import (
 const (
 	password = "password"
 
-	userInfoFile  = "../user_info.json"
-	erc20InfoFile = "../erc20_info.json"
-	logInfoFile   = "../log.csv"
-	timeInfoFile  = "../timer"
+	userInfoFile     = "../user_info.json"
+	contractInfoFile = "../contract_info.json"
+
+	logInfoFile  = "../log.csv"
+	timeInfoFile = "../timer"
 )
 
 var (
@@ -37,6 +38,8 @@ func main() {
 	command := flag.String("c", "", "command")
 	asset := flag.String("ast", "", "Asset name")
 	id := flag.String("id", "", "Auction ID")
+	auc_type := flag.String("t", "", "Auction type")
+
 	flag.StringVar(&usr_name, "usr", usr_name, "Load User/Auctioner Information")
 	flag.Parse()
 
@@ -46,7 +49,7 @@ func main() {
 
 	switch *command {
 	case "create":
-		create(*asset)
+		create(*asset, *auc_type)
 	case "close":
 		id_, _ := strconv.Atoi(*id)
 		close(id_)
@@ -62,12 +65,13 @@ func main() {
 }
 
 // Use key 1 as default auctioner
-func create(asset_name string) {
+func create(asset_name string, auc_type string) {
 	t := time.Now()
 
 	log.Println("[fabric] Adding asset")
-	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex())
+	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex(), auc_type)
 	check(err)
+
 	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, asset_name, t, "", 0)
 }
 

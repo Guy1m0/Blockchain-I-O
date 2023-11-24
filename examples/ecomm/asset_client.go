@@ -70,8 +70,8 @@ func (cc *AssetClient) GetCCID() string {
 	return "asset"
 }
 
-func (cc *AssetClient) AddAsset(id, owner string) ([]byte, error) {
-	return cc.contract.SubmitTransaction("AddAsset", id, owner)
+func (cc *AssetClient) AddAsset(id, owner, auc_type string) ([]byte, error) {
+	return cc.contract.SubmitTransaction("AddAsset", id, owner, auc_type)
 }
 
 func (cc *AssetClient) StartAuction(args StartAuctionArgs) ([]byte, error) {

@@ -35,8 +35,8 @@ const (
 	root_key = "../../keys/key0"
 	password = "password"
 
-	erc20InfoFile = "../erc20_info.json"
-	logInfoFile   = "../log.csv"
+	contractInfoFile = "../contract_info.json"
+	logInfoFile      = "../log.csv"
 )
 
 func main() {
@@ -55,12 +55,12 @@ func main() {
 	ccsvc, _ = cclib.NewEventService(strings.Split(zkNodes, ","), "relayer") //zookeeper node
 	//check(err)
 
-	var erc20_info ecomm.Erc20Info
-	ecomm.ReadJsonFile(erc20InfoFile, &erc20_info)
+	var contract_info ecomm.ConractInfo
+	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
 
-	eth_ERC20 = erc20_info.EthERC20
-	quo_ERC20 = erc20_info.QuoERC20
-	fabric_ERC20 = erc20_info.FabricTokenName
+	eth_ERC20 = contract_info.EthERC20
+	quo_ERC20 = contract_info.QuoERC20
+	fabric_ERC20 = contract_info.FabricTokenName
 
 	// @todo: separate ccsvc relayer in different platorms
 	// and can not directly detects events on other platform if

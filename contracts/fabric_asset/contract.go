@@ -12,6 +12,11 @@ type SmartContract struct {
 	contractapi.Contract
 }
 
+type AssetAddingEvent struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
+}
+
 const (
 	KeyAssets        = "assets"
 	KeyAuctions      = "auctions"
@@ -19,7 +24,7 @@ const (
 )
 
 func (cc *SmartContract) AddAsset(
-	ctx contractapi.TransactionContextInterface, id, owner string,
+	ctx contractapi.TransactionContextInterface, id, owner, auc_type string,
 ) error {
 	existing, err := ctx.GetStub().GetState(cc.makeAssetKey(id))
 	if err != nil {
@@ -41,8 +46,13 @@ func (cc *SmartContract) AddAsset(
 	}
 
 	// Emit an event when an asset is added
-	eventPayload := "Asset ID: " + id
-	err = ctx.GetStub().SetEvent("AddAsset", []byte(eventPayload))
+	event := AssetAddingEvent{ID: id, Type: auc_type}
+	eventPayload, err := json.Marshal(event)
+	if err != nil {
+		return fmt.Errorf("error marshalling event: %v", err)
+	}
+
+	err = ctx.GetStub().SetEvent("AddAsset", eventPayload)
 	if err != nil {
 		return fmt.Errorf("error setting event: %v", err)
 	}
