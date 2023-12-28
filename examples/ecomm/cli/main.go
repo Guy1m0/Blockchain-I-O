@@ -85,6 +85,8 @@ func initialize(token_name string) {
 
 	supply, _ := big.NewInt(0).SetString("1"+strings.Repeat("0", ecomm.Decimal+10), 10)
 
+	// @todo: Create a function to deploy mul auction contracts
+
 	//fmt.Println("Deploy ERC20 contracts on Eth and Quorum")
 	eth_MDAI_addr, tx, eth_MDAI, _ := eth_stable_coin.DeployEthStableCoin(rootT, ethClient, big.NewInt(1))
 	ecomm.WaitTx(ethClient, tx, "Deploy ERC20 Stable Coin on Ethereum")

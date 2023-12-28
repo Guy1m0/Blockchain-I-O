@@ -33,11 +33,6 @@ contract EnglishAuction {
 
     IERC20 public immutable token;
 
-    struct Feedback {
-        int score;
-        string comment;
-    }
-
     constructor(address _token) {
         token = IERC20(_token);
         owner = msg.sender;
