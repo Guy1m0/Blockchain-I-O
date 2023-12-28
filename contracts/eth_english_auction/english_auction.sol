@@ -35,7 +35,7 @@ contract EnglishAuction {
         owner = msg.sender;
     }
 
-    function create(string memory _auction_id, string memory _asset_id) public {
+    function create(uint _auction_id, string memory _asset_id) public {
         require(msg.sender == owner, "Only owner can create new auction");
 
         // Initialize the auction with default values
