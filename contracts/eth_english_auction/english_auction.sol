@@ -12,30 +12,38 @@ contract EnglishAuction {
     // Allowed withdrawals of previous bids
     mapping(address => uint) pendingReturns;
 
+    // uint: AuctionID
     mapping(uint => address) public highestBidder;
     mapping(uint => uint) public highestBid;
     mapping(uint => string) public status;
     mapping(uint => string) public asset_id;
+    mapping(uint => address) public auction_owner;
 
     // Feedback
-    mapping(address => bytes32) private feedback;
-    mapping(address => int) private score;
+    mapping(address => string[]) private feedback;
+    mapping(address => int[]) private score;
+
 
     // Events that will be emitted on changes.
     event HighestBidIncreased(uint auction, string id, address bidder, uint amount);
     event WithdrawBid(uint auction, string id, address bidder, uint amount);
     event DecisionMade(uint auction, address winner, uint amount, string id, bool prcd, string jsonString);
     event AwaitResponse(uint auction, address winner);
-    event RateAuction(uint auction, string id, int rating, bytes32 review);
+    event RateAuction(uint auction, string id, int rating, string review);
 
     IERC20 public immutable token;
+
+    struct Feedback {
+        int score;
+        string comment;
+    }
 
     constructor(address _token) {
         token = IERC20(_token);
         owner = msg.sender;
     }
 
-    function create(uint _auction_id, string memory _asset_id) public {
+    function create(uint _auction_id, string memory _asset_id, address _owner) public {
         require(msg.sender == owner, "Only owner can create new auction");
 
         // Initialize the auction with default values
@@ -43,6 +51,8 @@ contract EnglishAuction {
         highestBid[_auction_id] = 0;
         status[_auction_id] = "open";
         asset_id[_auction_id] = _asset_id;
+        auction_owner[_auction_id] = _owner;
+
         // feedback and score are related to users, not auctions, so might not be set here
     }
 
@@ -133,29 +143,27 @@ contract EnglishAuction {
         emit DecisionMade(auctionId, highestBidder[auctionId], highestBid[auctionId], asset_id[auctionId], true, jsonString);
     }
 
-    function provide_feedback(uint auctionId, int _score, bytes32 _feedback) public {
+    function provide_feedback(uint auctionId, int _score, string memory _feedback) public {
         // Use hash to check status
         require(keccak256(abi.encodePacked(status[auctionId])) == keccak256(abi.encodePacked("closing")), "Contract not in CLOSING status");
         // For testing only
         require(msg.sender == highestBidder[auctionId], "Not authorized access!");
 
-        score[auctionId] = _score;
-        feedback[auctionId] = _feedback;
+        score[auction_owner[auctionId]].push(_score);
+        feedback[auction_owner[auctionId]].push(_feedback);
 
         emit RateAuction(auctionId, asset_id[auctionId], _score, _feedback);
         status[auctionId] = "closed";
     }
 
-    function checkAverageScore() public view returns (int) {
+    function checkAverageScore(uint auctionId) public view returns (int) {
         int total = 0;
-        for(uint i=0;i<score.length;i++) {
-            // Use hash to check status
-            if(keccak256(abi.encodePacked(status[i])) == keccak256(abi.encodePacked("closed"))) {
-                total += score[i];
-            }
+        uint l = score[auction_owner[auctionId]].length;
+        for(uint i=0; i < l;i++) {
+            total += score[auction_owner[auctionId]][i];
         }
 
         // solidity does not support floats, so we multiply the rating by 100 to achieve accuracy up to two decimals (the user's client will have to divide the result by 100)
-        return (100*total/int(score.length));
+        return (100*total/int(l));
     }
 }
