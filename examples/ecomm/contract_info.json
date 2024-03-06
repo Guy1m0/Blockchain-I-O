@@ -1,0 +1,15 @@
+{
+  "FabricTokenName": "MDai",
+  "EthERC20": "0x1377a9f3f7b5984d7653133be2955583f3858373",
+  "QuoERC20": "0x1377a9f3f7b5984d7653133be2955583f3858373",
+  "EnglishAuction": {
+    "Owner": "0x17dc6ca2e1c84ae4107975a48dfd05831b8addff",
+    "EthAddr": "0x3d3ea2baaf1f8cb9cd6167dd2a22eae692f6bc3c",
+    "QuoAddr": "0x3d3ea2baaf1f8cb9cd6167dd2a22eae692f6bc3c"
+  },
+  "ClosedBidAuction": {
+    "Owner": "0x17dc6ca2e1c84ae4107975a48dfd05831b8addff",
+    "EthAddr": "0x7034fabec4344ac5fc76a918bbde2543c235434b",
+    "QuoAddr": "0x7034fabec4344ac5fc76a918bbde2543c235434b"
+  }
+}

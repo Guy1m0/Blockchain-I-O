@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
+	english_auction "github.com/Guy1m0/Blockchain-I-O/contracts/eth_english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -209,7 +209,7 @@ func DeployCrossChainAuction(client *ethclient.Client, erc20 common.Address, ass
 	auth, err := cclib.NewTransactor(root_key, password)
 	check(err)
 
-	addr, tx, _, err := eth_auction.DeployEthAuction(auth, client, erc20, asset_id)
+	addr, tx, _, err := english_auction.DeployEthEnglishAuction(auth, client, erc20)
 	check(err)
 
 	receipt := WaitTx(client, tx, fmt.Sprintf("Deploy Auction contract with address: %s", addr.Hex()))
