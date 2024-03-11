@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"math/big"
@@ -14,8 +15,11 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/olekukonko/tablewriter"
+
+	"github.com/ethereum/go-ethereum/rpc"
 )
 
 const (
@@ -91,8 +95,16 @@ func initialize(token_name string) {
 	eth_MDAI_addr, tx, eth_MDAI, _ := eth_stable_coin.DeployEthStableCoin(rootT, ethClient, big.NewInt(1))
 	ecomm.WaitTx(ethClient, tx, "Deploy ERC20 Stable Coin on Ethereum")
 
+	// addr, tx, _, err := eth_auction.DeployEthAuction(auth, client, erc20, asset_id)
+	// check(err)
+
+	// receipt := WaitTx(client, tx, fmt.Sprintf("Deploy Auction contract with address: %s", addr.Hex()))
+
 	eth_english_addr, tx, _, _ := eth_english_auction.DeployEthEnglishAuction(rootT, ethClient, eth_MDAI_addr)
 	ecomm.WaitTx(ethClient, tx, "Deploy English Auction on Ethereum")
+	//_ = debugTransaction(tx)
+
+	fmt.Println("---------------------------------")
 
 	eth_closed_bid_addr, tx, _, _ := eth_closed_bid_auction.DeployEthClosedBidAuction(rootT, ethClient, eth_MDAI_addr)
 	ecomm.WaitTx(ethClient, tx, "Deploy Closed Bid Auction on Ethereum")
@@ -104,8 +116,8 @@ func initialize(token_name string) {
 	quo_MDAI_addr, tx, quo_MDAI, _ := eth_stable_coin.DeployEthStableCoin(rootT, quoClient, big.NewInt(1))
 	ecomm.WaitTx(quoClient, tx, "Deploy ERC20 Stable Coin on Quorum")
 
-	quo_english_addr, tx, _, _ := eth_english_auction.DeployEthEnglishAuction(rootT, quoClient, quo_MDAI_addr)
-	ecomm.WaitTx(quoClient, tx, "Deploy English Auction on Quorum")
+	// quo_english_addr, tx, _, _ := eth_english_auction.DeployEthEnglishAuction(rootT, quoClient, quo_MDAI_addr)
+	// ecomm.WaitTx(quoClient, tx, "Deploy English Auction on Quorum")
 
 	quo_closed_bid_addr, tx, _, _ := eth_closed_bid_auction.DeployEthClosedBidAuction(rootT, quoClient, eth_MDAI_addr)
 	ecomm.WaitTx(quoClient, tx, "Deploy Closed Bid Auction on Quorum")
@@ -132,7 +144,7 @@ func initialize(token_name string) {
 		QuoERC20:        quo_MDAI_addr,
 		EnglishAuction: ecomm.AuctionInfo{
 			Owner:   rootT.From,
-			QuoAddr: quo_english_addr,
+			QuoAddr: eth_english_addr,
 			EthAddr: eth_english_addr,
 		},
 		ClosedBidAuction: ecomm.AuctionInfo{
@@ -271,4 +283,26 @@ func check(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// Call this when necessary
+func debugTransaction(tx *types.Transaction) error {
+	fmt.Printf("Debuging")
+	ctx := context.Background()
+	txHash := tx.Hash()
+
+	// get the underlying RPC client from the ethclient.Client
+	rpcClient, err := rpc.Dial(fmt.Sprintf("http://%s", "localhost:8545"))
+	check(err)
+
+	var result interface{}
+	err = rpcClient.CallContext(ctx, &result, "debug_traceTransaction", txHash, nil)
+
+	if err != nil {
+		return fmt.Errorf("failed to call client.CallContext: %v", err)
+	}
+
+	fmt.Printf("Debug info for transaction: %s\n", txHash.Hex())
+	fmt.Printf("Result: %v\n", result)
+	return nil
 }

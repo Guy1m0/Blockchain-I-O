@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -92,7 +93,7 @@ func bidAuction(auction_id int, amount *big.Int) {
 
 	var contract_info ecomm.ConractInfo
 	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
-	erc20_address := erc20_info.EthERC20
+	erc20_address := contract_info.EthERC20
 	client := ethClient
 
 	a, err := assetClient.GetAuction(auction_id)
@@ -103,10 +104,10 @@ func bidAuction(auction_id int, amount *big.Int) {
 	if platform != "eth" {
 		auction_addr = common.HexToAddress(a.QuorumAddr)
 		client = quoClient
-		erc20_address = erc20_info.QuoERC20
+		erc20_address = contract_info.QuoERC20
 	}
 
-	auction_contract, err := eth_auction.NewEthAuction(auction_addr, client)
+	auction_contract, err := eth_english_auction.NewEthEnglishAuction(auction_addr, client)
 	check(err)
 
 	bidT, err := cclib.NewTransactor(bid_key, "password")
@@ -148,7 +149,7 @@ func check_winner(auction_id int) {
 		client = quoClient
 	}
 
-	auction_contract, err := eth_auction.NewEthAuction(auction_addr, client)
+	auction_contract, err := eth_english_auction.NewEthEnglishAuction(auction_addr, client)
 	check(err)
 
 	// Check winner
@@ -194,7 +195,7 @@ func sign_auction_result(auction_id int, prcd bool) {
 		cclib.LogEventToFile(logInfoFile, ecomm.AbortAuctionResultEvent, payload, t, timeInfoFile)
 	}
 
-	auction_contract, err := eth_auction.NewEthAuction(auction_addr, client)
+	auction_contract, err := eth_english_auction.NewEthEnglishAuction(auction_addr, client)
 	check(err)
 
 	highestBidder, _ := auction_contract.HighestBidder(&bind.CallOpts{})
@@ -281,7 +282,7 @@ func provide_feedback(auction_id int, feedback string) {
 	payload, _ := json.Marshal(a)
 	cclib.LogEventToFile(logInfoFile, ecomm.ProvideFeedbackEvent, payload, t, timeInfoFile)
 
-	auction_contract, err := eth_auction.NewEthAuction(auction_addr, client)
+	auction_contract, err := eth_english_auction.NewEthEnglishAuction(auction_addr, client)
 	check(err)
 
 	tx, _ := auction_contract.ProvideFeedback(bidT, big.NewInt(int64(score)), feedback)
@@ -317,7 +318,7 @@ func withdraw(auction_id int) {
 
 	ecomm.LogEvent(logInfoFile, ecomm.WithdrawEvent, eventID, t, "", 0)
 
-	auction_contract, err := eth_auction.NewEthAuction(auction_addr, client)
+	auction_contract, err := eth_english_auction.NewEthEnglishAuction(auction_addr, client)
 	check(err)
 
 	tx, err := auction_contract.Withdraw(bidT)

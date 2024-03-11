@@ -80,8 +80,8 @@ func main() {
 	check(err)
 
 	startListeningForAssetEvents(assetClient)
-	startListeningForAuctionEvents()
-	startListeningForAuctionEvents()
+	// startListeningForAuctionEvents()
+	// startListeningForAuctionEvents()
 }
 
 func check(err error) {

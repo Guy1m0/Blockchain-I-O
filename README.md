@@ -217,6 +217,9 @@ and then
 ```bash
 ../abigen --bin=./build/Auction.bin --abi=./build/Auction.abi --pkg=eth_auction --out=auction_gen.go
 ```
+
+> solc --version need to be 0.8.18
+
 ## Cert key error 
 ```bash
 Failed to connect to gateway: Failed to apply identity option: Invalid identity format: invalid character 'n' after top-level value

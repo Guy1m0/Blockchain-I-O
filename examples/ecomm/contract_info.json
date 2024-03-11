@@ -1,15 +1,15 @@
 {
   "FabricTokenName": "MDai",
-  "EthERC20": "0x1377a9f3f7b5984d7653133be2955583f3858373",
-  "QuoERC20": "0x1377a9f3f7b5984d7653133be2955583f3858373",
+  "EthERC20": "0x4a09846e1f477771a237efce9cce71482708104e",
+  "QuoERC20": "0x7c0e33ec42a1c7b37ca796b3eb90f5f42386828f",
   "EnglishAuction": {
     "Owner": "0x17dc6ca2e1c84ae4107975a48dfd05831b8addff",
-    "EthAddr": "0x3d3ea2baaf1f8cb9cd6167dd2a22eae692f6bc3c",
-    "QuoAddr": "0x3d3ea2baaf1f8cb9cd6167dd2a22eae692f6bc3c"
+    "EthAddr": "0xef62dbef7965a18996fc87f6bf8a62765a225ad4",
+    "QuoAddr": "0xdec9dd51a9b37cd19f42da4ef3b00e241742d2a6"
   },
   "ClosedBidAuction": {
     "Owner": "0x17dc6ca2e1c84ae4107975a48dfd05831b8addff",
-    "EthAddr": "0x7034fabec4344ac5fc76a918bbde2543c235434b",
-    "QuoAddr": "0x7034fabec4344ac5fc76a918bbde2543c235434b"
+    "EthAddr": "0x95882deee6d125562d27b7e11bcb95a605cc1b6d",
+    "QuoAddr": "0x885f94119fd7348b20edd399a5c4ae3249e8bb9b"
   }
 }
