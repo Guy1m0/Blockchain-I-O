@@ -205,17 +205,11 @@ The scenario script will do the following steps.
 # Note
 
 ## Compile and generate contract go file
-Use `auction.sol` as example
+Use `eth_english_auction` as example
 
-Go to folder `contracts/eth_auction`
+Go to folder `contracts`
 ```bash
-solc --bin --abi --optimize -o build auction.sol --overwrite
-```
-
-and then
-
-```bash
-../abigen --bin=./build/Auction.bin --abi=./build/Auction.abi --pkg=eth_auction --out=auction_gen.go
+./gen_contract_go.sh eth_english_auction/
 ```
 
 > solc --version need to be 0.8.18

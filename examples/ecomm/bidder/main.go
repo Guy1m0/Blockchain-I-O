@@ -122,7 +122,7 @@ func bidAuction(auction_id int, amount *big.Int) {
 	tx1, _ := MDAI.Approve(bidT, auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	receipt1 := ecomm.WaitTx(client, tx1, "Approve Auction Contract's allowance")
 
-	tx2, _ := auction_contract.Bid(bidT, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
+	tx2, _ := auction_contract.Bid(bidT, big.NewInt(int64(auction_id)), big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	receipt2 := ecomm.WaitTx(client, tx2, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, auction_addr))
 
 	note := "Cost: " + strconv.FormatUint(receipt1.GasUsed, 10)
@@ -153,7 +153,7 @@ func check_winner(auction_id int) {
 	check(err)
 
 	// Check winner
-	highestBidder, err := auction_contract.HighestBidder(&bind.CallOpts{})
+	highestBidder, err := auction_contract.HighestBidder(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
 	check(err)
 
 	if bidT.From == highestBidder {
@@ -162,7 +162,7 @@ func check_winner(auction_id int) {
 		fmt.Println("highest bidder:", highestBidder.Hex())
 	}
 
-	highestBid, err := auction_contract.HighestBid(&bind.CallOpts{})
+	highestBid, err := auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
 	check(err)
 	fmt.Println("highest bid:", highestBid)
 }
@@ -198,12 +198,12 @@ func sign_auction_result(auction_id int, prcd bool) {
 	auction_contract, err := eth_english_auction.NewEthEnglishAuction(auction_addr, client)
 	check(err)
 
-	highestBidder, _ := auction_contract.HighestBidder(&bind.CallOpts{})
+	highestBidder, _ := auction_contract.HighestBidder(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
 	if highestBidder != bidT.From {
 		log.Panicln("Not authorized to commit the auction")
 	}
 
-	highestBid, _ := auction_contract.HighestBid(&bind.CallOpts{})
+	highestBid, _ := auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
 
 	auction_result := &ecomm.AuctionResult{
 		Platform:    platform,
@@ -227,11 +227,11 @@ func sign_auction_result(auction_id int, prcd bool) {
 	var tx *types.Transaction
 	var p_type string
 	if prcd {
-		tx, err = auction_contract.Commit(bidT, string(jsonString))
+		tx, err = auction_contract.Commit(bidT, big.NewInt(int64(auction_id)), string(jsonString))
 		p_type = "Commit"
 		cclib.LogEventToFile(logInfoFile, ecomm.CommitAuctionResultEvent, jsonString, t, timeInfoFile)
 	} else {
-		tx, err = auction_contract.Abort(bidT, string(jsonString))
+		tx, err = auction_contract.Abort(bidT, big.NewInt(int64(auction_id)), string(jsonString))
 		p_type = "Abort"
 		cclib.LogEventToFile(logInfoFile, ecomm.AbortAuctionResultEvent, jsonString, t, timeInfoFile)
 	}
@@ -285,7 +285,7 @@ func provide_feedback(auction_id int, feedback string) {
 	auction_contract, err := eth_english_auction.NewEthEnglishAuction(auction_addr, client)
 	check(err)
 
-	tx, _ := auction_contract.ProvideFeedback(bidT, big.NewInt(int64(score)), feedback)
+	tx, _ := auction_contract.ProvideFeedback(bidT, big.NewInt(int64(auction_id)), big.NewInt(int64(score)), feedback)
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Provide feedback on Auction ID: %d", a.ID))
 	t = time.Now()
 
@@ -321,7 +321,7 @@ func withdraw(auction_id int) {
 	auction_contract, err := eth_english_auction.NewEthEnglishAuction(auction_addr, client)
 	check(err)
 
-	tx, err := auction_contract.Withdraw(bidT)
+	tx, err := auction_contract.Withdraw(bidT, big.NewInt(int64(auction_id)))
 	check(err)
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Withdraw bid on Auction ID: %d through contract: %s", auction.ID, auction_addr))
 

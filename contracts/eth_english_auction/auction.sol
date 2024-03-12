@@ -30,6 +30,7 @@ contract EnglishAuction {
     event DecisionMade(uint auction, address winner, uint amount, string id, bool prcd, string jsonString);
     event AwaitResponse(uint auction, address winner);
     event RateAuction(uint auction, string id, int rating, string review);
+    //event ContractCreation()
 
     IERC20 public immutable token;
 
