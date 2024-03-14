@@ -28,6 +28,9 @@ var (
 	eth_ERC20    common.Address
 	quo_ERC20    common.Address
 	fabric_ERC20 string
+
+	english_auction    ecomm.AuctionInfo
+	closed_bid_auction ecomm.AuctionInfo
 )
 
 const (
@@ -55,12 +58,14 @@ func main() {
 	ccsvc, _ = cclib.NewEventService(strings.Split(zkNodes, ","), "relayer") //zookeeper node
 	//check(err)
 
-	var contract_info ecomm.ConractInfo
+	var contract_info ecomm.ContractInfo
 	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
 
 	eth_ERC20 = contract_info.EthERC20
 	quo_ERC20 = contract_info.QuoERC20
 	fabric_ERC20 = contract_info.FabricTokenName
+	english_auction = contract_info.EnglishAuction
+	closed_bid_auction = contract_info.ClosedBidAuction
 
 	// @todo: separate ccsvc relayer in different platorms
 	// and can not directly detects events on other platform if
@@ -79,7 +84,9 @@ func main() {
 	err := ccsvc.Start(true)
 	check(err)
 
-	startListeningForAssetEvents(assetClient)
+	startFabricListener(assetClient)
+	go startAuctionListener("english_auction", english_auction.EthAddr.String(), "eth")
+	go startAuctionListener("english_auction", english_auction.QuoAddr.String(), "quo")
 	// startListeningForAuctionEvents()
 	// startListeningForAuctionEvents()
 }

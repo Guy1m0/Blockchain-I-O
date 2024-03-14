@@ -91,7 +91,7 @@ func main() {
 func bidAuction(auction_id int, amount *big.Int) {
 	t := time.Now()
 
-	var contract_info ecomm.ConractInfo
+	var contract_info ecomm.ContractInfo
 	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
 	erc20_address := contract_info.EthERC20
 	client := ethClient

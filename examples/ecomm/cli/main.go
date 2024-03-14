@@ -125,7 +125,7 @@ func initialize(token_name string) {
 		check(err)
 	}
 
-	ecomm.WriteJsonFile(contractInfoFile, ecomm.ConractInfo{
+	ecomm.WriteJsonFile(contractInfoFile, ecomm.ContractInfo{
 		FabricTokenName: token_name,
 		EthERC20:        eth_MDAI_addr,
 		QuoERC20:        quo_MDAI_addr,
@@ -252,7 +252,7 @@ func add_user(user_id string, platform string, amount string) {
 }
 
 func load_ERC20() (*eth_stable_coin.EthStableCoin, *eth_stable_coin.EthStableCoin, *ecomm.Erc20Client) {
-	var contract_info ecomm.ConractInfo
+	var contract_info ecomm.ContractInfo
 	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
 
 	eth_ERC20, err := eth_stable_coin.NewEthStableCoin(contract_info.EthERC20, ethClient)

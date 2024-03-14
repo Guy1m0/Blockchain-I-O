@@ -16,41 +16,47 @@ import (
 )
 
 // fabric relayer
-func handleAddAssetEvent(eventPayload string) error {
+func handleAddAssetEvent(eventPayload []byte) error {
 	t := time.Now()
 
-	log.Println("[fabric] Creating auction")
-	parts := strings.SplitN(eventPayload, ": ", 2)
-	if len(parts) != 2 {
-		return fmt.Errorf("received unexpected event: %s", eventPayload)
-	}
+	log.Println("[fabric] Get Asset")
 
-	assetID := parts[1]
+	var result ecomm.AssetAddingEventPayload
+	err := json.Unmarshal(eventPayload, &result)
+	check(err)
+	// parts := strings.SplitN(eventPayload, ": ", 2)
+	// if len(parts) != 2 {
+	// 	return fmt.Errorf("received unexpected event: %s", eventPayload)
+	// }
+
+	assetID := result.ID
 	asset, err := assetClient.GetAsset(assetID)
 	check(err)
 
-	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, assetID, t, "", 0)
+	auc_type := result.Type
+
+	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, assetID, t, auc_type, 0)
 
 	payloadJSON, _ := json.Marshal(asset)
 	wrapper := ecomm.EventWrapper{Type: "Asset", Result: payloadJSON}
 	payload, _ := json.Marshal(wrapper)
 
+	// @todo: change this payload to be AssetAddingEventPayload?
 	ccsvc.Publish(ecomm.AssetAddingEvent, payload)
 
-	// @todo: publish events which handled by relayer on eth and quo
-	log.Println("[ethereum] Deploying auction")
+	log.Println("[ethereum] Add new auction")
 	t = time.Now()
 
 	ethAddr, receipt_eth := ecomm.DeployCrossChainAuction(ethClient, eth_ERC20, asset.ID, root_key)
 	cost := receipt_eth.GasUsed
 	note := "ETH:" + strconv.FormatUint(cost, 10)
 
-	log.Println("[quorum] Deploying auction")
+	log.Println("[quorum] Add new auction")
 	quoAddr, receipt_quo := ecomm.DeployCrossChainAuction(quoClient, quo_ERC20, asset.ID, root_key)
 	cost += receipt_eth.GasUsed
 	note += " QUO:" + strconv.FormatUint(receipt_quo.GasUsed, 10)
 
-	fmt.Println("[fabric] Creating auction")
+	fmt.Println("[fabric] Start auction")
 
 	args := ecomm.StartAuctionArgs{
 		AssetID:    asset.ID,

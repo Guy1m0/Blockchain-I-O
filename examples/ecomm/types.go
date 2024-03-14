@@ -23,7 +23,7 @@ type AuctionInfo struct {
 	QuoAddr common.Address
 }
 
-type ConractInfo struct {
+type ContractInfo struct {
 	FabricTokenName  string
 	EthERC20         common.Address
 	QuoERC20         common.Address
@@ -31,17 +31,17 @@ type ConractInfo struct {
 	ClosedBidAuction AuctionInfo
 }
 
-type EnglishAuctionInfo struct {
-	Owner   common.Address
-	EthAddr common.Address
-	QuoAddr common.Address
-}
+// type EnglishAuctionInfo struct {
+// 	Owner   common.Address
+// 	EthAddr common.Address
+// 	QuoAddr common.Address
+// }
 
-type ClosedBidAuctionInfo struct {
-	Owner   common.Address
-	EthAddr common.Address
-	QuoAddr common.Address
-}
+// type ClosedBidAuctionInfo struct {
+// 	Owner   common.Address
+// 	EthAddr common.Address
+// 	QuoAddr common.Address
+// }
 
 type Asset struct {
 	ID               string `json:"id"`
@@ -143,6 +143,11 @@ type FinalizeAuctionArgs struct {
 	AuctionID    int
 	EthResult    CrossChainAuctionResult
 	QuorumResult CrossChainAuctionResult
+}
+
+type AssetAddingEventPayload struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
 }
 
 func VerifySignature(hash, signature []byte, addr string) bool {

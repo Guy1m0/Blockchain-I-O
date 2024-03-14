@@ -23,7 +23,8 @@ const (
 
 // sets up the event listener, and handleEvent, which contains
 // the logic to execute when an event is received.
-func startListeningForAssetEvents(client *ecomm.AssetClient) error {
+// Fabric relayer
+func startFabricListener(client *ecomm.AssetClient) error {
 	events := []string{"AddAsset", "StartAuction", "CloseAuction", "CancelAuction", "AuctionClosed"}
 	var regs []fab.Registration
 	var notifiers []<-chan *fab.CCEvent
@@ -46,7 +47,7 @@ func startListeningForAssetEvents(client *ecomm.AssetClient) error {
 	for {
 		select {
 		case event := <-notifiers[0]:
-			err := handleAddAssetEvent(string(event.Payload))
+			err := handleAddAssetEvent(event.Payload)
 			if err != nil {
 				return err
 			}
@@ -86,6 +87,9 @@ func onNewAuction(a *ecomm.Auction) {
 	go startListeningForAuctionEvents(a.ID, a.EthAddr, "eth")
 	go startListeningForAuctionEvents(a.ID, a.QuorumAddr, "quo")
 
+}
+
+func startAuctionListener(auction_type string, address string, platform string) {
 }
 
 func startListeningForAuctionEvents(auction_id int, address string, platform string) {

@@ -13,7 +13,7 @@ type SmartContract struct {
 	contractapi.Contract
 }
 
-type AssetAddingEvent struct {
+type AssetAddingEventPayload struct {
 	ID   string `json:"id"`
 	Type string `json:"type"`
 }
@@ -47,7 +47,7 @@ func (cc *SmartContract) AddAsset(
 	}
 
 	// Emit an event when an asset is added
-	event := AssetAddingEvent{ID: id, Type: auc_type}
+	event := AssetAddingEventPayload{ID: id, Type: auc_type}
 	eventPayload, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("error marshalling event: %v", err)
