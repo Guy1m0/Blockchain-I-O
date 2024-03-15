@@ -217,11 +217,16 @@ func DeployCrossChainAuction(client *ethclient.Client, erc20 common.Address, ass
 	return addr.Hex(), receipt
 }
 
-func CreateCrossChainAuction(client *ethclient.Client, root_key string, auction_id int, asset_id string) (string, *types.Receipt) {
-	// auth, err := cclib.NewTransactor(root_key, password)
-	// check(err)
+// func CreateCrossChainAuction(client *ethclient.Client, root_key string, auction_id int, asset_id string) (string, *types.Receipt) {
+// 	auth, err := cclib.NewTransactor(root_key, password)
+// 	check(err)
 
-}
+// 	auction_contract := eth_english_auction.NewEthEnglishAuction(rootT, ethClient, eth_MDAI_addr)
+
+// 	eth_english_auction.Create()
+// 	check(err)
+
+// }
 
 // Auction Contract is already deployed in Fabric Network
 // Just create a asset/auction obj in one global variable stored in this

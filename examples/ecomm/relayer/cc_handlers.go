@@ -34,7 +34,7 @@ func handleAddAssetEvent(eventPayload []byte) error {
 	check(err)
 
 	auc_type := result.Type
-
+	fmt.Println("Auc Type:", auc_type)
 	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, assetID, t, auc_type, 0)
 
 	payloadJSON, _ := json.Marshal(asset)

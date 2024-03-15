@@ -24,11 +24,13 @@ type AuctionInfo struct {
 }
 
 type ContractInfo struct {
-	FabricTokenName  string
-	EthERC20         common.Address
-	QuoERC20         common.Address
-	EnglishAuction   AuctionInfo
-	ClosedBidAuction AuctionInfo
+	FabricTokenName string
+	EthERC20        common.Address
+	QuoERC20        common.Address
+	EnglishAuction  AuctionInfo
+	DutchAuction    AuctionInfo
+	Cb1pAuction     AuctionInfo
+	Cb2pAuction     AuctionInfo
 }
 
 // type EnglishAuctionInfo struct {

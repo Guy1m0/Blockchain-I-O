@@ -90,6 +90,90 @@ func onNewAuction(a *ecomm.Auction) {
 }
 
 func startAuctionListener(auction_type string, address string, platform string) {
+
+	client := ecomm.NewEthClient()
+	if platform == "quo" {
+		client = ecomm.NewQuorumClient()
+	}
+
+	contract_info := english_auction_info
+	switch auction_type {
+	case "english":
+
+		//contract_info := english_auction_info
+		//contract, err := english_auction.NewEnglishAuction(english_auction_info.EthAddr, client)
+	case "cb1p":
+		contract_info = cb1p_auction_info
+		//contract, err := cb1p_auction.NewCb1pAuction(cb1p_auction_info.EthAddr, client)
+	default:
+		log.Fatalf("Unknown auction type: %v", auction_type)
+		return
+	}
+
+	auction_addr := contract_info.EthAddr
+	if platform == "quo" {
+		client = ecomm.NewQuorumClient()
+		auction_addr = contract_info.QuoAddr
+	}
+
+	//auction_addr := common.HexToAddress(address)
+	query := ethereum.FilterQuery{Addresses: []common.Address{auction_addr}}
+
+	contractAbi, err := abi.JSON(strings.NewReader(string(eth_auction.EthAuctionABI)))
+	check(err)
+
+	// Listen to "HighestBidIncreased" and "DecisionMade" events
+	logs := make(chan types.Log)
+	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
+	check(err)
+
+	for vLog := range logs {
+		switch vLog.Topics[0].Hex() {
+		case contractAbi.Events["HighestBidIncreased"].ID.Hex():
+			t := time.Now()
+			var event ecomm.HighestBidIncreased
+			err := contractAbi.UnpackIntoInterface(&event, "HighestBidIncreased", vLog.Data)
+			check(err)
+
+			result := ecomm.Bid{
+				Platform: platform,
+				// AuctionID:   auction_id,
+				AuctionAddr: auction_addr,
+			}
+			// call handler
+			handleHighestBidIncreasedEvent(event, result, t)
+			fmt.Printf("New highest bid: %s by %s\n", event.Amount.String(), event.Bidder.Hex())
+		case contractAbi.Events["WithdrawBid"].ID.Hex():
+			t := time.Now()
+			var event ecomm.WithdrawBid
+			err := contractAbi.UnpackIntoInterface(&event, "WithdrawBid", vLog.Data)
+			check(err)
+
+			result := ecomm.Bid{
+				Platform: platform,
+				// AuctionID:   auction_id,
+				AuctionAddr: auction_addr,
+			}
+			// call handler
+			handleWithdrawBidEvent(event, result, t)
+
+		case contractAbi.Events["DecisionMade"].ID.Hex():
+			var event ecomm.DecisionMade
+			t := time.Now()
+
+			err := contractAbi.UnpackIntoInterface(&event, "DecisionMade", vLog.Data)
+			check(err)
+
+			// call handler
+			handleDecisionMadeEvent(event, t)
+			fmt.Printf("Decision Made: Winner %s, Amount %s, ID %s\n", event.Winner.Hex(), event.Amount.String(), event.Id)
+
+			// Unsubscribe and break out of the loop
+			sub.Unsubscribe()
+			return
+			// break
+		}
+	}
 }
 
 func startListeningForAuctionEvents(auction_id int, address string, platform string) {

@@ -59,6 +59,8 @@ func main() {
 	case "check":
 		id_, _ := strconv.Atoi(*id)
 		check_status(id_)
+	case "test":
+		// update later
 	default:
 		fmt.Println("command not found")
 	}
@@ -67,7 +69,7 @@ func main() {
 // Use key 1 as default auctioner
 func create(asset_name string, auc_type string) {
 	t := time.Now()
-
+	fmt.Println("Auc type:", auc_type)
 	log.Println("[fabric] Adding asset")
 	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex(), auc_type)
 	check(err)
