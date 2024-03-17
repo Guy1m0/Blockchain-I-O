@@ -26,7 +26,7 @@ var (
 )
 
 const (
-	//root_key = "../keys/key0"
+	root_key = "../keys/key0"
 	password = "password"
 )
 
@@ -203,6 +203,18 @@ func SplitSignature(sig string) (r [32]byte, s [32]byte, v uint8) {
 	return
 }
 
+// func AddNewAuction(auc_type string) {
+// 	authT, err := cclib.NewTransactor(root_key, password)
+// 	check(err)
+
+// 	switch auc_type{
+// 	case "eng":
+// 		auction_contract := eth_english_auction_contract
+
+// 	}
+
+// }
+
 // this is only used for recording bid
 // Use Auctioner 1's key1 to deploy contract
 func DeployCrossChainAuction(client *ethclient.Client, erc20 common.Address, asset_id string, root_key string) (string, *types.Receipt) {
@@ -216,17 +228,6 @@ func DeployCrossChainAuction(client *ethclient.Client, erc20 common.Address, ass
 
 	return addr.Hex(), receipt
 }
-
-// func CreateCrossChainAuction(client *ethclient.Client, root_key string, auction_id int, asset_id string) (string, *types.Receipt) {
-// 	auth, err := cclib.NewTransactor(root_key, password)
-// 	check(err)
-
-// 	auction_contract := eth_english_auction.NewEthEnglishAuction(rootT, ethClient, eth_MDAI_addr)
-
-// 	eth_english_auction.Create()
-// 	check(err)
-
-// }
 
 // Auction Contract is already deployed in Fabric Network
 // Just create a asset/auction obj in one global variable stored in this

@@ -54,6 +54,7 @@ type Asset struct {
 type Auction struct {
 	ID         int    `json:"id"`
 	AssetID    string `json:"assetId"`
+	AucType    string `json:"aucType"`
 	EthAddr    string `json:"ethAddr"`
 	QuorumAddr string `json:"quorumAddr"`
 

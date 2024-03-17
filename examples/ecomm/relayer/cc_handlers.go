@@ -24,10 +24,6 @@ func handleAddAssetEvent(eventPayload []byte) error {
 	var result ecomm.AssetAddingEventPayload
 	err := json.Unmarshal(eventPayload, &result)
 	check(err)
-	// parts := strings.SplitN(eventPayload, ": ", 2)
-	// if len(parts) != 2 {
-	// 	return fmt.Errorf("received unexpected event: %s", eventPayload)
-	// }
 
 	assetID := result.ID
 	asset, err := assetClient.GetAsset(assetID)
@@ -46,6 +42,11 @@ func handleAddAssetEvent(eventPayload []byte) error {
 
 	log.Println("[ethereum] Add new auction")
 	t = time.Now()
+
+	// switch auc_type {
+	// case "eng":
+	// 	eth_english_auction_contract.Create(big.NewInt(int64(auction_id)), )
+	// }
 
 	ethAddr, receipt_eth := ecomm.DeployCrossChainAuction(ethClient, eth_ERC20, asset.ID, root_key)
 	cost := receipt_eth.GasUsed

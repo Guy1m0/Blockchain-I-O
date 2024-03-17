@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -80,28 +79,37 @@ func startFabricListener(client *ecomm.AssetClient) error {
 }
 
 func startContractListener(contract_info ecomm.ContractInfo) {
-	eth_client := ecomm.NewEthClient()
-	quo_client := ecomm.NewQuorumClient()
-
 	// For English Auction
 	abi := english_auction.EnglishAuctionABI
-	go startListeningForAuctionEvents(contract_info.EnglishAuction.EthAddr, abi, *eth_client)
-	go startListeningForAuctionEvents(contract_info.EnglishAuction.QuoAddr, abi, *quo_client)
+	eth_english_auction_contract, _ = english_auction.NewEnglishAuction(contract_info.EnglishAuction.EthAddr, ethClient)
+	go startListeningForAuctionEvents(contract_info.EnglishAuction.EthAddr, abi, *ethClient)
+
+	quo_english_auction_contract, _ = english_auction.NewEnglishAuction(contract_info.EnglishAuction.QuoAddr, quoClient)
+	go startListeningForAuctionEvents(contract_info.EnglishAuction.QuoAddr, abi, *quoClient)
 
 	// For Dutch Auction
 	abi = dutch_auction.DutchAuctionABI
-	go startListeningForAuctionEvents(contract_info.DutchAuction.EthAddr, abi, *eth_client)
-	go startListeningForAuctionEvents(contract_info.DutchAuction.QuoAddr, abi, *quo_client)
+	eth_dutch_auction_contract, _ = dutch_auction.NewDutchAuction(contract_info.DutchAuction.EthAddr, ethClient)
+	go startListeningForAuctionEvents(contract_info.DutchAuction.EthAddr, abi, *ethClient)
+
+	quo_dutch_auction_contract, _ = dutch_auction.NewDutchAuction(contract_info.DutchAuction.QuoAddr, quoClient)
+	go startListeningForAuctionEvents(contract_info.DutchAuction.QuoAddr, abi, *quoClient)
 
 	// For Close Bid 1st Price Auction
 	abi = cb1p_auction.Cb1pAuctionABI
-	go startListeningForAuctionEvents(contract_info.Cb1pAuction.EthAddr, abi, *eth_client)
-	go startListeningForAuctionEvents(contract_info.Cb1pAuction.QuoAddr, abi, *quo_client)
+	eth_cb1p_contract, _ = cb1p_auction.NewCb1pAuction(contract_info.Cb1pAuction.EthAddr, ethClient)
+	go startListeningForAuctionEvents(contract_info.Cb1pAuction.EthAddr, abi, *ethClient)
+
+	quo_cb1p_contract, _ = cb1p_auction.NewCb1pAuction(contract_info.Cb1pAuction.QuoAddr, quoClient)
+	go startListeningForAuctionEvents(contract_info.Cb1pAuction.QuoAddr, abi, *quoClient)
 
 	// For Close Bid 1st Price Auction
 	abi = cb2p_auction.Cb2pAuctionABI
-	go startListeningForAuctionEvents(contract_info.Cb2pAuction.EthAddr, abi, *eth_client)
-	go startListeningForAuctionEvents(contract_info.Cb2pAuction.QuoAddr, abi, *quo_client)
+	eth_cb2p_contract, _ = cb2p_auction.NewCb2pAuction(contract_info.Cb2pAuction.EthAddr, ethClient)
+	go startListeningForAuctionEvents(contract_info.Cb2pAuction.EthAddr, abi, *ethClient)
+
+	quo_cb2p_contract, _ = cb2p_auction.NewCb2pAuction(contract_info.Cb2pAuction.QuoAddr, quoClient)
+	go startListeningForAuctionEvents(contract_info.Cb2pAuction.QuoAddr, abi, *quoClient)
 }
 
 // client := ethclient
@@ -173,74 +181,74 @@ func startListeningForAuctionEvents(auction_addr common.Address, auction_abi str
 	}
 }
 
-func startListeningForAuctionEvents_(auction_id int, address string, platform string) {
-	ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
-	wsURL := "ws://localhost:8545"
-	if platform == "quo" {
-		wsURL = "ws://localhost:8546"
-	}
-	client, err := ethclient.Dial(wsURL)
-	if err != nil {
-		log.Fatalf("Failed to connect to the Ethereum client: %v", err)
-	}
+// func startListeningForAuctionEvents_(auction_id int, address string, platform string) {
+// 	ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
+// 	wsURL := "ws://localhost:8545"
+// 	if platform == "quo" {
+// 		wsURL = "ws://localhost:8546"
+// 	}
+// 	client, err := ethclient.Dial(wsURL)
+// 	if err != nil {
+// 		log.Fatalf("Failed to connect to the Ethereum client: %v", err)
+// 	}
 
-	auction_addr := common.HexToAddress(address)
-	query := ethereum.FilterQuery{Addresses: []common.Address{auction_addr}}
+// 	auction_addr := common.HexToAddress(address)
+// 	query := ethereum.FilterQuery{Addresses: []common.Address{auction_addr}}
 
-	contractAbi, err := abi.JSON(strings.NewReader(string(eth_auction.EthAuctionABI)))
-	check(err)
+// 	contractAbi, err := abi.JSON(strings.NewReader(string(eth_auction.EthAuctionABI)))
+// 	check(err)
 
-	// Listen to "HighestBidIncreased" and "DecisionMade" events
-	logs := make(chan types.Log)
-	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
-	check(err)
+// 	// Listen to "HighestBidIncreased" and "DecisionMade" events
+// 	logs := make(chan types.Log)
+// 	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
+// 	check(err)
 
-	for vLog := range logs {
-		switch vLog.Topics[0].Hex() {
-		case contractAbi.Events["HighestBidIncreased"].ID.Hex():
-			t := time.Now()
-			var event ecomm.HighestBidIncreased
-			err := contractAbi.UnpackIntoInterface(&event, "HighestBidIncreased", vLog.Data)
-			check(err)
+// 	for vLog := range logs {
+// 		switch vLog.Topics[0].Hex() {
+// 		case contractAbi.Events["HighestBidIncreased"].ID.Hex():
+// 			t := time.Now()
+// 			var event ecomm.HighestBidIncreased
+// 			err := contractAbi.UnpackIntoInterface(&event, "HighestBidIncreased", vLog.Data)
+// 			check(err)
 
-			result := ecomm.Bid{
-				Platform:    platform,
-				AuctionID:   auction_id,
-				AuctionAddr: auction_addr,
-			}
-			// call handler
-			handleHighestBidIncreasedEvent(event, result, t)
-			fmt.Printf("New highest bid: %s by %s\n", event.Amount.String(), event.Bidder.Hex())
-		case contractAbi.Events["WithdrawBid"].ID.Hex():
-			t := time.Now()
-			var event ecomm.WithdrawBid
-			err := contractAbi.UnpackIntoInterface(&event, "WithdrawBid", vLog.Data)
-			check(err)
+// 			result := ecomm.Bid{
+// 				Platform:    platform,
+// 				AuctionID:   auction_id,
+// 				AuctionAddr: auction_addr,
+// 			}
+// 			// call handler
+// 			handleHighestBidIncreasedEvent(event, result, t)
+// 			fmt.Printf("New highest bid: %s by %s\n", event.Amount.String(), event.Bidder.Hex())
+// 		case contractAbi.Events["WithdrawBid"].ID.Hex():
+// 			t := time.Now()
+// 			var event ecomm.WithdrawBid
+// 			err := contractAbi.UnpackIntoInterface(&event, "WithdrawBid", vLog.Data)
+// 			check(err)
 
-			result := ecomm.Bid{
-				Platform:    platform,
-				AuctionID:   auction_id,
-				AuctionAddr: auction_addr,
-			}
-			// call handler
-			handleWithdrawBidEvent(event, result, t)
+// 			result := ecomm.Bid{
+// 				Platform:    platform,
+// 				AuctionID:   auction_id,
+// 				AuctionAddr: auction_addr,
+// 			}
+// 			// call handler
+// 			handleWithdrawBidEvent(event, result, t)
 
-		case contractAbi.Events["DecisionMade"].ID.Hex():
-			var event ecomm.DecisionMade
-			t := time.Now()
+// 		case contractAbi.Events["DecisionMade"].ID.Hex():
+// 			var event ecomm.DecisionMade
+// 			t := time.Now()
 
-			err := contractAbi.UnpackIntoInterface(&event, "DecisionMade", vLog.Data)
-			check(err)
+// 			err := contractAbi.UnpackIntoInterface(&event, "DecisionMade", vLog.Data)
+// 			check(err)
 
-			// call handler
-			handleDecisionMadeEvent(event, t)
-			fmt.Printf("Decision Made: Winner %s, Amount %s, ID %s\n", event.Winner.Hex(), event.Amount.String(), event.Id)
+// 			// call handler
+// 			handleDecisionMadeEvent(event, t)
+// 			fmt.Printf("Decision Made: Winner %s, Amount %s, ID %s\n", event.Winner.Hex(), event.Amount.String(), event.Id)
 
-			// Unsubscribe and break out of the loop
-			sub.Unsubscribe()
-			return
-			// break
-		}
-	}
+// 			// Unsubscribe and break out of the loop
+// 			sub.Unsubscribe()
+// 			return
+// 			// break
+// 		}
+// 	}
 
-}
+// }

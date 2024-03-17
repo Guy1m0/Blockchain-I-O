@@ -6,9 +6,12 @@ import (
 	"sync"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/cb2p_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/dutch_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/common"
-
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -32,8 +35,15 @@ var (
 	// english_auction_info ecomm.AuctionInfo
 	// cb1p_auction_info    ecomm.AuctionInfo
 
-	// eth_english_auction_contract english_auction.EnglishAuction
-	// eth_cb1p_contract            cb1p_auction.Cb1pAuction
+	eth_english_auction_contract *english_auction.EnglishAuction
+	eth_dutch_auction_contract   *dutch_auction.DutchAuction
+	eth_cb1p_contract            *cb1p_auction.Cb1pAuction
+	eth_cb2p_contract            *cb2p_auction.Cb2pAuction
+
+	quo_english_auction_contract *english_auction.EnglishAuction
+	quo_dutch_auction_contract   *dutch_auction.DutchAuction
+	quo_cb1p_contract            *cb1p_auction.Cb1pAuction
+	quo_cb2p_contract            *cb2p_auction.Cb2pAuction
 )
 
 const (
@@ -55,8 +65,8 @@ func main() {
 	auctionResults = make(map[int]*ecomm.FinalizeAuctionArgs)
 
 	assetClient = ecomm.NewAssetClient()
-	// ethClient = ecomm.NewEthClient()
-	// quoClient = ecomm.NewQuorumClient()
+	ethClient = ecomm.NewEthClient()
+	quoClient = ecomm.NewQuorumClient()
 
 	ccsvc, _ = cclib.NewEventService(strings.Split(zkNodes, ","), "relayer") //zookeeper node
 	//check(err)
