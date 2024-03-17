@@ -14,8 +14,14 @@ type SmartContract struct {
 }
 
 type AssetAddingEventPayload struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
+	AssetID string `json:"assetId"`
+	AucType string `json:"aucType"`
+}
+
+type StartAuctionEventPayload struct {
+	ID      int    `json:"id"`
+	AucType string `json:"aucType"`
+	Owner   string `json:"owner"`
 }
 
 const (
@@ -47,7 +53,7 @@ func (cc *SmartContract) AddAsset(
 	}
 
 	// Emit an event when an asset is added
-	event := AssetAddingEventPayload{ID: id, Type: auc_type}
+	event := AssetAddingEventPayload{AssetID: id, AucType: auc_type}
 	eventPayload, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("error marshalling event: %v", err)
@@ -82,8 +88,10 @@ func (cc *SmartContract) StartAuction(
 		return err
 	}
 	auction := ecomm.Auction{
-		ID:         lastID + 1,
-		AssetID:    args.AssetID,
+		ID:      lastID + 1,
+		AssetID: args.AssetID,
+		AucType: args.AucType,
+
 		EthAddr:    args.EthAddr,
 		QuorumAddr: args.QuorumAddr,
 		Status:     "open",
@@ -103,9 +111,14 @@ func (cc *SmartContract) StartAuction(
 		return fmt.Errorf("error setting asset: %v", err)
 	}
 
-	// Emit an event when an auction is started
-	eventPayload := fmt.Sprintf("Auction ID: %d", auction.ID)
-	err = ctx.GetStub().SetEvent("StartAuction", []byte(eventPayload))
+	// Emit an event when an asset is added
+	event := StartAuctionEventPayload{ID: auction.ID, AucType: args.AucType, Owner: asset.Owner}
+	eventPayload, err := json.Marshal(event)
+	if err != nil {
+		return fmt.Errorf("error marshalling event: %v", err)
+	}
+
+	err = ctx.GetStub().SetEvent("StartAuction", eventPayload)
 	if err != nil {
 		return fmt.Errorf("error setting event: %v", err)
 	}

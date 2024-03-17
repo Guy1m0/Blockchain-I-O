@@ -85,6 +85,7 @@ type Tx struct {
 // Struct used as input for creating new Auction
 type StartAuctionArgs struct {
 	AssetID    string
+	AucType    string
 	EthAddr    string
 	QuorumAddr string
 
@@ -149,8 +150,14 @@ type FinalizeAuctionArgs struct {
 }
 
 type AssetAddingEventPayload struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
+	AssetID string `json:"assetId"`
+	AucType string `json:"aucType"`
+}
+
+type StartAuctionEventPayload struct {
+	ID      int    `json:"id"`
+	AucType string `json:"aucType"`
+	Owner   string `json:"owner"`
 }
 
 func VerifySignature(hash, signature []byte, addr string) bool {

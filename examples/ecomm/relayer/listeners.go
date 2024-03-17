@@ -55,7 +55,7 @@ func startFabricListener(client *ecomm.AssetClient) error {
 				return err
 			}
 		case event := <-notifiers[1]:
-			err := handleStartAuctionEvent(string(event.Payload))
+			err := handleStartAuctionEvent(event.Payload)
 			if err != nil {
 				return err
 			}

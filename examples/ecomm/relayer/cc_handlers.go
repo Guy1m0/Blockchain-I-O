@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
@@ -13,23 +14,23 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 // fabric relayer
 func handleAddAssetEvent(eventPayload []byte) error {
-	t := time.Now()
-
 	log.Println("[fabric] Get Asset")
+	t := time.Now()
 
 	var result ecomm.AssetAddingEventPayload
 	err := json.Unmarshal(eventPayload, &result)
 	check(err)
 
-	assetID := result.ID
+	assetID := result.AssetID
 	asset, err := assetClient.GetAsset(assetID)
 	check(err)
 
-	auc_type := result.Type
+	auc_type := result.AucType
 	fmt.Println("Auc Type:", auc_type)
 	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, assetID, t, auc_type, 0)
 
@@ -40,51 +41,107 @@ func handleAddAssetEvent(eventPayload []byte) error {
 	// @todo: change this payload to be AssetAddingEventPayload?
 	ccsvc.Publish(ecomm.AssetAddingEvent, payload)
 
-	log.Println("[ethereum] Add new auction")
+	log.Println("[fabric] Start auction")
 	t = time.Now()
 
-	// switch auc_type {
-	// case "eng":
-	// 	eth_english_auction_contract.Create(big.NewInt(int64(auction_id)), )
-	// }
-
-	ethAddr, receipt_eth := ecomm.DeployCrossChainAuction(ethClient, eth_ERC20, asset.ID, root_key)
-	cost := receipt_eth.GasUsed
-	note := "ETH:" + strconv.FormatUint(cost, 10)
-
-	log.Println("[quorum] Add new auction")
-	quoAddr, receipt_quo := ecomm.DeployCrossChainAuction(quoClient, quo_ERC20, asset.ID, root_key)
-	cost += receipt_eth.GasUsed
-	note += " QUO:" + strconv.FormatUint(receipt_quo.GasUsed, 10)
-
-	fmt.Println("[fabric] Start auction")
+	var ethAddr, quoAddr common.Address
+	switch auc_type {
+	case "english":
+		ethAddr = contract_info.EnglishAuction.EthAddr
+		quoAddr = contract_info.EnglishAuction.QuoAddr
+	case "dutch":
+		ethAddr = contract_info.DutchAuction.EthAddr
+		quoAddr = contract_info.DutchAuction.QuoAddr
+	case "cb1p":
+		ethAddr = contract_info.Cb1pAuction.EthAddr
+		quoAddr = contract_info.Cb1pAuction.QuoAddr
+	case "cb2p":
+		ethAddr = contract_info.Cb2pAuction.EthAddr
+		quoAddr = contract_info.Cb2pAuction.QuoAddr
+	default:
+		fmt.Println("Auction type error")
+	}
 
 	args := ecomm.StartAuctionArgs{
 		AssetID:    asset.ID,
-		EthAddr:    ethAddr,
-		QuorumAddr: quoAddr,
+		AucType:    auc_type,
+		EthAddr:    ethAddr.String(),
+		QuorumAddr: quoAddr.String(),
 	}
+
 	_, err = assetClient.StartAuction(args)
 
 	check(err)
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, assetID, t, note, cost)
+	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, assetID, t, "", 0)
 
-	return err
+	// log.Println("[ethereum] Add new auction")
+	// t = time.Now()
+
+	// switch auc_type {
+	// case "eng":
+	// 	eth_english_auction_contract.Create(big.NewInt(int64(auction_id)))
+	// }
+
+	// ethAddr, receipt_eth := ecomm.DeployCrossChainAuction(ethClient, eth_ERC20, asset.ID, root_key)
+	// cost := receipt_eth.GasUsed
+	// note := "ETH:" + strconv.FormatUint(cost, 10)
+
+	// log.Println("[quorum] Add new auction")
+	// quoAddr, receipt_quo := ecomm.DeployCrossChainAuction(quoClient, quo_ERC20, asset.ID, root_key)
+	// cost += receipt_eth.GasUsed
+	// note += " QUO:" + strconv.FormatUint(receipt_quo.GasUsed, 10)
+
+	return nil
 }
 
 // fabric relayer
-func handleStartAuctionEvent(eventPayload string) error {
-	t := time.Now()
-	parts := strings.SplitN(eventPayload, ": ", 2)
-	if len(parts) < 2 {
-		return fmt.Errorf("received unexpected event: %s", eventPayload)
+func handleStartAuctionEvent(eventPayload []byte) error {
+	//t := time.Now()
+	var result ecomm.StartAuctionEventPayload
+	var tx *types.Transaction
+	var receipt1, receipt2 *types.Receipt
+	err := json.Unmarshal(eventPayload, &result)
+	check(err)
+
+	auction, err := assetClient.GetAuction(result.ID)
+	check(err)
+
+	// ethAddr := auction.EthAddr
+	// quoAddr := auction.QuorumAddr
+
+	switch auction.AucType {
+	case "english":
+		tx, err = eth_english_auction_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID)
+		check(err)
+		receipt1 = ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.ID))
+
+		tx, err = quo_english_auction_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID)
+		check(err)
+		receipt2 = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.ID))
+	case "dutch":
+
+	case "cb1p":
+		tx, err = eth_cb1p_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID)
+		check(err)
+		receipt1 = ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.ID))
+
+		tx, err = quo_cb1p_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID)
+		check(err)
+		receipt2 = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.ID))
+
+	case "cb2p":
+
+	default:
+		fmt.Println("Auction type error")
 	}
 
-	auctionID, err := strconv.Atoi(parts[1])
-	check(err)
-	auction, err := assetClient.GetAuction(auctionID)
-	check(err)
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, auction.AssetID, t, "", 0)
+	cost := receipt1.GasUsed
+	note := "ETH:" + strconv.FormatUint(cost, 10)
+	cost += receipt2.GasUsed
+	note += " QUO:" + strconv.FormatUint(receipt2.GasUsed, 10)
+
+	t := time.Now()
+	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, auction.AssetID, t, note, cost)
 
 	log.Println("[fabirc] Start Auction with ID: ", auction.ID)
 

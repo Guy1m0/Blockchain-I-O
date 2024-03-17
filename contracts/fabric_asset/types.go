@@ -25,12 +25,14 @@ type Auction struct {
 	HighestBidPlatform string
 }
 
+// Struct used as input for creating new Auction
 type StartAuctionArgs struct {
 	AssetID    string
+	AucType    string
 	EthAddr    string
 	QuorumAddr string
 
-	Signature []byte // acknowledged by auctioneer?
+	Signature []byte
 }
 
 func (sa *StartAuctionArgs) Hash() []byte {

@@ -39,7 +39,7 @@ contract EnglishAuction {
         owner = msg.sender;
     }
 
-    function create(uint _auction_id, string memory _asset_id, address _owner) public {
+    function create(uint _auction_id, string memory _asset_id) public {
         require(msg.sender == owner, "Only owner can create new auction");
 
         // Initialize the auction with default values
@@ -47,7 +47,6 @@ contract EnglishAuction {
         highestBid[_auction_id] = 0;
         status[_auction_id] = "open";
         asset_id[_auction_id] = _asset_id;
-        auction_owner[_auction_id] = _owner;
 
         // feedback and score are related to users, not auctions, so might not be set here
     }
