@@ -11,7 +11,6 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/contracts/dutch_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -22,7 +21,6 @@ var (
 	assetClient *ecomm.AssetClient
 	//fabric_network *gateway.Network
 	ccsvc *cclib.CCService
-	authT *bind.TransactOpts
 
 	auctionResults   map[int]*ecomm.FinalizeAuctionArgs
 	auctionResultsMu sync.Mutex
@@ -72,7 +70,6 @@ func main() {
 	ethClient = ecomm.NewEthClient()
 	quoClient = ecomm.NewQuorumClient()
 
-	authT, _ = cclib.NewTransactor(root_key, password)
 	ccsvc, _ = cclib.NewEventService(strings.Split(zkNodes, ","), "relayer") //zookeeper node
 	//check(err)
 
@@ -94,8 +91,9 @@ func main() {
 	err := ccsvc.Start(true)
 	check(err)
 
-	startFabricListener(assetClient)
 	startContractListener(contract_info)
+	startFabricListener(assetClient)
+
 	// go startAuctionListener("english_auction", english_auction.EthAddr.String(), "eth")
 	// go startAuctionListener("english_auction", english_auction.QuoAddr.String(), "quo")
 	// startListeningForAuctionEvents()

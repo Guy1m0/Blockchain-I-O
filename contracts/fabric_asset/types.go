@@ -6,23 +6,9 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-type Asset struct {
-	ID               string
-	Owner            string
-	PendingAuctionID int
-}
-
-type Auction struct {
-	ID         int
-	AssetID    string
-	EthAddr    string
-	QuorumAddr string
-
-	Status string
-
-	HighestBid         int
-	HighestBidder      string
-	HighestBidPlatform string
+type AssetAddingEventPayload struct {
+	AssetID string `json:"assetId"`
+	AucType string `json:"aucType"`
 }
 
 // Struct used as input for creating new Auction
@@ -33,6 +19,32 @@ type StartAuctionArgs struct {
 	QuorumAddr string
 
 	Signature []byte
+}
+
+type Auction struct {
+	ID         int    `json:"id"`
+	AssetID    string `json:"assetId"`
+	AucType    string `json:"aucType"`
+	EthAddr    string `json:"ethAddr"`
+	QuorumAddr string `json:"quorumAddr"`
+
+	Status string `json:"status"`
+
+	HighestBid         string `json:"highestBid"`
+	HighestBidder      string `json:"highestBidder"`
+	HighestBidPlatform string `json:"highestBidPlatform"`
+}
+
+type StartAuctionEventPayload struct {
+	ID      int    `json:"id"`
+	AucType string `json:"aucType"`
+	Owner   string `json:"owner"`
+}
+
+type Asset struct {
+	ID               string
+	Owner            string
+	PendingAuctionID int
 }
 
 func (sa *StartAuctionArgs) Hash() []byte {
@@ -53,7 +65,7 @@ type AuctionResult struct {
 	HighestBid    int
 	HighestBidder string
 
-	Signatrue []byte // acknowledged by bidder?
+	Signature []byte // acknowledged by bidder?
 }
 
 func (ar *AuctionResult) Hash() []byte {

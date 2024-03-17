@@ -16,13 +16,13 @@ import (
 func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreased, bid ecomm.Bid, t time.Time) error {
 	log.Printf("[%s] HighestBid Increased Event", strings.ToUpper(bid.Platform))
 
-	amount := new(big.Int).Div(eventPayload.Amount, ecomm.DecimalB).String()
-	eventID := eventPayload.Id + "_" + bid.Platform + "_" + eventPayload.Bidder.String()[36:]
+	amount := new(big.Int).Div(eventPayload.BidAmount, ecomm.DecimalB).String()
+	eventID := eventPayload.AssetId + "_" + bid.Platform + "_" + eventPayload.Bidder.String()[36:]
 	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, t, "", 0)
 
 	bid.BidAmount = amount
 	bid.Bidder = eventPayload.Bidder
-	bid.AssetID = eventPayload.Id
+	bid.AssetID = eventPayload.AssetId
 
 	payloadJSON, _ := json.Marshal(bid)
 	wrapper := ecomm.EventWrapper{Type: "Bid", Result: payloadJSON}

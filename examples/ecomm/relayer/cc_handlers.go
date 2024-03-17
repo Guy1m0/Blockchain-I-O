@@ -100,6 +100,9 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 	var result ecomm.StartAuctionEventPayload
 	var tx *types.Transaction
 	var receipt1, receipt2 *types.Receipt
+
+	authT, _ := cclib.NewTransactor(root_key, password)
+
 	err := json.Unmarshal(eventPayload, &result)
 	check(err)
 

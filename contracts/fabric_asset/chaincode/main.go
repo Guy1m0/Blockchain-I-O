@@ -1,9 +1,8 @@
 package main
 
 import (
-	"log"
-
 	"asset"
+	"log"
 
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )

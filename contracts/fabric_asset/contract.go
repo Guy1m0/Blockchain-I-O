@@ -5,23 +5,11 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
 type SmartContract struct {
 	contractapi.Contract
-}
-
-type AssetAddingEventPayload struct {
-	AssetID string `json:"assetId"`
-	AucType string `json:"aucType"`
-}
-
-type StartAuctionEventPayload struct {
-	ID      int    `json:"id"`
-	AucType string `json:"aucType"`
-	Owner   string `json:"owner"`
 }
 
 const (
@@ -42,7 +30,7 @@ func (cc *SmartContract) AddAsset(
 		return fmt.Errorf("asset with ID %s already exists", id)
 	}
 
-	asset := ecomm.Asset{
+	asset := Asset{
 		ID:    id,
 		Owner: owner,
 	}
@@ -69,7 +57,7 @@ func (cc *SmartContract) AddAsset(
 func (cc *SmartContract) StartAuction(
 	ctx contractapi.TransactionContextInterface, argjson string,
 ) error {
-	var args ecomm.StartAuctionArgs
+	var args StartAuctionArgs
 	err := json.Unmarshal([]byte(argjson), &args)
 	if err != nil {
 		return err
@@ -87,7 +75,7 @@ func (cc *SmartContract) StartAuction(
 	if err != nil {
 		return err
 	}
-	auction := ecomm.Auction{
+	auction := Auction{
 		ID:      lastID + 1,
 		AssetID: args.AssetID,
 		AucType: args.AucType,
@@ -194,7 +182,7 @@ func (cc *SmartContract) FinAuction(
 ) error {
 	// only owner or admin can call this
 
-	var args ecomm.AuctionResult
+	var args AuctionResult
 	err := json.Unmarshal([]byte(argjson), &args)
 	if err != nil {
 		return err
@@ -247,9 +235,9 @@ func (cc *SmartContract) FinAuction(
 }
 
 // can add some mech to check if bidder has DID creditional
-func (cc *SmartContract) verifyAuctionResult(result ecomm.AuctionResult) bool {
+func (cc *SmartContract) verifyAuctionResult(result AuctionResult) bool {
 
-	tmp := &ecomm.AuctionResult{
+	tmp := &AuctionResult{
 		Platform:    result.Platform,
 		AuctionID:   result.AuctionID,
 		AuctionAddr: result.AuctionAddr,
@@ -258,13 +246,13 @@ func (cc *SmartContract) verifyAuctionResult(result ecomm.AuctionResult) bool {
 		HighestBidder: result.HighestBidder,
 	}
 
-	return ecomm.VerifySignature(tmp.Hash(), result.Signature, result.HighestBidder)
+	return VerifySignature(tmp.Hash(), result.Signature, result.HighestBidder)
 }
 
 func (cc *SmartContract) GetAsset(
 	ctx contractapi.TransactionContextInterface, assetID string,
-) (*ecomm.Asset, error) {
-	var asset ecomm.Asset
+) (*Asset, error) {
+	var asset Asset
 	b, err := ctx.GetStub().GetState(cc.makeAssetKey(assetID))
 	if err != nil {
 		return nil, err
@@ -278,7 +266,7 @@ func (cc *SmartContract) GetAsset(
 
 func (cc *SmartContract) GetAuction(
 	ctx contractapi.TransactionContextInterface, auctionID int,
-) (*ecomm.Auction, error) {
+) (*Auction, error) {
 	b, err := ctx.GetStub().GetState(cc.makeAuctionKey(auctionID))
 	if err != nil {
 		return nil, err
@@ -286,7 +274,7 @@ func (cc *SmartContract) GetAuction(
 	if b == nil {
 		return nil, fmt.Errorf("auction not found")
 	}
-	var auction ecomm.Auction
+	var auction Auction
 	err = json.Unmarshal(b, &auction)
 	return &auction, err
 }
@@ -304,7 +292,7 @@ func (cc *SmartContract) GetLastAuctionID(
 }
 
 func (cc *SmartContract) setAsset(
-	ctx contractapi.TransactionContextInterface, asset *ecomm.Asset,
+	ctx contractapi.TransactionContextInterface, asset *Asset,
 ) error {
 	b, _ := json.Marshal(asset)
 	err := ctx.GetStub().PutState(cc.makeAssetKey(asset.ID), b)
@@ -315,7 +303,7 @@ func (cc *SmartContract) setAsset(
 }
 
 func (cc *SmartContract) setAuction(
-	ctx contractapi.TransactionContextInterface, auction *ecomm.Auction,
+	ctx contractapi.TransactionContextInterface, auction *Auction,
 ) error {
 	b, _ := json.Marshal(auction)
 	err := ctx.GetStub().PutState(cc.makeAuctionKey(auction.ID), b)

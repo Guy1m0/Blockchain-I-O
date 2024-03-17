@@ -33,10 +33,11 @@ const (
 )
 
 type HighestBidIncreased struct {
-	Id     string
-	Bidder common.Address
-	Amount *big.Int
-	Raw    types.Log // Blockchain specific contextual infos
+	AuctionId *big.Int
+	AssetId   string
+	Bidder    common.Address
+	BidAmount *big.Int
+	Raw       types.Log // Blockchain specific contextual infos
 }
 
 type WithdrawBid struct {
