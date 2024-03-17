@@ -86,8 +86,9 @@ func handleStartAuctionEvent(eventPayload string) error {
 	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, auction.AssetID, t, "", 0)
 
 	log.Println("[fabirc] Start Auction with ID: ", auction.ID)
+
 	// Listen new auction
-	onNewAuction(auction)
+	//onNewAuction(auction)
 
 	payloadJSON, _ := json.Marshal(auction)
 	wrapper := ecomm.EventWrapper{Type: "Start Auction", Result: payloadJSON}

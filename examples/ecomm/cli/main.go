@@ -10,8 +10,8 @@ import (
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
-
-	//"github.com/Guy1m0/Blockchain-I-O/contracts/cb2p_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/cb2p_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/dutch_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
@@ -93,9 +93,15 @@ func initialize(token_name string) {
 
 	eth_english_addr, tx, _, _ := english_auction.DeployEnglishAuction(rootT, ethClient, eth_MDAI_addr)
 	ecomm.WaitTx(ethClient, tx, "Deploy English Auction on Ethereum")
+
+	eth_dutch_addr, tx, _, _ := dutch_auction.DeployDutchAuction(rootT, ethClient, eth_MDAI_addr)
+	ecomm.WaitTx(ethClient, tx, "Deploy Dutch Auction on Ethereum")
 	//_ = debugTransaction(tx)
 
 	eth_closed_bid_addr, tx, _, _ := cb1p_auction.DeployCb1pAuction(rootT, ethClient, eth_MDAI_addr)
+	ecomm.WaitTx(ethClient, tx, "Deploy Closed Bid Auction on Ethereum")
+
+	eth_closed_bid_2nd_addr, tx, _, _ := cb2p_auction.DeployCb2pAuction(rootT, ethClient, eth_MDAI_addr)
 	ecomm.WaitTx(ethClient, tx, "Deploy Closed Bid Auction on Ethereum")
 
 	tx, err = eth_MDAI.Mint(rootT, rootT.From, supply)
@@ -108,8 +114,14 @@ func initialize(token_name string) {
 	quo_english_addr, tx, _, _ := english_auction.DeployEnglishAuction(rootT, quoClient, quo_MDAI_addr)
 	ecomm.WaitTx(quoClient, tx, "Deploy English Auction on Quorum")
 
-	quo_closed_bid_addr, tx, _, _ := cb1p_auction.DeployCb1pAuction(rootT, quoClient, eth_MDAI_addr)
+	quo_dutch_addr, tx, _, _ := dutch_auction.DeployDutchAuction(rootT, quoClient, quo_MDAI_addr)
+	ecomm.WaitTx(quoClient, tx, "Deploy Dutch Auction on Ethereum")
+
+	quo_closed_bid_addr, tx, _, _ := cb1p_auction.DeployCb1pAuction(rootT, quoClient, quo_MDAI_addr)
 	ecomm.WaitTx(quoClient, tx, "Deploy Closed Bid Auction on Quorum")
+
+	quo_closed_bid_2nd_addr, tx, _, _ := cb2p_auction.DeployCb2pAuction(rootT, quoClient, quo_MDAI_addr)
+	ecomm.WaitTx(quoClient, tx, "Deploy Closed Bid Auction on Ethereum")
 
 	tx, err = quo_MDAI.Mint(rootT, rootT.From, supply)
 	check(err)
@@ -136,10 +148,20 @@ func initialize(token_name string) {
 			QuoAddr: quo_english_addr,
 			EthAddr: eth_english_addr,
 		},
+		DutchAuction: ecomm.AuctionInfo{
+			Owner:   rootT.From,
+			QuoAddr: quo_dutch_addr,
+			EthAddr: eth_dutch_addr,
+		},
 		Cb1pAuction: ecomm.AuctionInfo{
 			Owner:   rootT.From,
 			QuoAddr: quo_closed_bid_addr,
 			EthAddr: eth_closed_bid_addr,
+		},
+		Cb2pAuction: ecomm.AuctionInfo{
+			Owner:   rootT.From,
+			QuoAddr: quo_closed_bid_2nd_addr,
+			EthAddr: eth_closed_bid_2nd_addr,
 		},
 	})
 }

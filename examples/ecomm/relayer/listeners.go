@@ -7,6 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/cb2p_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/dutch_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum"
@@ -75,50 +79,43 @@ func startFabricListener(client *ecomm.AssetClient) error {
 	}
 }
 
-// fabric
-func onNewAuction(a *ecomm.Auction) {
-	// Initialize auctionResults with new auction as input
-	auctionResultsMu.Lock()
-	auctionResults[a.ID] = &ecomm.FinalizeAuctionArgs{
-		AuctionID: a.ID,
-	}
-	auctionResultsMu.Unlock()
+func startContractListener(contract_info ecomm.ContractInfo) {
+	eth_client := ecomm.NewEthClient()
+	quo_client := ecomm.NewQuorumClient()
 
-	go startListeningForAuctionEvents(a.ID, a.EthAddr, "eth")
-	go startListeningForAuctionEvents(a.ID, a.QuorumAddr, "quo")
+	// For English Auction
+	abi := english_auction.EnglishAuctionABI
+	go startListeningForAuctionEvents(contract_info.EnglishAuction.EthAddr, abi, *eth_client)
+	go startListeningForAuctionEvents(contract_info.EnglishAuction.QuoAddr, abi, *quo_client)
 
+	// For Dutch Auction
+	abi = dutch_auction.DutchAuctionABI
+	go startListeningForAuctionEvents(contract_info.DutchAuction.EthAddr, abi, *eth_client)
+	go startListeningForAuctionEvents(contract_info.DutchAuction.QuoAddr, abi, *quo_client)
+
+	// For Close Bid 1st Price Auction
+	abi = cb1p_auction.Cb1pAuctionABI
+	go startListeningForAuctionEvents(contract_info.Cb1pAuction.EthAddr, abi, *eth_client)
+	go startListeningForAuctionEvents(contract_info.Cb1pAuction.QuoAddr, abi, *quo_client)
+
+	// For Close Bid 1st Price Auction
+	abi = cb2p_auction.Cb2pAuctionABI
+	go startListeningForAuctionEvents(contract_info.Cb2pAuction.EthAddr, abi, *eth_client)
+	go startListeningForAuctionEvents(contract_info.Cb2pAuction.QuoAddr, abi, *quo_client)
 }
 
-func startAuctionListener(auction_type string, address string, platform string) {
+// client := ethclient
 
-	client := ecomm.NewEthClient()
-	if platform == "quo" {
-		client = ecomm.NewQuorumClient()
-	}
+// contract, err := english_auction.NewEnglishAuction(english_auction_info.EthAddr, client)
 
-	contract_info := english_auction_info
-	switch auction_type {
-	case "english":
+// eth_english_auction_contract, err := english_auction.NewEnglishAuction(english_auction_info.EthAddr, ethClient)
+// quo_english_auction_contract, err := english_auction.NewEnglishAuction(english_auction_info.QuoAddr, quoClient)
 
-		//contract_info := english_auction_info
-		//contract, err := english_auction.NewEnglishAuction(english_auction_info.EthAddr, client)
-	case "cb1p":
-		contract_info = cb1p_auction_info
-		//contract, err := cb1p_auction.NewCb1pAuction(cb1p_auction_info.EthAddr, client)
-	default:
-		log.Fatalf("Unknown auction type: %v", auction_type)
-		return
-	}
+// eth_cb1p_contract, err  := cb1p_auction.NewCb1pAuction(cb1p_auction_info.EthAddr, ethClient)
+// quo_cb1p_contract, err  := cb1p_auction.NewCb1pAuction(cb1p_auction_info.QuoAddr, quoClient)
 
-	auction_addr := contract_info.EthAddr
-	if platform == "quo" {
-		client = ecomm.NewQuorumClient()
-		auction_addr = contract_info.QuoAddr
-	}
-
-	//auction_addr := common.HexToAddress(address)
+func startListeningForAuctionEvents(auction_addr common.Address, auction_abi string, client ethclient.Client) {
 	query := ethereum.FilterQuery{Addresses: []common.Address{auction_addr}}
-
 	contractAbi, err := abi.JSON(strings.NewReader(string(eth_auction.EthAuctionABI)))
 	check(err)
 
@@ -176,7 +173,7 @@ func startAuctionListener(auction_type string, address string, platform string) 
 	}
 }
 
-func startListeningForAuctionEvents(auction_id int, address string, platform string) {
+func startListeningForAuctionEvents_(auction_id int, address string, platform string) {
 	ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
 	wsURL := "ws://localhost:8545"
 	if platform == "quo" {

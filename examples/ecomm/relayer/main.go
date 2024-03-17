@@ -6,8 +6,6 @@ import (
 	"sync"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/common"
 
@@ -31,11 +29,11 @@ var (
 	quo_ERC20    common.Address
 	fabric_ERC20 string
 
-	english_auction_info ecomm.AuctionInfo
-	cb1p_auction_info    ecomm.AuctionInfo
+	// english_auction_info ecomm.AuctionInfo
+	// cb1p_auction_info    ecomm.AuctionInfo
 
-	eth_english_auction_contract english_auction.EnglishAuction
-	eth_cb1p_contract            cb1p_auction.Cb1pAuction
+	// eth_english_auction_contract english_auction.EnglishAuction
+	// eth_cb1p_contract            cb1p_auction.Cb1pAuction
 )
 
 const (
@@ -69,18 +67,7 @@ func main() {
 	eth_ERC20 = contract_info.EthERC20
 	quo_ERC20 = contract_info.QuoERC20
 	fabric_ERC20 = contract_info.FabricTokenName
-	english_auction_info = contract_info.EnglishAuction
 
-	// eth_english_auction_contract, err := english_auction.NewEnglishAuction(english_auction_info.EthAddr, ethClient)
-	// quo_english_auction_contract, err := english_auction.NewEnglishAuction(english_auction_info.QuoAddr, quoClient)
-
-	// eth_cb1p_contract, err  := cb1p_auction.NewCb1pAuction(cb1p_auction_info.EthAddr, ethClient)
-	// quo_cb1p_contract, err  := cb1p_auction.NewCb1pAuction(cb1p_auction_info.QuoAddr, quoClient)
-	// @todo: separate ccsvc relayer in different platorms
-	// and can not directly detects events on other platform if
-	// and only if such events published by 'local' relayer
-
-	// @todo: deploy 3 relayers monitor Fabric, Eth and Quo respectively
 	ccsvc.Register(ecomm.AssetAddingEvent, chainCodeEvent)
 	ccsvc.Register(ecomm.AuctionStartingEvent, chainCodeEvent)
 	ccsvc.Register(ecomm.AuctionClosingEvent, chainCodeEvent)
@@ -94,6 +81,7 @@ func main() {
 	check(err)
 
 	startFabricListener(assetClient)
+	startContractListener(contract_info)
 	// go startAuctionListener("english_auction", english_auction.EthAddr.String(), "eth")
 	// go startAuctionListener("english_auction", english_auction.QuoAddr.String(), "quo")
 	// startListeningForAuctionEvents()
