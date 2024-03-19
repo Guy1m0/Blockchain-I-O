@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"math/big"
@@ -9,9 +10,6 @@ import (
 	"strings"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/cb2p_auction"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/dutch_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
@@ -31,7 +29,9 @@ const (
 
 	contractInfoFile = "../contract_info.json"
 	userInfoFile     = "../user_info.json"
-	logInfoFile      = "../log.json"
+
+	logCSVPath     = "../log.csv"
+	defaultHeaders = "EventID,Event,StartTime,EndTime,KafkaReceived,Cost,Note,TimeElapsed,KafkaTime\n"
 )
 
 var (
@@ -73,12 +73,54 @@ func main() {
 
 }
 
+func reset_log() error {
+	var columnHeaders string
+
+	// Try to open the file in read mode
+	file, err := os.Open(logCSVPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// If the file does not exist, use default headers
+			columnHeaders = defaultHeaders
+		} else {
+			// Some other error occurred
+			return err
+		}
+	} else {
+		// If the file exists, read the first line to get the column headers
+		scanner := bufio.NewScanner(file)
+		if scanner.Scan() {
+			columnHeaders = scanner.Text() + "\n"
+		}
+		file.Close() // Close the file after reading the headers
+	}
+
+	// Open (or create) the file in write mode to reset it or create a new one
+	file, err = os.Create(logCSVPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Write the column headers back to the file
+	_, err = file.WriteString(columnHeaders)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Deploy contracts and mint enough tokens
 func initialize(token_name string) {
 	fabricToken := ecomm.NewErc20Client(token_name)
 
+	fmt.Println("Initialize Log.csv")
+	err := reset_log()
+	check(err)
+
 	fmt.Println("Initialize Fabric Stable Coin: ", token_name)
-	_, err := fabricToken.Initialize("Multi-Dai Stablecoin", "MDAI", "15")
+	_, err = fabricToken.Initialize("Multi-Dai Stablecoin", "MDAI", "15")
 	check(err)
 
 	fmt.Printf("Mint %s on Frabic \n", token_name)
@@ -94,15 +136,15 @@ func initialize(token_name string) {
 	eth_english_addr, tx, _, _ := english_auction.DeployEnglishAuction(rootT, ethClient, eth_MDAI_addr)
 	ecomm.WaitTx(ethClient, tx, "Deploy English Auction on Ethereum")
 
-	eth_dutch_addr, tx, _, _ := dutch_auction.DeployDutchAuction(rootT, ethClient, eth_MDAI_addr)
-	ecomm.WaitTx(ethClient, tx, "Deploy Dutch Auction on Ethereum")
-	//_ = debugTransaction(tx)
+	// eth_dutch_addr, tx, _, _ := dutch_auction.DeployDutchAuction(rootT, ethClient, eth_MDAI_addr)
+	// ecomm.WaitTx(ethClient, tx, "Deploy Dutch Auction on Ethereum")
+	// //_ = debugTransaction(tx)
 
-	eth_closed_bid_addr, tx, _, _ := cb1p_auction.DeployCb1pAuction(rootT, ethClient, eth_MDAI_addr)
-	ecomm.WaitTx(ethClient, tx, "Deploy Closed Bid Auction on Ethereum")
+	// eth_closed_bid_addr, tx, _, _ := cb1p_auction.DeployCb1pAuction(rootT, ethClient, eth_MDAI_addr)
+	// ecomm.WaitTx(ethClient, tx, "Deploy Closed Bid Auction on Ethereum")
 
-	eth_closed_bid_2nd_addr, tx, _, _ := cb2p_auction.DeployCb2pAuction(rootT, ethClient, eth_MDAI_addr)
-	ecomm.WaitTx(ethClient, tx, "Deploy Closed Bid Auction on Ethereum")
+	// eth_closed_bid_2nd_addr, tx, _, _ := cb2p_auction.DeployCb2pAuction(rootT, ethClient, eth_MDAI_addr)
+	// ecomm.WaitTx(ethClient, tx, "Deploy Closed Bid Auction on Ethereum")
 
 	tx, err = eth_MDAI.Mint(rootT, rootT.From, supply)
 	check(err)
@@ -114,30 +156,18 @@ func initialize(token_name string) {
 	quo_english_addr, tx, _, _ := english_auction.DeployEnglishAuction(rootT, quoClient, quo_MDAI_addr)
 	ecomm.WaitTx(quoClient, tx, "Deploy English Auction on Quorum")
 
-	quo_dutch_addr, tx, _, _ := dutch_auction.DeployDutchAuction(rootT, quoClient, quo_MDAI_addr)
-	ecomm.WaitTx(quoClient, tx, "Deploy Dutch Auction on Ethereum")
+	// quo_dutch_addr, tx, _, _ := dutch_auction.DeployDutchAuction(rootT, quoClient, quo_MDAI_addr)
+	// ecomm.WaitTx(quoClient, tx, "Deploy Dutch Auction on Ethereum")
 
-	quo_closed_bid_addr, tx, _, _ := cb1p_auction.DeployCb1pAuction(rootT, quoClient, quo_MDAI_addr)
-	ecomm.WaitTx(quoClient, tx, "Deploy Closed Bid Auction on Quorum")
+	// quo_closed_bid_addr, tx, _, _ := cb1p_auction.DeployCb1pAuction(rootT, quoClient, quo_MDAI_addr)
+	// ecomm.WaitTx(quoClient, tx, "Deploy Closed Bid Auction on Quorum")
 
-	quo_closed_bid_2nd_addr, tx, _, _ := cb2p_auction.DeployCb2pAuction(rootT, quoClient, quo_MDAI_addr)
-	ecomm.WaitTx(quoClient, tx, "Deploy Closed Bid Auction on Ethereum")
+	// quo_closed_bid_2nd_addr, tx, _, _ := cb2p_auction.DeployCb2pAuction(rootT, quoClient, quo_MDAI_addr)
+	// ecomm.WaitTx(quoClient, tx, "Deploy Closed Bid Auction on Ethereum")
 
 	tx, err = quo_MDAI.Mint(rootT, rootT.From, supply)
 	check(err)
 	ecomm.WaitTx(quoClient, tx, "Mint ERC20 Stable Coin on Quorum")
-
-	if _, err := os.Stat(userInfoFile); err == nil {
-		// If no error is returned, the file exists and you can try to remove it
-		err = os.Remove(userInfoFile)
-		check(err)
-	}
-
-	if _, err := os.Stat(logInfoFile); err == nil {
-		// If no error is returned, the file exists and you can try to remove it
-		err = os.Remove(logInfoFile)
-		check(err)
-	}
 
 	ecomm.WriteJsonFile(contractInfoFile, ecomm.ContractInfo{
 		FabricTokenName: token_name,
@@ -148,21 +178,21 @@ func initialize(token_name string) {
 			QuoAddr: quo_english_addr,
 			EthAddr: eth_english_addr,
 		},
-		DutchAuction: ecomm.AuctionInfo{
-			Owner:   rootT.From,
-			QuoAddr: quo_dutch_addr,
-			EthAddr: eth_dutch_addr,
-		},
-		Cb1pAuction: ecomm.AuctionInfo{
-			Owner:   rootT.From,
-			QuoAddr: quo_closed_bid_addr,
-			EthAddr: eth_closed_bid_addr,
-		},
-		Cb2pAuction: ecomm.AuctionInfo{
-			Owner:   rootT.From,
-			QuoAddr: quo_closed_bid_2nd_addr,
-			EthAddr: eth_closed_bid_2nd_addr,
-		},
+		// DutchAuction: ecomm.AuctionInfo{
+		// 	Owner:   rootT.From,
+		// 	QuoAddr: quo_dutch_addr,
+		// 	EthAddr: eth_dutch_addr,
+		// },
+		// Cb1pAuction: ecomm.AuctionInfo{
+		// 	Owner:   rootT.From,
+		// 	QuoAddr: quo_closed_bid_addr,
+		// 	EthAddr: eth_closed_bid_addr,
+		// },
+		// Cb2pAuction: ecomm.AuctionInfo{
+		// 	Owner:   rootT.From,
+		// 	QuoAddr: quo_closed_bid_2nd_addr,
+		// 	EthAddr: eth_closed_bid_2nd_addr,
+		// },
 	})
 }
 

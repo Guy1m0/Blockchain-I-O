@@ -126,8 +126,6 @@ func bidAuction(auction_id int, amount *big.Int, auc_type string) {
 		auction_contract, err = english_auction.NewEnglishAuction(auction_addr, client)
 	case "dutch":
 		auction_contract, err = dutch_auction.NewDutchAuction(auction_addr, client)
-		// case "cb1p":
-		// 	auction_contract_cb, err = cb1p_auction.NewCb1pAuction(auction_addr, client)
 	}
 
 	check(err)

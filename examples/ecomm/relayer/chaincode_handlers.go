@@ -73,24 +73,6 @@ func handleAddAssetEvent(eventPayload []byte) error {
 
 	check(err)
 	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, assetID, t, "", 0)
-
-	// log.Println("[ethereum] Add new auction")
-	// t = time.Now()
-
-	// switch auc_type {
-	// case "eng":
-	// 	eth_english_auction_contract.Create(big.NewInt(int64(auction_id)))
-	// }
-
-	// ethAddr, receipt_eth := ecomm.DeployCrossChainAuction(ethClient, eth_ERC20, asset.ID, root_key)
-	// cost := receipt_eth.GasUsed
-	// note := "ETH:" + strconv.FormatUint(cost, 10)
-
-	// log.Println("[quorum] Add new auction")
-	// quoAddr, receipt_quo := ecomm.DeployCrossChainAuction(quoClient, quo_ERC20, asset.ID, root_key)
-	// cost += receipt_eth.GasUsed
-	// note += " QUO:" + strconv.FormatUint(receipt_quo.GasUsed, 10)
-
 	return nil
 }
 

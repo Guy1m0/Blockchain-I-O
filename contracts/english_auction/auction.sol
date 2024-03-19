@@ -8,7 +8,7 @@ interface IERC20 {
 
 contract EnglishAuction {
     address public owner;
-
+    string public auction_type;
     // Allowed withdrawals of previous bids
     mapping(address => uint) pendingReturns;
 
@@ -25,7 +25,7 @@ contract EnglishAuction {
 
 
     // Events that will be emitted on changes.
-    event HighestBidIncreased(uint auctionId, string assetId, address bidder, uint bidAmount);
+    event HighestBidIncreased(uint auctionId, string assetId, address bidder, uint bidAmount, string auctionType);
     event WithdrawBid(uint auction, string id, address bidder, uint amount);
     event DecisionMade(uint auction, address winner, uint amount, string id, bool prcd, string jsonString);
     event AwaitResponse(uint auction, address winner);
@@ -37,6 +37,7 @@ contract EnglishAuction {
     constructor(address _token) {
         token = IERC20(_token);
         owner = msg.sender;
+        auction_type = "English Auction";
     }
 
     function create(uint _auction_id, string memory _asset_id) public {
@@ -72,7 +73,7 @@ contract EnglishAuction {
         // Update the highest bid and highest bidder
         highestBidder[auctionId] = msg.sender;
         highestBid[auctionId] = bidAmount;
-        emit HighestBidIncreased(auctionId, asset_id[auctionId], msg.sender, bidAmount);
+        emit HighestBidIncreased(auctionId, asset_id[auctionId], msg.sender, bidAmount, auction_type);
     }
 
 
