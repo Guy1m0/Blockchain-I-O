@@ -192,4 +192,6 @@ contract ClosedBidSecondPriceAuction {
         // solidity does not support floats, so we multiply the rating by 100 to achieve accuracy up to two decimals (the user's client will have to divide the result by 100)
         return (100*total/int(score.length));
     }
+
+
 }

@@ -11,12 +11,16 @@ import (
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/cb2p_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/dutch_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -54,6 +58,8 @@ func main() {
 	command := flag.String("c", "", "command")
 	id_ := flag.String("id", "", "Auction ID")
 	amount_ := flag.String("amt", "", "Bid amount")
+	auc_type := flag.String("t", "", "Auction type")
+
 	feedback := flag.String("fb", "", "Detail feedback with format 'score@comments'")
 
 	flag.StringVar(&platform, "p", platform, "platform")
@@ -68,7 +74,12 @@ func main() {
 		amount := new(big.Int)
 		amount.SetString(*amount_, 10)
 		id, _ := strconv.Atoi(*id_)
-		bidAuction(id, amount)
+		bidAuction(id, amount, *auc_type)
+	case "bidH":
+		amount := new(big.Int)
+		amount.SetString(*amount_, 10)
+		id, _ := strconv.Atoi(*id_)
+		bidAuctionH(id, amount, *auc_type)
 	case "check":
 		id, _ := strconv.Atoi(*id_)
 		check_winner(id)
@@ -88,7 +99,7 @@ func main() {
 }
 
 // also no relayer involved, 'locally' make bid
-func bidAuction(auction_id int, amount *big.Int) {
+func bidAuction(auction_id int, amount *big.Int, auc_type string) {
 	t := time.Now()
 
 	var contract_info ecomm.ContractInfo
@@ -107,7 +118,18 @@ func bidAuction(auction_id int, amount *big.Int) {
 		erc20_address = contract_info.QuoERC20
 	}
 
-	auction_contract, err := english_auction.NewEnglishAuction(auction_addr, client)
+	var auction_contract ecomm.AuctionContract
+	//var auction_contract_close_bid ecomm.AuctionContractCloseBid
+
+	switch auc_type {
+	case "english":
+		auction_contract, err = english_auction.NewEnglishAuction(auction_addr, client)
+	case "dutch":
+		auction_contract, err = dutch_auction.NewDutchAuction(auction_addr, client)
+		// case "cb1p":
+		// 	auction_contract_cb, err = cb1p_auction.NewCb1pAuction(auction_addr, client)
+	}
+
 	check(err)
 
 	bidT, err := cclib.NewTransactor(bid_key, "password")
@@ -131,6 +153,65 @@ func bidAuction(auction_id int, amount *big.Int) {
 
 	total_cost := receipt1.GasUsed + receipt2.GasUsed
 	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, total_cost, note)
+}
+
+func bidAuctionH(auction_id int, bidAmount *big.Int, auc_type string) {
+	t := time.Now()
+
+	var contract_info ecomm.ContractInfo
+	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
+	//erc20_address := contract_info.EthERC20
+	client := ethClient
+
+	a, err := assetClient.GetAuction(auction_id)
+	check(err)
+
+	auction_addr := common.HexToAddress(a.EthAddr)
+	// @todo: require platform either is 'quo' or 'eth'
+	if platform != "eth" {
+		auction_addr = common.HexToAddress(a.QuorumAddr)
+		client = quoClient
+		//erc20_address = contract_info.QuoERC20
+	}
+
+	var auction_contract ecomm.AuctionContractCloseBid
+	//var auction_contract_close_bid ecomm.AuctionContractCloseBid
+
+	switch auc_type {
+	case "cb1p":
+		auction_contract, err = cb1p_auction.NewCb1pAuction(auction_addr, client)
+	case "cb2p":
+		auction_contract, err = cb2p_auction.NewCb2pAuction(auction_addr, client)
+		// case "cb1p":
+		// 	auction_contract_cb, err = cb1p_auction.NewCb1pAuction(auction_addr, client)
+	}
+
+	check(err)
+
+	bidT, err := cclib.NewTransactor(bid_key, "password")
+	check(err)
+
+	eventID := a.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
+	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, t, "", 0)
+
+	// Compute the hash of the bid amount
+	// Solidity equivalent: keccak256(abi.encodePacked(bidAmount))
+	bidHash := crypto.Keccak256Hash(bidAmount.Bytes())
+
+	// Convert bidHash to [32]byte to match the Go binding's expectation
+	var bidHashArray [32]byte
+	copy(bidHashArray[:], bidHash.Bytes())
+
+	tx, _ := auction_contract.Bid(bidT, big.NewInt(int64(auction_id)), bidHashArray)
+	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, auction_addr))
+
+	fmt.Println("Transaction receipt:", receipt)
+	// note := "Cost: " + strconv.FormatUint(receipt1.GasUsed, 10)
+	// note += " + " + strconv.FormatUint(receipt2.GasUsed, 10)
+	// note += " Bid: MDAI " + big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB).String()
+
+	// total_cost := receipt1.GasUsed + receipt2.GasUsed
+	// ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, total_cost, note)
 }
 
 func check_winner(auction_id int) {

@@ -23,16 +23,22 @@ contract DutchAuction {
     string[] public status;
     string[] public asset_id;
 
-    // feedback
-    bytes32[] private feedback;
-    int[] private score;
+    // uint: AuctionID
+    mapping(uint => address) public highestBidder;
+    mapping(uint => uint) public highestBid;
+
+    // Feedback
+    mapping(address => string[]) private feedback;
+    mapping(address => int[]) private score;
+
+    mapping(uint => address) public auction_owner;
 
     // Events that will be emitted on changes.
     event BidReceived(uint auction, string id, address bidder, uint amount);
     event WithdrawBid(uint auction, string id, address bidder, uint amount);
     event DecisionMade(uint auction, address winner, uint amount, string id, bool prcd, string jsonString);
     event AwaitResponse(uint auction, address winner);
-    event RateAuction(uint auction, string id, int rating, bytes32 review);
+    event RateAuction(uint auction, string id, int rating, string review);
 
     IERC20 public immutable token;
 
@@ -51,8 +57,8 @@ contract DutchAuction {
         startingPrice.push(_startingPrice);
         startAt.push(block.timestamp);
         discountRate.push(_discountRate);
-        feedback.push(bytes32(0));
-        score.push(0);
+        //feedback.push(bytes32(0));
+        //score.push(0);
     }
 
     function getPrice(uint auctionId) public view returns (uint) {
@@ -147,29 +153,27 @@ contract DutchAuction {
         emit DecisionMade(auctionId, winningBidder[auctionId], winningBid[auctionId], asset_id[auctionId], true, jsonString);
     }
 
-    function provide_feedback(uint auctionId, int _score, bytes32 _feedback) public {
+    function provide_feedback(uint auctionId, int _score, string memory _feedback) public {
         // Use hash to check status
         require(keccak256(abi.encodePacked(status[auctionId])) == keccak256(abi.encodePacked("closing")), "Contract not in CLOSING status");
         // For testing only
-        require(msg.sender == winningBidder[auctionId], "Not authorized access!");
+        require(msg.sender == highestBidder[auctionId], "Not authorized access!");
 
-        score[auctionId] = _score;
-        feedback[auctionId] = _feedback;
+        score[auction_owner[auctionId]].push(_score);
+        feedback[auction_owner[auctionId]].push(_feedback);
 
         emit RateAuction(auctionId, asset_id[auctionId], _score, _feedback);
         status[auctionId] = "closed";
     }
 
-    function checkAverageScore() public view returns (int) {
-        int total = 0;
-        for(uint i=0;i<score.length;i++) {
-            // Use hash to check status
-            if(keccak256(abi.encodePacked(status[i])) == keccak256(abi.encodePacked("closed"))) {
-                total += score[i];
-            }
-        }
+    // function checkAverageScore(uint auctionId) public view returns (int) {
+    //     int total = 0;
+    //     uint l = score[auction_owner[auctionId]].length;
+    //     for(uint i=0; i < l;i++) {
+    //         total += score[auction_owner[auctionId]][i];
+    //     }
 
-        // solidity does not support floats, so we multiply the rating by 100 to achieve accuracy up to two decimals (the user's client will have to divide the result by 100)
-        return (100*total/int(score.length));
-    }
+    //     // solidity does not support floats, so we multiply the rating by 100 to achieve accuracy up to two decimals (the user's client will have to divide the result by 100)
+    //     return (100*total/int(l));
+    // }
 }

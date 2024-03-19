@@ -48,6 +48,7 @@ contract ClosedBidFirstPriceAuction {
         highestBid[_auction_id] = 0;
         status[_auction_id] = "open";
         asset_id[_auction_id] = _asset_id;
+
         // feedback and score are related to users, not auctions, so might not be set here
     }
 

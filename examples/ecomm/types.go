@@ -5,7 +5,9 @@ import (
 	"math/big"
 	"strconv"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"golang.org/x/crypto/sha3"
 )
@@ -121,6 +123,30 @@ type SignedAuctionResult struct {
 type EventWrapper struct {
 	Type   string          `json:"type"`
 	Result json.RawMessage `json:"result"`
+}
+
+type AuctionContract interface {
+	// Common across most auction types
+	//CreateAuction(assetId string) error
+	Bid(opts *bind.TransactOpts, auctionId *big.Int, bidAmount *big.Int) (*types.Transaction, error) // Flexible input
+	Withdraw(opts *bind.TransactOpts, auctionId *big.Int) (*types.Transaction, error)
+	CloseAuction(opts *bind.TransactOpts, auctionId *big.Int, not_winner_platform bool) (*types.Transaction, error) // Might be type-specific
+	Abort(opts *bind.TransactOpts, auctionId *big.Int, jsonString string) (*types.Transaction, error)
+	Commit(opts *bind.TransactOpts, auctionId *big.Int, jsonString string) (*types.Transaction, error)
+	ProvideFeedback(opts *bind.TransactOpts, auctionId *big.Int, _score *big.Int, _feedback string) (*types.Transaction, error)
+}
+
+type AuctionContractCloseBid interface {
+	// Common across most auction types
+	//CreateAuction(assetId string) error
+	Bid(opts *bind.TransactOpts, auctionId *big.Int, bidHash [32]byte) (*types.Transaction, error)
+	RevealAuction(opts *bind.TransactOpts, auctionId *big.Int) (*types.Transaction, error)
+	Reveal(opts *bind.TransactOpts, auctionId *big.Int, bidAmount *big.Int) (*types.Transaction, error)
+	Withdraw(opts *bind.TransactOpts, auctionId *big.Int) (*types.Transaction, error)
+	//	CloseAuction(opts *bind.TransactOpts, auctionId *big.Int, not_winner_platform bool) (*types.Transaction, error) // Might be type-specific
+	Abort(opts *bind.TransactOpts, auctionId *big.Int, jsonString string) (*types.Transaction, error)
+	Commit(opts *bind.TransactOpts, auctionId *big.Int, jsonString string) (*types.Transaction, error)
+	//ProvideFeedback(opts *bind.TransactOpts, auctionId *big.Int, _score *big.Int, _feedback string) (*types.Transaction, error)
 }
 
 func (ar *AuctionResult) Hash() []byte {

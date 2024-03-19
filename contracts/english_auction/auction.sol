@@ -151,14 +151,14 @@ contract EnglishAuction {
         status[auctionId] = "closed";
     }
 
-    function checkAverageScore(uint auctionId) public view returns (int) {
-        int total = 0;
-        uint l = score[auction_owner[auctionId]].length;
-        for(uint i=0; i < l;i++) {
-            total += score[auction_owner[auctionId]][i];
-        }
+    // function checkAverageScore(uint auctionId) public view returns (int) {
+    //     int total = 0;
+    //     uint l = score[auction_owner[auctionId]].length;
+    //     for(uint i=0; i < l;i++) {
+    //         total += score[auction_owner[auctionId]][i];
+    //     }
 
-        // solidity does not support floats, so we multiply the rating by 100 to achieve accuracy up to two decimals (the user's client will have to divide the result by 100)
-        return (100*total/int(l));
-    }
+    //     // solidity does not support floats, so we multiply the rating by 100 to achieve accuracy up to two decimals (the user's client will have to divide the result by 100)
+    //     return (100*total/int(l));
+    // }
 }
