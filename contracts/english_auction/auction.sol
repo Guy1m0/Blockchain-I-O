@@ -25,7 +25,7 @@ contract EnglishAuction {
 
 
     // Events that will be emitted on changes.
-    event HighestBidIncreased(uint auctionId, string assetId, address bidder, uint bidAmount, string auctionType);
+    event HighestBidIncreased(uint auctionId, string id, address bidder, uint bidAmount, string auctionType);
     event WithdrawBid(uint auctionId, string id, address bidder, uint amount);
     event DecisionMade(uint auctionId, address winner, uint amount, string id, bool prcd, string jsonString);
     event AwaitResponse(uint auctionId, address winner);

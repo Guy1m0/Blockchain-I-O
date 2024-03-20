@@ -96,23 +96,23 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 
 	switch auction.AucType {
 	case "english":
-		tx, err = eth_english_auction_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID, result.Owner)
+		tx, err = eth_english_auction_contract.Create(authT, big.NewInt(int64(auction.AuctionID)), auction.AssetID, result.Owner)
 		check(err)
-		receipt1 = ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.ID))
+		receipt1 = ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.AuctionID))
 
-		tx, err = quo_english_auction_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID, result.Owner)
+		tx, err = quo_english_auction_contract.Create(authT, big.NewInt(int64(auction.AuctionID)), auction.AssetID, result.Owner)
 		check(err)
-		receipt2 = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.ID))
+		receipt2 = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.AuctionID))
 	case "dutch":
 
 	case "cb1p":
-		tx, err = eth_cb1p_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID, result.Owner)
+		tx, err = eth_cb1p_contract.Create(authT, big.NewInt(int64(auction.AuctionID)), auction.AssetID, result.Owner)
 		check(err)
-		receipt1 = ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.ID))
+		receipt1 = ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.AuctionID))
 
-		tx, err = quo_cb1p_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID, result.Owner)
+		tx, err = quo_cb1p_contract.Create(authT, big.NewInt(int64(auction.AuctionID)), auction.AssetID, result.Owner)
 		check(err)
-		receipt2 = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.ID))
+		receipt2 = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.AuctionID))
 
 	case "cb2p":
 
@@ -128,7 +128,7 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 	t := time.Now()
 	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, auction.AssetID, auction.AucType, t, note, cost)
 
-	log.Println("[fabirc] Start Auction with ID: ", auction.ID)
+	log.Println("[fabirc] Start Auction with ID: ", auction.AuctionID)
 
 	payloadJSON, _ := json.Marshal(auction)
 	wrapper := ecomm.EventWrapper{Type: "Start Auction", Result: payloadJSON}

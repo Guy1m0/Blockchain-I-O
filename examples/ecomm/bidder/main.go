@@ -144,7 +144,7 @@ func bidAuction(auction_id int, amount *big.Int) {
 	receipt1 := ecomm.WaitTx(client, tx1, "Approve Auction Contract's allowance")
 
 	tx2, _ := auction_contract.Bid(bidT, big.NewInt(int64(auction_id)), big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
-	receipt2 := ecomm.WaitTx(client, tx2, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, auction_addr))
+	receipt2 := ecomm.WaitTx(client, tx2, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.AuctionID, auction_addr))
 
 	note := "Cost: " + strconv.FormatUint(receipt1.GasUsed, 10)
 	note += " + " + strconv.FormatUint(receipt2.GasUsed, 10)
@@ -205,7 +205,7 @@ func bidAuctionH(auction_id int, bidAmount *big.Int) {
 	copy(bidHashArray[:], bidHash.Bytes())
 
 	tx, _ := auction_contract.Bid(bidT, big.NewInt(int64(auction_id)), bidHashArray)
-	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, auction_addr))
+	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.AuctionID, auction_addr))
 
 	fmt.Println("Transaction receipt:", receipt)
 
@@ -236,7 +236,7 @@ func withdraw(auction_id int) {
 
 	tx, err := auction_contract.Withdraw(bidT, big.NewInt(int64(auction_id)))
 	check(err)
-	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Withdraw bid on Auction ID: %d through contract: %s", auction.ID, auction_addr))
+	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Withdraw bid on Auction ID: %d through contract: %s", auction.AuctionID, auction_addr))
 
 	ecomm.UpdateLog(logInfoFile, ecomm.WithdrawEvent, eventID, receipt.GasUsed, "")
 	//debugTransaction(tx)
@@ -348,7 +348,7 @@ func sign_auction_result(auction_id int, prcd bool) {
 	}
 	check(err)
 
-	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Sign Auction Result on Auction ID: %d through contract: %s", a.ID, auction_addr))
+	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Sign Auction Result on Auction ID: %d through contract: %s", a.AuctionID, auction_addr))
 	//debugTransaction(tx)
 	// log
 	payload, _ = json.Marshal(&ecomm.Tx{
@@ -397,7 +397,7 @@ func provide_feedback(auction_id int, feedback string) {
 	check(err)
 
 	tx, _ := auction_contract.ProvideFeedback(bidT, big.NewInt(int64(auction_id)), big.NewInt(int64(score)), feedback)
-	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Provide feedback on Auction ID: %d", a.ID))
+	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Provide feedback on Auction ID: %d", a.AuctionID))
 	t = time.Now()
 
 	payload, _ = json.Marshal(&ecomm.Tx{

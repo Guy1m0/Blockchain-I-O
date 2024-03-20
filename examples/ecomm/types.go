@@ -54,7 +54,7 @@ type Asset struct {
 }
 
 type Auction struct {
-	ID         int    `json:"id"`
+	AuctionID  int    `json:"auctionId"`
 	AssetID    string `json:"assetId"`
 	AucType    string `json:"aucType"`
 	EthAddr    string `json:"ethAddr"`
@@ -70,6 +70,17 @@ type Auction struct {
 type Bid struct {
 	Bidder      common.Address `json:"bidder"`
 	BidAmount   string         `json:"bidAmount"`
+	AuctionAddr common.Address `json:"auctionAddr"`
+
+	Platform string `json:"platform"`
+
+	AuctionID int    `json:"auctionID"`
+	AssetID   string `json:"assetID"`
+}
+
+type BidHash struct {
+	Bidder      common.Address `json:"bidder"`
+	BidHash     []byte         `json:"bidHash"`
 	AuctionAddr common.Address `json:"auctionAddr"`
 
 	Platform string `json:"platform"`

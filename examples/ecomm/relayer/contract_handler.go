@@ -17,15 +17,39 @@ func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreased, bid 
 	log.Printf("[%s] HighestBidIncreased Event", strings.ToUpper(bid.Platform))
 
 	amount := new(big.Int).Div(eventPayload.BidAmount, ecomm.DecimalB).String()
-	eventID := eventPayload.AssetId + "_" + bid.Platform + "_" + eventPayload.Bidder.String()[36:]
+	eventID := eventPayload.Id + "_" + bid.Platform + "_" + eventPayload.Bidder.String()[36:]
 	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, eventPayload.AuctionType, t, "", 0)
 
 	bid.BidAmount = amount
 	bid.Bidder = eventPayload.Bidder
-	bid.AssetID = eventPayload.AssetId
+	bid.AssetID = eventPayload.Id
 
 	payloadJSON, _ := json.Marshal(bid)
 	wrapper := ecomm.EventWrapper{Type: "Bid", Result: payloadJSON}
+	payload, _ := json.Marshal(wrapper)
+
+	// asset, _ := assetClient.GetAsset(eventPayload.Id)
+	// auction, _ := assetClient.GetAuction(asset.PendingAuctionID)
+	// fmt.Println("find auction in new bid: ", auction.ID, "status: ", auction.Status)
+
+	ccsvc.Publish(ecomm.BidEvent, payload)
+	return nil
+}
+
+// Smart Contract handler
+func handleNewBidHashEvent(eventPayload ecomm.NewBidHash, bidHash ecomm.BidHash, t time.Time) error {
+	log.Printf("[%s] NewBidHash Event", strings.ToUpper(bidHash.Platform))
+
+	//amount := new(big.Int).Div(eventPayload.BidAmount, ecomm.DecimalB).String()
+	eventID := eventPayload.Id + "_" + bidHash.Platform + "_" + eventPayload.Bidder.String()[36:]
+	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, "", t, "", 0)
+
+	bidHash.BidHash = eventPayload.BidHash
+	bidHash.Bidder = eventPayload.Bidder
+	bidHash.AssetID = eventPayload.Id
+
+	payloadJSON, _ := json.Marshal(bidHash)
+	wrapper := ecomm.EventWrapper{Type: "BidHash", Result: payloadJSON}
 	payload, _ := json.Marshal(wrapper)
 
 	// asset, _ := assetClient.GetAsset(eventPayload.Id)
@@ -116,6 +140,14 @@ func smartContractEvent(eventPayload []byte) {
 
 		event = ecomm.WithdrawEvent
 		eventID = bid.AssetID + "_" + bid.Platform + "_" + bid.Bidder.String()[36:]
+
+	case "BidHash":
+		var bidHash ecomm.BidHash
+		err = json.Unmarshal(wrapper.Result, &bidHash)
+		check(err)
+
+		event = ecomm.WithdrawEvent
+		eventID = bidHash.AssetID + "_" + bidHash.Platform + "_" + bidHash.Bidder.String()[36:]
 	default:
 		fmt.Printf("Unknown type: %s\n", wrapper.Type)
 	}

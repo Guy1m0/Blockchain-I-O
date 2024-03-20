@@ -25,13 +25,13 @@ contract ClosedBidFirstPriceAuction {
     mapping(string => int[]) private score;
 
     // Events that will be emitted on changes.
-    event NewBidHash(uint auction, string id, address bidder, bytes32 bidHash);
-    event HighestBidIncreased(uint auction, string id, address bidder, uint amount);
-    event RevealAuction(uint auction);
-    event WithdrawBid(uint auction, string id, address bidder, uint amount);
-    event DecisionMade(uint auction, address winner, uint amount, string id, bool prcd, string jsonString);
-    event AwaitResponse(uint auction, address winner);
-    event RateAuction(uint auction, string id, int rating, string review);
+    event NewBidHash(uint auctionId, string id, address bidder, bytes32 bidHash);
+    event HighestBidIncreased(uint auctionId, string id, address bidder, uint amount);
+    event RevealAuction(uint auctionId);
+    event WithdrawBid(uint auctionId, string id, address bidder, uint amount);
+    event DecisionMade(uint auctionId, address winner, uint amount, string id, bool prcd, string jsonString);
+    event AwaitResponse(uint auctionId, address winner);
+    event RateAuction(uint auctionId, string id, int rating, string review);
 
     IERC20 public immutable token;
 

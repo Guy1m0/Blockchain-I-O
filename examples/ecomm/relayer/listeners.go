@@ -167,6 +167,20 @@ func startListeningForAuctionEvents(auction_addr common.Address, auction_abi str
 			// call handler
 			handleWithdrawBidEvent(event, result, t)
 
+		case contractAbi.Events["NewBidHash"].ID.Hex():
+			t := time.Now()
+			var event ecomm.NewBidHash
+			err := contractAbi.UnpackIntoInterface(&event, "NewBidHash", vLog.Data)
+			check(err)
+
+			result := ecomm.BidHash{
+				Platform: platform,
+				// AuctionID:   auction_id,
+				AuctionAddr: auction_addr,
+			}
+			// call handler
+			handleNewBidHashEvent(event, result, t)
+
 		case contractAbi.Events["DecisionMade"].ID.Hex():
 			var event ecomm.DecisionMade
 			t := time.Now()
