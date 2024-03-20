@@ -152,7 +152,7 @@ func startListeningForAuctionEvents(auction_addr common.Address, auction_abi str
 			}
 			// call handler
 			handleHighestBidIncreasedEvent(event, result, t)
-			fmt.Printf("New highest bid for %s: %s by %s\n", event.AuctionType, event.BidAmount.String(), event.Bidder.Hex())
+			fmt.Printf("New highest bid for %s: %s by bidder %s\n", event.AuctionType, event.BidAmount.String(), event.Bidder.Hex())
 		case contractAbi.Events["WithdrawBid"].ID.Hex():
 			t := time.Now()
 			var event ecomm.WithdrawBid

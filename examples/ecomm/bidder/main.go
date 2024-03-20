@@ -26,6 +26,7 @@ import (
 
 var (
 	platform = "eth"
+	auc_type = "english"
 
 	usr_name = "Bidder 1"
 	bid_key  string
@@ -58,11 +59,11 @@ func main() {
 	command := flag.String("c", "", "command")
 	id_ := flag.String("id", "", "Auction ID")
 	amount_ := flag.String("amt", "", "Bid amount")
-	auc_type := flag.String("t", "", "Auction type")
 
 	feedback := flag.String("fb", "", "Detail feedback with format 'score@comments'")
 
-	flag.StringVar(&platform, "p", platform, "platform")
+	flag.StringVar(&platform, "p", platform, "specify platform")
+	flag.StringVar(&auc_type, "t", auc_type, "choose auction type")
 	flag.StringVar(&usr_name, "usr", usr_name, "Load User/Bidder Information")
 	flag.Parse()
 
@@ -74,12 +75,12 @@ func main() {
 		amount := new(big.Int)
 		amount.SetString(*amount_, 10)
 		id, _ := strconv.Atoi(*id_)
-		bidAuction(id, amount, *auc_type)
+		bidAuction(id, amount)
 	case "bidH":
 		amount := new(big.Int)
 		amount.SetString(*amount_, 10)
 		id, _ := strconv.Atoi(*id_)
-		bidAuctionH(id, amount, *auc_type)
+		bidAuctionH(id, amount)
 	case "check":
 		id, _ := strconv.Atoi(*id_)
 		check_winner(id)
@@ -99,7 +100,7 @@ func main() {
 }
 
 // also no relayer involved, 'locally' make bid
-func bidAuction(auction_id int, amount *big.Int, auc_type string) {
+func bidAuction(auction_id int, amount *big.Int) {
 	t := time.Now()
 
 	var contract_info ecomm.ContractInfo
@@ -134,7 +135,7 @@ func bidAuction(auction_id int, amount *big.Int, auc_type string) {
 	check(err)
 
 	eventID := a.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
-	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, t, "", 0)
+	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, auc_type, t, "", 0)
 
 	// @todo: Make approve and bid in a single transaction
 	// Approve amount of bid through ERC20 contract
@@ -153,7 +154,7 @@ func bidAuction(auction_id int, amount *big.Int, auc_type string) {
 	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, total_cost, note)
 }
 
-func bidAuctionH(auction_id int, bidAmount *big.Int, auc_type string) {
+func bidAuctionH(auction_id int, bidAmount *big.Int) {
 	t := time.Now()
 
 	var contract_info ecomm.ContractInfo
@@ -182,6 +183,9 @@ func bidAuctionH(auction_id int, bidAmount *big.Int, auc_type string) {
 		auction_contract, err = cb2p_auction.NewCb2pAuction(auction_addr, client)
 		// case "cb1p":
 		// 	auction_contract_cb, err = cb1p_auction.NewCb1pAuction(auction_addr, client)
+	default:
+		log.Printf("Incorrect Auction Type!")
+		return
 	}
 
 	check(err)
@@ -190,7 +194,7 @@ func bidAuctionH(auction_id int, bidAmount *big.Int, auc_type string) {
 	check(err)
 
 	eventID := a.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
-	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, t, "", 0)
+	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, auc_type, t, "", 0)
 
 	// Compute the hash of the bid amount
 	// Solidity equivalent: keccak256(abi.encodePacked(bidAmount))
@@ -204,12 +208,40 @@ func bidAuctionH(auction_id int, bidAmount *big.Int, auc_type string) {
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.ID, auction_addr))
 
 	fmt.Println("Transaction receipt:", receipt)
-	// note := "Cost: " + strconv.FormatUint(receipt1.GasUsed, 10)
-	// note += " + " + strconv.FormatUint(receipt2.GasUsed, 10)
-	// note += " Bid: MDAI " + big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB).String()
 
-	// total_cost := receipt1.GasUsed + receipt2.GasUsed
-	// ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, total_cost, note)
+}
+
+func withdraw(auction_id int) {
+	t := time.Now()
+	client := ethClient
+
+	auction, err := assetClient.GetAuction(auction_id)
+	check(err)
+
+	auction_addr := common.HexToAddress(auction.EthAddr)
+	if platform != "eth" {
+		auction_addr = common.HexToAddress(auction.QuorumAddr)
+		client = quoClient
+	}
+
+	bidT, err := cclib.NewTransactor(bid_key, "password")
+	check(err)
+	eventID := auction.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
+
+	ecomm.LogEvent(logInfoFile, ecomm.WithdrawEvent, eventID, auc_type, t, "", 0)
+
+	// same interface for all 4 kinds auction contracts
+	auction_contract, err := english_auction.NewEnglishAuction(auction_addr, client)
+	check(err)
+
+	tx, err := auction_contract.Withdraw(bidT, big.NewInt(int64(auction_id)))
+	check(err)
+	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Withdraw bid on Auction ID: %d through contract: %s", auction.ID, auction_addr))
+
+	ecomm.UpdateLog(logInfoFile, ecomm.WithdrawEvent, eventID, receipt.GasUsed, "")
+	//debugTransaction(tx)
+	// log
+	/////////////
 }
 
 func check_winner(auction_id int) {
@@ -375,39 +407,6 @@ func provide_feedback(auction_id int, feedback string) {
 	})
 
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
-}
-
-func withdraw(auction_id int) {
-	t := time.Now()
-	client := ethClient
-
-	//assetClient := ecomm.NewAssetClient() // return Fabric asset contract
-	auction, err := assetClient.GetAuction(auction_id)
-	check(err)
-
-	auction_addr := common.HexToAddress(auction.EthAddr)
-	if platform != "eth" {
-		auction_addr = common.HexToAddress(auction.QuorumAddr)
-		client = quoClient
-	}
-
-	bidT, err := cclib.NewTransactor(bid_key, "password")
-	check(err)
-	eventID := auction.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
-
-	ecomm.LogEvent(logInfoFile, ecomm.WithdrawEvent, eventID, t, "", 0)
-
-	auction_contract, err := english_auction.NewEnglishAuction(auction_addr, client)
-	check(err)
-
-	tx, err := auction_contract.Withdraw(bidT, big.NewInt(int64(auction_id)))
-	check(err)
-	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Withdraw bid on Auction ID: %d through contract: %s", auction.ID, auction_addr))
-
-	ecomm.UpdateLog(logInfoFile, ecomm.WithdrawEvent, eventID, receipt.GasUsed, "")
-	//debugTransaction(tx)
-	// log
-	/////////////
 }
 
 func check(err error) {

@@ -32,7 +32,7 @@ func handleAddAssetEvent(eventPayload []byte) error {
 
 	auc_type := result.AucType
 	fmt.Println("Auc Type:", auc_type)
-	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, assetID, t, auc_type, 0)
+	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, assetID, auc_type, t, "", 0)
 
 	payloadJSON, _ := json.Marshal(asset)
 	wrapper := ecomm.EventWrapper{Type: "Asset", Result: payloadJSON}
@@ -72,7 +72,7 @@ func handleAddAssetEvent(eventPayload []byte) error {
 	_, err = assetClient.StartAuction(args)
 
 	check(err)
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, assetID, t, "", 0)
+	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, assetID, auc_type, t, "", 0)
 	return nil
 }
 
@@ -126,7 +126,7 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 	note += " QUO:" + strconv.FormatUint(receipt2.GasUsed, 10)
 
 	t := time.Now()
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, auction.AssetID, t, note, cost)
+	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, auction.AssetID, auction.AucType, t, note, cost)
 
 	log.Println("[fabirc] Start Auction with ID: ", auction.ID)
 
@@ -150,7 +150,7 @@ func handleCancelAuctionEvent(eventPayload string) error {
 	check(err)
 	auction, err := assetClient.GetAuction(auctionID)
 	check(err)
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, t, "", 0)
+	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, auction.AucType, t, "", 0)
 
 	log.Println("[ETH/QUO] Close auctions on both platforms")
 	// load auction contract
@@ -201,7 +201,7 @@ func handleCloseAuctionEvent(eventPayload string) error {
 	check(err)
 	auction, err := assetClient.GetAuction(auctionID)
 	check(err)
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, t, "", 0)
+	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, auction.AucType, t, "", 0)
 
 	log.Println("[ETH/QUO] Determin winner")
 	// load auction contract
@@ -341,5 +341,5 @@ func chainCodeEvent(eventPayload []byte) {
 	}
 	//log.Println("Kafka received event:", event, "with ID:", eventID)
 	//cclib.LogEventToFile(logInfoFile, ecomm.KafkaReceivedEvent, payload, t, timeInfoFile)
-	ecomm.LogEvent(logInfoFile, event, eventID, t, "", 0)
+	ecomm.LogEvent(logInfoFile, event, eventID, "", t, "", 0)
 }

@@ -3,6 +3,7 @@ package ecomm
 import (
 	"encoding/csv"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -15,6 +16,7 @@ var mu sync.Mutex
 type EventLog struct {
 	EventID       string
 	Event         string
+	AucType       string
 	StartTime     time.Time
 	EndTime       time.Time
 	KafkaReceived time.Time
@@ -28,6 +30,7 @@ func (e EventLog) toSlice() []string {
 	return []string{
 		e.EventID,
 		e.Event,
+		e.AucType,
 		e.StartTime.String(),
 		e.EndTime.String(),
 		e.KafkaReceived.String(),
@@ -38,7 +41,7 @@ func (e EventLog) toSlice() []string {
 	}
 }
 
-func LogEvent(filePath, event, eventID string, record_time time.Time, note string, cost uint64) (*EventLog, error) {
+func LogEvent(filePath, event, eventID, auc_type string, record_time time.Time, note string, cost uint64) (*EventLog, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -57,7 +60,7 @@ func LogEvent(filePath, event, eventID string, record_time time.Time, note strin
 	// Check if file is empty or newly created, if so, add the headers
 	if len(records) == 0 {
 		headers := []string{
-			"EventID", "Event", "StartTime", "EndTime", "KafkaReceived", "Cost", "Note", "TimeElapsed", "KafkaTime",
+			"EventID", "Event", "Auction Type", "StartTime", "EndTime", "TimeElapsed", "KafkaReceived", "KafkaTime", "Gas Cost", "Note",
 		}
 		records = append(records, headers)
 	}
@@ -78,10 +81,15 @@ func LogEvent(filePath, event, eventID string, record_time time.Time, note strin
 	if existingIndex == -1 {
 		event_log.EventID = eventID
 		event_log.Event = event
+
 		event_log.StartTime = record_time
 		event_log.Cost = cost
 		event_log.Note = note
 
+		if auc_type == "" {
+			log.Println("Auction type is missing")
+		}
+		event_log.AucType = auc_type
 		//log.Println("Save time:", event_log.StartTime)
 
 		records = append(records, event_log.toSlice())
@@ -89,6 +97,7 @@ func LogEvent(filePath, event, eventID string, record_time time.Time, note strin
 		event_log = EventLog{
 			EventID:       records[existingIndex][0],
 			Event:         event,
+			AucType:       auc_type,
 			StartTime:     parseTime(records[existingIndex][2]),
 			EndTime:       parseTime(records[existingIndex][3]),
 			KafkaReceived: parseTime(records[existingIndex][4]),

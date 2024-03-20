@@ -74,7 +74,7 @@ func create(asset_name string, auc_type string) {
 	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex(), auc_type)
 	check(err)
 
-	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, asset_name, t, "", 0)
+	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, asset_name, auc_type, t, "", 0)
 }
 
 func cancel(auctionID int) {
@@ -92,7 +92,7 @@ func cancel(auctionID int) {
 	_, err = assetClient.CancelAuction(auctionID)
 	check(err)
 
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, a.AssetID, t, "", 0)
+	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, a.AssetID, a.AucType, t, "", 0)
 }
 
 func close(auctionID int) {

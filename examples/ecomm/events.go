@@ -42,13 +42,15 @@ type HighestBidIncreased struct {
 }
 
 type WithdrawBid struct {
-	Id     string
-	Bidder common.Address
-	Amount *big.Int
-	Raw    types.Log // Blockchain specific contextual infos
+	AuctionId *big.Int
+	Id        string
+	Bidder    common.Address
+	Amount    *big.Int
+	Raw       types.Log // Blockchain specific contextual infos
 }
 
 type DecisionMade struct {
+	AuctionId  *big.Int
 	Winner     common.Address
 	Amount     *big.Int
 	Id         string
@@ -57,7 +59,15 @@ type DecisionMade struct {
 	Raw        types.Log // Blockchain specific contextual infos
 }
 
-type WaitResponse struct {
-	Winner common.Address
-	Raw    types.Log // Blockchain specific contextual infos
+type AwaitResponse struct {
+	AuctionId *big.Int
+	Winner    common.Address
+	Raw       types.Log // Blockchain specific contextual infos
+}
+
+type RateAuction struct {
+	AuctionId *big.Int
+	Id        string
+	Rating    *big.Int
+	Review    string
 }
