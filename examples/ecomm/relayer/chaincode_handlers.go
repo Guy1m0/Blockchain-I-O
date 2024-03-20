@@ -96,21 +96,21 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 
 	switch auction.AucType {
 	case "english":
-		tx, err = eth_english_auction_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID)
+		tx, err = eth_english_auction_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID, result.Owner)
 		check(err)
 		receipt1 = ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.ID))
 
-		tx, err = quo_english_auction_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID)
+		tx, err = quo_english_auction_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID, result.Owner)
 		check(err)
 		receipt2 = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.ID))
 	case "dutch":
 
 	case "cb1p":
-		tx, err = eth_cb1p_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID)
+		tx, err = eth_cb1p_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID, result.Owner)
 		check(err)
 		receipt1 = ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.ID))
 
-		tx, err = quo_cb1p_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID)
+		tx, err = quo_cb1p_contract.Create(authT, big.NewInt(int64(auction.ID)), auction.AssetID, result.Owner)
 		check(err)
 		receipt2 = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Create new auction with type: %s and ID: %d", auction.AucType, auction.ID))
 
@@ -129,9 +129,6 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, auction.AssetID, t, note, cost)
 
 	log.Println("[fabirc] Start Auction with ID: ", auction.ID)
-
-	// Listen new auction
-	//onNewAuction(auction)
 
 	payloadJSON, _ := json.Marshal(auction)
 	wrapper := ecomm.EventWrapper{Type: "Start Auction", Result: payloadJSON}

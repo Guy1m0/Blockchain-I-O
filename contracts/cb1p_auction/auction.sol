@@ -18,11 +18,11 @@ contract ClosedBidFirstPriceAuction {
     mapping(uint => uint) public highestBid;
     mapping(uint => string) public status;
     mapping(uint => string) public asset_id;
-    mapping(uint => address) public auction_owner;
+    mapping(uint => string) public asset_owner;
 
     // Feedback
-    mapping(address => string[]) private feedback;
-    mapping(address => int[]) private score;
+    mapping(string => string[]) private feedback;
+    mapping(string => int[]) private score;
 
     // Events that will be emitted on changes.
     event NewBidHash(uint auction, string id, address bidder, bytes32 bidHash);
@@ -40,7 +40,7 @@ contract ClosedBidFirstPriceAuction {
         owner = msg.sender;
     }
 
-    function create(uint _auction_id, string memory _asset_id) public {
+    function create(uint _auction_id, string memory _asset_id, string memory _asset_owner) public {
         require(msg.sender == owner, "Only owner can create new auction");
 
         // Initialize the auction with default values
@@ -48,7 +48,7 @@ contract ClosedBidFirstPriceAuction {
         highestBid[_auction_id] = 0;
         status[_auction_id] = "open";
         asset_id[_auction_id] = _asset_id;
-
+        asset_owner[_auction_id] = _asset_owner;
         // feedback and score are related to users, not auctions, so might not be set here
     }
 
@@ -167,8 +167,8 @@ contract ClosedBidFirstPriceAuction {
         // For testing only
         require(msg.sender == highestBidder[auctionId], "Not authorized access!");
 
-        score[auction_owner[auctionId]].push(_score);
-        feedback[auction_owner[auctionId]].push(_feedback);
+        score[asset_owner[auctionId]].push(_score);
+        feedback[asset_owner[auctionId]].push(_feedback);
 
         emit RateAuction(auctionId, asset_id[auctionId], _score, _feedback);
         status[auctionId] = "closed";
@@ -176,9 +176,9 @@ contract ClosedBidFirstPriceAuction {
 
     function checkAverageScore(uint auctionId) public view returns (int) {
         int total = 0;
-        uint l = score[auction_owner[auctionId]].length;
+        uint l = score[asset_owner[auctionId]].length;
         for(uint i=0; i < l;i++) {
-            total += score[auction_owner[auctionId]][i];
+            total += score[asset_owner[auctionId]][i];
         }
 
         // solidity does not support floats, so we multiply the rating by 100 to achieve accuracy up to two decimals (the user's client will have to divide the result by 100)
