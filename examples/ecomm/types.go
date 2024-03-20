@@ -95,16 +95,6 @@ type Tx struct {
 	Hash     common.Hash
 }
 
-// Struct used as input for creating new Auction
-type StartAuctionArgs struct {
-	AssetID    string
-	AucType    string
-	EthAddr    string
-	QuorumAddr string
-
-	Signature []byte
-}
-
 func (args *StartAuctionArgs) Hash() []byte {
 	h := sha3.New256()
 
@@ -195,6 +185,16 @@ type StartAuctionEventPayload struct {
 	ID      int    `json:"id"`
 	AucType string `json:"aucType"`
 	Owner   string `json:"owner"`
+}
+
+// Struct used as input for creating new Auction
+type StartAuctionArgs struct {
+	AssetID    string
+	AucType    string
+	EthAddr    string
+	QuorumAddr string
+
+	Signature []byte
 }
 
 func VerifySignature(hash, signature []byte, addr string) bool {

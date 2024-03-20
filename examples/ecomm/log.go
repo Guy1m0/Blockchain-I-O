@@ -60,7 +60,7 @@ func LogEvent(filePath, event, eventID, auc_type string, record_time time.Time, 
 	// Check if file is empty or newly created, if so, add the headers
 	if len(records) == 0 {
 		headers := []string{
-			"EventID", "Event", "Auction Type", "StartTime", "EndTime", "TimeElapsed", "KafkaReceived", "KafkaTime", "Gas Cost", "Note",
+			"EventID", "Event", "AuctionType", "StartTime", "EndTime", "TimeElapsed", "KafkaReceived", "KafkaTime", "GasCost", "Note",
 		}
 		records = append(records, headers)
 	}
@@ -141,7 +141,7 @@ func LogEvent(filePath, event, eventID, auc_type string, record_time time.Time, 
 	return &event_log, nil
 }
 
-func UpdateLog(filePath, eventName, eventID string, cost uint64, note string) error {
+func UpdateLog(filePath, eventName, eventID, aucType string, cost uint64, note string) error {
 	mu.Lock()
 	defer mu.Unlock()
 	// 1. Open the CSV file

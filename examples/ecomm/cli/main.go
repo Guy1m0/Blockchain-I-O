@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"math/big"
@@ -10,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
@@ -31,7 +31,7 @@ const (
 	userInfoFile     = "../user_info.json"
 
 	logCSVPath     = "../log.csv"
-	defaultHeaders = "EventID,Event,StartTime,EndTime,KafkaReceived,Cost,Note,TimeElapsed,KafkaTime\n"
+	defaultHeaders = "EventID,Event,AuctionType,StartTime,EndTime,KafkaReceived,GasCost,Note,TimeElapsed,KafkaTime\n"
 )
 
 var (
@@ -74,38 +74,37 @@ func main() {
 }
 
 func reset_log() error {
-	var columnHeaders string
-
-	// Try to open the file in read mode
-	file, err := os.Open(logCSVPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// If the file does not exist, use default headers
-			columnHeaders = defaultHeaders
-		} else {
-			// Some other error occurred
-			return err
-		}
-	} else {
-		// If the file exists, read the first line to get the column headers
-		scanner := bufio.NewScanner(file)
-		if scanner.Scan() {
-			columnHeaders = scanner.Text() + "\n"
-		}
-		file.Close() // Close the file after reading the headers
-	}
-
 	// Open (or create) the file in write mode to reset it or create a new one
-	file, err = os.Create(logCSVPath)
+	file, err := os.Create(logCSVPath)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
 	// Write the column headers back to the file
-	_, err = file.WriteString(columnHeaders)
+	_, err = file.WriteString(defaultHeaders)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// cleanFileContent opens the file at the given filePath and truncates it to zero length,
+// effectively cleaning its content.
+func cleanFileContent(filePath string) error {
+	// Try to open the file in read mode
+	_, err := os.Open(filePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// If the file does not exist, use default headers
+			return nil
+		} else {
+			return err
+		}
+	} else {
+		err = os.Remove(filePath)
+		check(err)
 	}
 
 	return nil
@@ -115,8 +114,14 @@ func reset_log() error {
 func initialize(token_name string) {
 	fabricToken := ecomm.NewErc20Client(token_name)
 
-	fmt.Println("Initialize Log.csv")
+	fmt.Println("Initialize Log and Info files")
 	err := reset_log()
+	check(err)
+
+	err = cleanFileContent(userInfoFile)
+	check(err)
+
+	err = cleanFileContent(contractInfoFile)
 	check(err)
 
 	fmt.Println("Initialize Fabric Stable Coin: ", token_name)
@@ -140,8 +145,8 @@ func initialize(token_name string) {
 	// ecomm.WaitTx(ethClient, tx, "Deploy Dutch Auction on Ethereum")
 	// //_ = debugTransaction(tx)
 
-	// eth_closed_bid_addr, tx, _, _ := cb1p_auction.DeployCb1pAuction(rootT, ethClient, eth_MDAI_addr)
-	// ecomm.WaitTx(ethClient, tx, "Deploy Closed Bid Auction on Ethereum")
+	eth_closed_bid_addr, tx, _, _ := cb1p_auction.DeployCb1pAuction(rootT, ethClient, eth_MDAI_addr)
+	ecomm.WaitTx(ethClient, tx, "Deploy Closed Bid Auction on Ethereum")
 
 	// eth_closed_bid_2nd_addr, tx, _, _ := cb2p_auction.DeployCb2pAuction(rootT, ethClient, eth_MDAI_addr)
 	// ecomm.WaitTx(ethClient, tx, "Deploy Closed Bid Auction on Ethereum")
@@ -159,8 +164,8 @@ func initialize(token_name string) {
 	// quo_dutch_addr, tx, _, _ := dutch_auction.DeployDutchAuction(rootT, quoClient, quo_MDAI_addr)
 	// ecomm.WaitTx(quoClient, tx, "Deploy Dutch Auction on Ethereum")
 
-	// quo_closed_bid_addr, tx, _, _ := cb1p_auction.DeployCb1pAuction(rootT, quoClient, quo_MDAI_addr)
-	// ecomm.WaitTx(quoClient, tx, "Deploy Closed Bid Auction on Quorum")
+	quo_closed_bid_addr, tx, _, _ := cb1p_auction.DeployCb1pAuction(rootT, quoClient, quo_MDAI_addr)
+	ecomm.WaitTx(quoClient, tx, "Deploy Closed Bid Auction on Quorum")
 
 	// quo_closed_bid_2nd_addr, tx, _, _ := cb2p_auction.DeployCb2pAuction(rootT, quoClient, quo_MDAI_addr)
 	// ecomm.WaitTx(quoClient, tx, "Deploy Closed Bid Auction on Ethereum")
@@ -183,11 +188,11 @@ func initialize(token_name string) {
 		// 	QuoAddr: quo_dutch_addr,
 		// 	EthAddr: eth_dutch_addr,
 		// },
-		// Cb1pAuction: ecomm.AuctionInfo{
-		// 	Owner:   rootT.From,
-		// 	QuoAddr: quo_closed_bid_addr,
-		// 	EthAddr: eth_closed_bid_addr,
-		// },
+		Cb1pAuction: ecomm.AuctionInfo{
+			Owner:   rootT.From,
+			QuoAddr: quo_closed_bid_addr,
+			EthAddr: eth_closed_bid_addr,
+		},
 		// Cb2pAuction: ecomm.AuctionInfo{
 		// 	Owner:   rootT.From,
 		// 	QuoAddr: quo_closed_bid_2nd_addr,

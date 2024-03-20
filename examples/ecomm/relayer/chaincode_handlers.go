@@ -180,7 +180,7 @@ func handleCancelAuctionEvent(eventPayload string) error {
 	cost += receipt.GasUsed
 	note += " QUO:" + strconv.FormatUint(receipt.GasUsed, 10)
 
-	ecomm.UpdateLog(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, cost, note)
+	ecomm.UpdateLog(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, "", cost, note)
 	//ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
 
 	payloadJSON, _ := json.Marshal(auction)

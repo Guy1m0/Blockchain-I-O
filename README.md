@@ -120,7 +120,7 @@ go build .
 
 then
 ```bash
-./auctioneer -c create -ast "Asset name"
+./auctioneer -c create -ast "Asset name" -t "Auction Type"
 ```
 
 which will return Auction ID in the terminal

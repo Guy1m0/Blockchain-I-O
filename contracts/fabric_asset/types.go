@@ -22,7 +22,7 @@ type StartAuctionArgs struct {
 }
 
 type Auction struct {
-	ID         int    `json:"id"`
+	AuctionID  int    `json:"auctionId"`
 	AssetID    string `json:"assetId"`
 	AucType    string `json:"aucType"`
 	EthAddr    string `json:"ethAddr"`

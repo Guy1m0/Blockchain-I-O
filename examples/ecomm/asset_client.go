@@ -84,6 +84,11 @@ func (cc *AssetClient) CloseAuction(ID int) ([]byte, error) {
 	return cc.contract.SubmitTransaction("CloseAuction", IDStr)
 }
 
+func (cc *AssetClient) RevealAuction(ID int) ([]byte, error) {
+	IDStr := strconv.FormatInt(int64(ID), 10)
+	return cc.contract.SubmitTransaction("CloseAuction", IDStr)
+}
+
 func (cc *AssetClient) CancelAuction(ID int) ([]byte, error) {
 	IDStr := strconv.FormatInt(int64(ID), 10)
 	return cc.contract.SubmitTransaction("CancelAuction", IDStr)

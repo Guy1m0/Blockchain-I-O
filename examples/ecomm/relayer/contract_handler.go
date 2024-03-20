@@ -71,7 +71,7 @@ func handleWithdrawBidEvent(eventPayload ecomm.WithdrawBid, bid ecomm.Bid, t tim
 	bid.Bidder = eventPayload.Bidder
 	bid.AssetID = eventPayload.Id
 
-	ecomm.UpdateLog(logInfoFile, ecomm.WithdrawEvent, eventID, 0, "Withdraw: MDAI "+amount)
+	ecomm.UpdateLog(logInfoFile, ecomm.WithdrawEvent, eventID, "", 0, "Withdraw: MDAI "+amount)
 
 	payloadJSON, _ := json.Marshal(bid)
 	wrapper := ecomm.EventWrapper{Type: "Withdraw", Result: payloadJSON}

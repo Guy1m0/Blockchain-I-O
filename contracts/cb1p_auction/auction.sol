@@ -8,7 +8,7 @@ interface IERC20 {
 
 contract ClosedBidFirstPriceAuction {
     address public owner;
-
+    string public auction_type;
     // Allowed withdrawals of previous bids
     mapping(address => uint) pendingReturns;
 
@@ -25,7 +25,7 @@ contract ClosedBidFirstPriceAuction {
     mapping(string => int[]) private score;
 
     // Events that will be emitted on changes.
-    event NewBidHash(uint auctionId, string id, address bidder, bytes32 bidHash);
+    event NewBidHash(uint auctionId, string id, address bidder, bytes32 bidHash, string auctionType);
     event HighestBidIncreased(uint auctionId, string id, address bidder, uint amount);
     event RevealAuction(uint auctionId);
     event WithdrawBid(uint auctionId, string id, address bidder, uint amount);
@@ -38,6 +38,7 @@ contract ClosedBidFirstPriceAuction {
     constructor(address _token) {
         token = IERC20(_token);
         owner = msg.sender;
+        auction_type = "cb1p";
     }
 
     function create(uint _auction_id, string memory _asset_id, string memory _asset_owner) public {
@@ -58,7 +59,7 @@ contract ClosedBidFirstPriceAuction {
 
         // Update the highest bid and highest bidder
         bidHashes[auctionId][msg.sender] = bidHash;
-        emit NewBidHash(auctionId,asset_id[auctionId], msg.sender, bidHash);
+        emit NewBidHash(auctionId,asset_id[auctionId], msg.sender, bidHash, auction_type);
     }
 
     function revealAuction(uint auctionId) public {

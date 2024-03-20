@@ -76,9 +76,9 @@ func (cc *SmartContract) StartAuction(
 		return err
 	}
 	auction := Auction{
-		ID:      lastID + 1,
-		AssetID: args.AssetID,
-		AucType: args.AucType,
+		AuctionID: lastID + 1,
+		AssetID:   args.AssetID,
+		AucType:   args.AucType,
 
 		EthAddr:    args.EthAddr,
 		QuorumAddr: args.QuorumAddr,
@@ -88,25 +88,55 @@ func (cc *SmartContract) StartAuction(
 	if err != nil {
 		return err
 	}
-	err = cc.setLastAuctionID(ctx, auction.ID)
+	err = cc.setLastAuctionID(ctx, auction.AuctionID)
 	if err != nil {
 		return err
 	}
 
-	asset.PendingAuctionID = auction.ID
+	asset.PendingAuctionID = auction.AuctionID
 	err = cc.setAsset(ctx, asset)
 	if err != nil {
 		return fmt.Errorf("error setting asset: %v", err)
 	}
 
 	// Emit an event when an asset is added
-	event := StartAuctionEventPayload{ID: auction.ID, AucType: args.AucType, Owner: asset.Owner}
+	event := StartAuctionEventPayload{ID: auction.AuctionID, AucType: args.AucType, Owner: asset.Owner}
 	eventPayload, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("error marshalling event: %v", err)
 	}
 
 	err = ctx.GetStub().SetEvent("StartAuction", eventPayload)
+	if err != nil {
+		return fmt.Errorf("error setting event: %v", err)
+	}
+
+	return nil
+}
+
+func (cc *SmartContract) RevealAuction(
+	ctx contractapi.TransactionContextInterface, IDStr string,
+) error {
+
+	ID, _ := strconv.Atoi(IDStr)
+	auction, err := cc.GetAuction(ctx, ID)
+
+	if err != nil {
+		return err
+	}
+
+	auction.Status = "reveal"
+	err = cc.setAuction(ctx, auction)
+	if err != nil {
+		return fmt.Errorf("error setting auction: %v", err)
+	}
+
+	// Emit an event when an auction is started
+	eventPayload, err := json.Marshal(auction)
+	if err != nil {
+		return fmt.Errorf("error marshalling event: %v", err)
+	}
+	err = ctx.GetStub().SetEvent("RevealAuction", []byte(eventPayload))
 	if err != nil {
 		return fmt.Errorf("error setting event: %v", err)
 	}
@@ -141,7 +171,7 @@ func (cc *SmartContract) CancelAuction(
 	}
 
 	// Emit an event when an auction is started
-	eventPayload := fmt.Sprintf("Auction ID: %d", auction.ID)
+	eventPayload := fmt.Sprintf("Auction ID: %d", auction.AuctionID)
 	err = ctx.GetStub().SetEvent("CancelAuction", []byte(eventPayload))
 	if err != nil {
 		return fmt.Errorf("error setting event: %v", err)
@@ -168,7 +198,7 @@ func (cc *SmartContract) CloseAuction(
 	}
 
 	// Emit an event when an auction is started
-	eventPayload := fmt.Sprintf("Auction ID: %d", auction.ID)
+	eventPayload := fmt.Sprintf("Auction ID: %d", auction.AuctionID)
 	err = ctx.GetStub().SetEvent("CloseAuction", []byte(eventPayload))
 	if err != nil {
 		return fmt.Errorf("error setting event: %v", err)
@@ -214,10 +244,10 @@ func (cc *SmartContract) FinAuction(
 	}
 
 	// todo: make event payload reasonable
-	eventPayload := fmt.Sprintf("Auction: %d, closed with old owner: %s", auction.ID, asset.Owner)
+	eventPayload := fmt.Sprintf("Auction: %d, closed with old owner: %s", auction.AuctionID, asset.Owner)
 	if prcd {
 		asset.Owner = auction.HighestBidder
-		eventPayload = fmt.Sprintf("Auction: %d, closed with new owner: %s", auction.ID, asset.Owner)
+		eventPayload = fmt.Sprintf("Auction: %d, closed with new owner: %s", auction.AuctionID, asset.Owner)
 	}
 
 	asset.PendingAuctionID = 0
@@ -306,7 +336,7 @@ func (cc *SmartContract) setAuction(
 	ctx contractapi.TransactionContextInterface, auction *Auction,
 ) error {
 	b, _ := json.Marshal(auction)
-	err := ctx.GetStub().PutState(cc.makeAuctionKey(auction.ID), b)
+	err := ctx.GetStub().PutState(cc.makeAuctionKey(auction.AuctionID), b)
 	if err != nil {
 		return fmt.Errorf("set auction error: %v", err)
 	}

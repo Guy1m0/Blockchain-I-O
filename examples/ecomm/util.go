@@ -158,6 +158,7 @@ func AddUserToFile(filepath string, newUser UserInfo) {
 			panic(err)
 		}
 	} else {
+		//		users = []UserInfo{}
 		err = json.Unmarshal(file, &users)
 		if err != nil {
 			panic(err)

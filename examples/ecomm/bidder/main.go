@@ -151,7 +151,7 @@ func bidAuction(auction_id int, amount *big.Int) {
 	note += " Bid: MDAI " + big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB).String()
 
 	total_cost := receipt1.GasUsed + receipt2.GasUsed
-	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, total_cost, note)
+	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, auc_type, total_cost, note)
 }
 
 func bidAuctionH(auction_id int, bidAmount *big.Int) {
@@ -238,7 +238,7 @@ func withdraw(auction_id int) {
 	check(err)
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Withdraw bid on Auction ID: %d through contract: %s", auction.AuctionID, auction_addr))
 
-	ecomm.UpdateLog(logInfoFile, ecomm.WithdrawEvent, eventID, receipt.GasUsed, "")
+	ecomm.UpdateLog(logInfoFile, ecomm.WithdrawEvent, eventID, auc_type, receipt.GasUsed, "")
 	//debugTransaction(tx)
 	// log
 	/////////////

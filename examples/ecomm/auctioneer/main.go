@@ -50,6 +50,8 @@ func main() {
 	switch *command {
 	case "create":
 		create(*asset, *auc_type)
+	case "reveal":
+
 	case "close":
 		id_, _ := strconv.Atoi(*id)
 		close(id_)
@@ -75,6 +77,30 @@ func create(asset_name string, auc_type string) {
 	check(err)
 
 	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, asset_name, auc_type, t, "", 0)
+}
+
+func reveal(auctionID int) {
+	t := time.Now()
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+
+	a, err := assetClient.GetAuction(auctionID)
+	check(err)
+
+	if a.Status != "open" {
+		err = fmt.Errorf("auction status error")
+		check(err)
+	}
+
+	log.Println("[fabric] Reveal auction")
+	_, err = assetClient.CloseAuction(auctionID)
+	check(err)
+
+	payload, _ := json.Marshal(a)
+	t = time.Now()
+	cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
+
+	//@reset
+	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 }
 
 func cancel(auctionID int) {
