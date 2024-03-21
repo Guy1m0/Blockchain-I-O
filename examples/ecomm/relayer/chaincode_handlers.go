@@ -118,6 +118,7 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 
 	default:
 		fmt.Println("Auction type error")
+
 	}
 
 	cost := receipt1.GasUsed
@@ -128,7 +129,8 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 	t := time.Now()
 	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, auction.AssetID, auction.AucType, t, note, cost)
 
-	log.Println("[fabirc] Start Auction with ID: ", auction.AuctionID)
+	log.Println("[fabirc] Start Auction with ID: ", result.ID)
+	log.Println("AuctionID", auction.AuctionID)
 
 	payloadJSON, _ := json.Marshal(auction)
 	wrapper := ecomm.EventWrapper{Type: "Start Auction", Result: payloadJSON}

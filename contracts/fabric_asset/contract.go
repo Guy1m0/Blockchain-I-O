@@ -88,6 +88,7 @@ func (cc *SmartContract) StartAuction(
 	if err != nil {
 		return err
 	}
+
 	err = cc.setLastAuctionID(ctx, auction.AuctionID)
 	if err != nil {
 		return err

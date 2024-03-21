@@ -27,8 +27,9 @@ const (
 var (
 	assetClient *ecomm.AssetClient
 
-	aucT     *bind.TransactOpts
-	usr_name = "Auctioner 1"
+	aucT              *bind.TransactOpts
+	usr_name          = "Auctioner 1"
+	support_auc_types = []string{"english", "dutch", "cb1p", "cb2p"}
 	//auc_key  = "../../keys/key1"
 )
 
@@ -51,7 +52,8 @@ func main() {
 	case "create":
 		create(*asset, *auc_type)
 	case "reveal":
-
+		id_, _ := strconv.Atoi(*id)
+		reveal(id_)
 	case "close":
 		id_, _ := strconv.Atoi(*id)
 		close(id_)
@@ -71,7 +73,13 @@ func main() {
 // Use key 1 as default auctioner
 func create(asset_name string, auc_type string) {
 	t := time.Now()
-	fmt.Println("Auc type:", auc_type)
+	//fmt.Println("Auc type:", auc_type)
+
+	if !stringInSlice(support_auc_types, auc_type) {
+		log.Println("[fabric] not support auction type")
+		return
+	}
+
 	log.Println("[fabric] Adding asset")
 	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex(), auc_type)
 	check(err)
@@ -164,6 +172,16 @@ func load_auctioner(name string) string {
 	}
 
 	return "../../keys/key1"
+}
+
+// stringInSlice checks if a string exists in a slice of strings.
+func stringInSlice(slice []string, target string) bool {
+	for _, item := range slice {
+		if item == target {
+			return true // Found the target string in the slice
+		}
+	}
+	return false // Target string not found in the slice
 }
 
 func check(err error) {

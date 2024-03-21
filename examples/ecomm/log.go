@@ -96,13 +96,13 @@ func LogEvent(filePath, event, eventID, auc_type string, record_time time.Time, 
 	} else {
 		event_log = EventLog{
 			EventID:       records[existingIndex][0],
-			Event:         event,
-			AucType:       auc_type,
-			StartTime:     parseTime(records[existingIndex][2]),
-			EndTime:       parseTime(records[existingIndex][3]),
-			KafkaReceived: parseTime(records[existingIndex][4]),
-			Cost:          parseCost(records[existingIndex][5]),
-			Note:          records[existingIndex][6],
+			Event:         records[existingIndex][1],
+			AucType:       records[existingIndex][2],
+			StartTime:     parseTime(records[existingIndex][3]),
+			EndTime:       parseTime(records[existingIndex][4]),
+			KafkaReceived: parseTime(records[existingIndex][5]),
+			Cost:          parseCost(records[existingIndex][6]),
+			Note:          records[existingIndex][7],
 		}
 
 		//log.Println("StartTime: ", event_log.StartTime, "from: ", records[existingIndex][2])

@@ -1,1 +1,3 @@
 EventID,Event,AuctionType,StartTime,EndTime,KafkaReceived,GasCost,Note,TimeElapsed,KafkaTime
+NFT1,auctioner.add_asset,english,2024-03-21 11:11:32.143052 +0800 +08,2024-03-21 11:11:34.165735 +0800 +08,2024-03-21 11:11:34.181332 +0800 +08 m=+11.793949919,0,,2.022683s,15.597ms
+NFT1,relayer.start_auction,english,2024-03-21 11:11:34.175238 +0800 +08 m=+11.787855863,0001-01-01 00:00:00 +0000 UTC,0001-01-01 00:00:00 +0000 UTC,0,,0s,0s
