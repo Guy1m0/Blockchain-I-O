@@ -145,6 +145,30 @@ func WriteJsonFile(filepath string, val interface{}) {
 	check(err)
 }
 
+// AddAuctionToFile appends a new auction to the specified file.
+func AddAuctionToFile(filePath string, auction Auction) error {
+	// Open the file with append mode and write mode
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("error opening the file: %v", err)
+	}
+	defer file.Close()
+
+	// Serialize the Auction to JSON
+	auctionJSON, err := json.Marshal(auction)
+	if err != nil {
+		return fmt.Errorf("error marshalling the auction to JSON: %v", err)
+	}
+
+	// Append the JSON string to the file, followed by a newline character
+	_, err = file.WriteString(string(auctionJSON) + "\n")
+	if err != nil {
+		return fmt.Errorf("error writing the auction to the file: %v", err)
+	}
+
+	return nil
+}
+
 func AddUserToFile(filepath string, newUser UserInfo) {
 	// Read existing users
 	var users []UserInfo

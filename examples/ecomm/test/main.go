@@ -12,6 +12,7 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 const (
@@ -25,6 +26,9 @@ const (
 )
 
 var (
+	ethClient *ethclient.Client
+	quoClient *ethclient.Client
+
 	assetClient *ecomm.AssetClient
 
 	aucT              *bind.TransactOpts
@@ -34,6 +38,11 @@ var (
 )
 
 func main() {
+	var err error
+	ethClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8545", "localhost"))
+	check(err)
+	quoClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
+	check(err)
 	assetClient = ecomm.NewAssetClient()
 
 	command := flag.String("c", "", "command")
@@ -49,6 +58,8 @@ func main() {
 	aucT, _ = cclib.NewTransactor(auc_key, password)
 
 	switch *command {
+	case "test":
+		test(*auc_type)
 	case "create":
 		create(*asset, *auc_type)
 	case "reveal":
@@ -66,6 +77,10 @@ func main() {
 	default:
 		fmt.Println("command not found")
 	}
+}
+
+func test(auc_type string) {
+
 }
 
 // Use key 1 as default auctioner

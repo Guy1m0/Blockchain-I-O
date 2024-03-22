@@ -2,7 +2,7 @@
 
 # Execute the scripts in sequence
 ./stop.sh
-./remove.sh
+./clean.sh
 ./init.sh
 ./start.sh
 
