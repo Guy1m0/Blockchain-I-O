@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Guy1m0/Blockchain-I-O/cclib"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -145,30 +143,6 @@ func WriteJsonFile(filepath string, val interface{}) {
 	check(err)
 }
 
-// AddAuctionToFile appends a new auction to the specified file.
-func AddAuctionToFile(filePath string, auction Auction) error {
-	// Open the file with append mode and write mode
-	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return fmt.Errorf("error opening the file: %v", err)
-	}
-	defer file.Close()
-
-	// Serialize the Auction to JSON
-	auctionJSON, err := json.Marshal(auction)
-	if err != nil {
-		return fmt.Errorf("error marshalling the auction to JSON: %v", err)
-	}
-
-	// Append the JSON string to the file, followed by a newline character
-	_, err = file.WriteString(string(auctionJSON) + "\n")
-	if err != nil {
-		return fmt.Errorf("error writing the auction to the file: %v", err)
-	}
-
-	return nil
-}
-
 func AddUserToFile(filepath string, newUser UserInfo) {
 	// Read existing users
 	var users []UserInfo
@@ -220,6 +194,57 @@ func ReadUsersFromFile(filepath string) ([]UserInfo, error) {
 	return users, nil
 }
 
+func AddAuctionToFile(filepath string, newAuction AuctionInfo) {
+	// Read existing users
+	var auctions []AuctionInfo
+	file, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// File does not exist yet, will be created later
+			auctions = []AuctionInfo{}
+		} else {
+			// Other error
+			panic(err)
+		}
+	} else {
+		//		users = []UserInfo{}
+		err = json.Unmarshal(file, &auctions)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// Add new user
+	auctions = append(auctions, newAuction)
+
+	// Write back to file
+	file, err = json.MarshalIndent(auctions, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	err = ioutil.WriteFile(filepath, file, 0644)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func ReadAuctionsFromFile(filepath string) ([]AuctionInfo, error) {
+	// Read file
+	file, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal JSON
+	var auctions []AuctionInfo
+	err = json.Unmarshal(file, &auctions)
+	if err != nil {
+		return nil, err
+	}
+
+	return auctions, nil
+}
+
 func SplitSignature(sig string) (r [32]byte, s [32]byte, v uint8) {
 	b := common.Hex2Bytes(sig)
 	copy(r[:], b[:32])
@@ -242,17 +267,17 @@ func SplitSignature(sig string) (r [32]byte, s [32]byte, v uint8) {
 
 // this is only used for recording bid
 // Use Auctioner 1's key1 to deploy contract
-func DeployCrossChainAuction(client *ethclient.Client, erc20 common.Address, asset_id string, root_key string) (string, *types.Receipt) {
-	auth, err := cclib.NewTransactor(root_key, password)
-	check(err)
+// func DeployCrossChainAuction(client *ethclient.Client, erc20 common.Address, asset_id string, root_key string) (string, *types.Receipt) {
+// 	auth, err := cclib.NewTransactor(root_key, password)
+// 	check(err)
 
-	addr, tx, _, err := eth_auction.DeployEthAuction(auth, client, erc20, asset_id)
-	check(err)
+// 	addr, tx, _, err := eth_auction.DeployEthAuction(auth, client, erc20, asset_id)
+// 	check(err)
 
-	receipt := WaitTx(client, tx, fmt.Sprintf("Deploy Auction contract with address: %s", addr.Hex()))
+// 	receipt := WaitTx(client, tx, fmt.Sprintf("Deploy Auction contract with address: %s", addr.Hex()))
 
-	return addr.Hex(), receipt
-}
+// 	return addr.Hex(), receipt
+// }
 
 // Auction Contract is already deployed in Fabric Network
 // Just create a asset/auction obj in one global variable stored in this
