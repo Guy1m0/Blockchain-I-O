@@ -137,6 +137,14 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 	payload, _ := json.Marshal(wrapper)
 
 	err = ccsvc.Publish(ecomm.AuctionStartingEvent, payload)
+	ecomm.AddAuctionToFile(auctionInfoFile, ecomm.AuctionInfo{
+		AuctionID: auction.AuctionID,
+		AucType:   auction.AucType,
+		Owner:     common.HexToAddress(result.Owner),
+		AssetID:   auction.AssetID,
+		EthAddr:   common.HexToAddress(auction.EthAddr),
+		QuoAddr:   common.HexToAddress(auction.QuorumAddr),
+	})
 
 	return err
 }

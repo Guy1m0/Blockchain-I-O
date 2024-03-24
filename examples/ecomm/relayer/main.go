@@ -53,8 +53,9 @@ const (
 	root_key = "../../keys/key0"
 	password = "password"
 
-	contractInfoFile = "../contract_info.json"
-	logInfoFile      = "../log.csv"
+	contractInfoFile = "../tmp/contract_info.json"
+	auctionInfoFile  = "../tmp/auction_info.json"
+	logInfoFile      = "../tmp/log.csv"
 )
 
 func main() {

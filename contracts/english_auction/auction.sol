@@ -54,17 +54,17 @@ contract EnglishAuction {
     }
 
     function bid(uint auctionId, uint bidAmount) public {
-        // // Use hash to check status
-        // require(keccak256(abi.encodePacked(status[auctionId])) == keccak256(abi.encodePacked("open")), "Contract not in OPEN status");
+        // Use hash to check status
+        require(keccak256(abi.encodePacked(status[auctionId])) == keccak256(abi.encodePacked("open")), "Contract not in OPEN status");
 
-        // // Check that the bid is higher than the current highest bid
-        // require(bidAmount > highestBid[auctionId], "There already is a higher bid.");
+        // Check that the bid is higher than the current highest bid
+        require(bidAmount > highestBid[auctionId], "There already is a higher bid.");
 
-        // // Attempt to transfer the tokens from the bidder to the contract
-        // bool transferSuccessful = token.transferFrom(msg.sender, address(this), bidAmount);
+        // Attempt to transfer the tokens from the bidder to the contract
+        bool transferSuccessful = token.transferFrom(msg.sender, address(this), bidAmount);
         
-        // // Check that the token transfer was successful
-        // require(transferSuccessful, "Token transfer failed.");
+        // Check that the token transfer was successful
+        require(transferSuccessful, "Token transfer failed.");
 
         // If there was a previous bid, allow the previous highest bidder to withdraw their bid
         if (highestBid[auctionId] != 0) {

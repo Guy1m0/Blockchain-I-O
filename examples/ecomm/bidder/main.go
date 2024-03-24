@@ -40,10 +40,10 @@ var (
 const (
 	password = "password"
 
-	contractInfoFile = "../contract_info.json"
-	userInfoFile     = "../user_info.json"
-	logInfoFile      = "../log.csv"
-	timeInfoFile     = "../timer"
+	contractInfoFile = "../tmp/contract_info.json"
+	userInfoFile     = "../tmp/user_info.json"
+	logInfoFile      = "../tmp/log.csv"
+	timeInfoFile     = "../tmp/timer"
 )
 
 func main() {

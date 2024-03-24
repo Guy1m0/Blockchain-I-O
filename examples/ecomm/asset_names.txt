@@ -1,368 +1,104 @@
-Lion
-Tiger
-Bear
-Elephant
-Leopard
-Cheetah
-Wolf
-Fox
-Giraffe
-Zebra
-Lion
-Tiger
-Bear
-Elephant
-Leopard
-Cheetah
-Wolf
-Fox
-Giraffe
-Zebra
-Lion
-Tiger
-Bear
-Elephant
-Leopard
-Cheetah
-Wolf
-Fox
-Giraffe
-Zebra
-Lion
-Tiger
-Bear
-Elephant
-Leopard
-Cheetah
-Wolf
-Fox
-Giraffe
-Zebra
-Lion
-Tiger
-Bear
-Elephant
-Leopard
-Cheetah
-Wolf
-Fox
-Giraffe
-Zebra
-Lion
-Tiger
-Bear
-Elephant
-Leopard
-Cheetah
-Wolf
-Fox
-Giraffe
-Zebra
-Lion
-Tiger
-Bear
-Elephant
-Leopard
-Cheetah
-Wolf
-Fox
-Giraffe
-Zebra
-Lion
-Tiger
-Bear
-Elephant
-Leopard
-Cheetah
-Wolf
-Fox
-Giraffe
-Zebra
-Lion
-Tiger
-Bear
-Elephant
-Leopard
-Cheetah
-Wolf
-Fox
-Giraffe
-Zebra
-Lion
-Tiger
-Bear
-Elephant
-Leopard
-Cheetah
-Wolf
-Fox
-Giraffe
-Zebra
-Pizza
-Burger
-Fries
-Hot Dog
-Sandwich
-Taco
-Burrito
 Steak
-Chicken
-Fish
-Pizza
-Burger
-Fries
-Hot Dog
-Sandwich
-Taco
-Burrito
-Steak
-Chicken
-Fish
-Pizza
-Burger
-Fries
-Hot Dog
-Sandwich
-Taco
-Burrito
-Steak
-Chicken
-Fish
-Pizza
-Burger
-Fries
-Hot Dog
-Sandwich
-Taco
-Burrito
-Steak
-Chicken
-Fish
-Pizza
-Burger
-Fries
-Hot Dog
-Sandwich
-Taco
-Burrito
-Steak
-Chicken
-Fish
-Pizza
-Burger
-Fries
-Hot Dog
-Sandwich
-Taco
-Burrito
-Steak
-Chicken
-Fish
-Pizza
-Burger
-Fries
-Hot Dog
-Sandwich
-Taco
-Burrito
-Steak
-Chicken
-Fish
-Pizza
-Burger
-Fries
-Hot Dog
-Sandwich
-Taco
-Burrito
-Steak
-Chicken
-Fish
-Pizza
-Burger
-Fries
-Hot Dog
-Sandwich
-Taco
-Burrito
-Steak
-Chicken
-Fish
-Pizza
-Burger
-Fries
-Hot Dog
-Sandwich
-Taco
-Burrito
-Steak
-Chicken
-Fish
-Computer
-Laptop
-Printer
-Scanner
-Fax Machine
-Photocopier
-Projector
-Camera
-Video Camera
-Smartphone
-Tablet
-Smartwatch
-E-reader
-Game Console
-VR Headset
-Drone
-Robot
-Washing Machine
-Dryer
-Dishwasher
-Refrigerator
-Freezer
-Microwave
-Oven
-Toaster
-Blender
-Mixer
-Coffee Maker
-Electric Kettle
-Rice Cooker
-Slow Cooker
-Toaster Oven
-Food Processor
-Deep Fryer
-Grill
-Stove
-Range Hood
-Sewing Machine
-Vacuum Cleaner
-Air Purifier
-Space Heater
-Dehumidifier
-Humidifier
-Fan
-Air Conditioner
-Water Heater
-Boiler
-Furnace
-Generator
-Power Drill
-Circular Saw
-Jigsaw
-Sander
-Workbench
-Lawn Mower
-Leaf Blower
-Snow Blower
-Pressure Washer
-Chainsaw
-Hedge Trimmer
-Weed Eater
-Sprinkler
-Garden Hose
-Wheelbarrow
-Ladder
-Toolbox
-Hammer
-Screwdriver
-Wrench
-Pliers
-Tape Measure
-Utility Knife
-Flashlight
-Battery Charger
-Inverter
-Solar Panel
-Wind Turbine
-Hydraulic Press
-Lathe
-Milling Machine
-Drill Press
 Bandsaw
-Welder
-Grinder
-Computer
-Laptop
-Printer
-Scanner
-Fax Machine
-Photocopier
-Projector
-Camera
-Video Camera
-Smartphone
-Tablet
-Smartwatch
-E-reader
-Game Console
-VR Headset
-Drone
-Robot
-Washing Machine
+Chicken
 Dryer
-Dishwasher
-Refrigerator
-Freezer
-Microwave
-Oven
-Toaster
-Blender
-Mixer
-Coffee Maker
-Electric Kettle
-Rice Cooker
-Slow Cooker
-Toaster Oven
-Food Processor
-Deep Fryer
-Grill
-Stove
-Range Hood
-Sewing Machine
-Vacuum Cleaner
-Air Purifier
-Space Heater
-Dehumidifier
-Humidifier
-Fan
-Air Conditioner
-Water Heater
+Taco
 Boiler
+Hot Dog
 Furnace
-Generator
-Power Drill
-Circular Saw
-Jigsaw
 Sander
-Workbench
-Lawn Mower
-Leaf Blower
-Snow Blower
-Pressure Washer
-Chainsaw
-Hedge Trimmer
-Weed Eater
-Sprinkler
-Garden Hose
-Wheelbarrow
-Ladder
-Toolbox
-Hammer
-Screwdriver
-Wrench
-Pliers
-Tape Measure
-Utility Knife
-Flashlight
-Battery Charger
-Inverter
-Solar Panel
-Wind Turbine
-Hydraulic Press
-Lathe
+Zebra
 Milling Machine
-Drill Press
-Bandsaw
+Projector
+Freezer
+Video Camera
+Hammer
+Photocopier
+Cheetah
+Lawn Mower
+E-reader
+Sewing Machine
+Drone
+Inverter
+Lathe
+Dishwasher
+Stove
+Scanner
+Refrigerator
+Leopard
 Welder
+Sandwich
+Elephant
+Wolf
+Water Heater
+Toolbox
+Slow Cooker
+Printer
+Humidifier
+Burger
+Power Drill
+Smartwatch
+Rice Cooker
+Electric Kettle
+Snow Blower
+Weed Eater
+Ladder
+Food Processor
+Flashlight
+Lion
+Drill Press
+Wheelbarrow
+Blender
+Pressure Washer
+VR Headset
+Chainsaw
+Utility Knife
+Tape Measure
+Tablet
+Range Hood
+Hedge Trimmer
+Solar Panel
+Robot
+Screwdriver
+Toaster Oven
+Grill
+Giraffe
+Microwave
+Deep Fryer
+Fries
+Computer
+Tiger
+Air Conditioner
+Vacuum Cleaner
+Wrench
+Sprinkler
+Camera
+Fish
+Fax Machine
+Hydraulic Press
+Washing Machine
+Laptop
+Burrito
+Jigsaw
+Generator
+Pliers
+Mixer
+Bear
+Oven
+Wind Turbine
+Dehumidifier
+Space Heater
+Coffee Maker
+Toaster
+Leaf Blower
 Grinder
+Workbench
+Battery Charger
+Garden Hose
+Fan
+Fox
+Pizza
+Air Purifier
+Smartphone
+Game Console
+Circular Saw

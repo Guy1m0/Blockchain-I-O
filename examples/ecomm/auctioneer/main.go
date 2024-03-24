@@ -17,11 +17,11 @@ import (
 const (
 	password = "password"
 
-	userInfoFile     = "../user_info.json"
-	contractInfoFile = "../contract_info.json"
-
-	logInfoFile  = "../log.csv"
-	timeInfoFile = "../timer"
+	userInfoFile     = "../tmp/user_info.json"
+	contractInfoFile = "../tmp/contract_info.json"
+	logInfoFile      = "../tmp/log.csv"
+	auctionInfoFile  = "../tmp/auction_info.json"
+	timeInfoFile     = "../tmp/timer"
 )
 
 var (

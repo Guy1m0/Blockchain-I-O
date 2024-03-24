@@ -2,13 +2,13 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"math/big"
 	"os"
+	"strings"
 	"sync"
-	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
@@ -20,13 +20,13 @@ import (
 const (
 	password = "password"
 
-	userInfoFile     = "../user_info.json"
-	contractInfoFile = "../contract_info.json"
-	auctionInfoFile  = "../auction_info.json"
+	userInfoFile     = "../tmp/user_info.json"
+	contractInfoFile = "../tmp/contract_info.json"
+	auctionInfoFile  = "../tmp/auction_info.json"
 	assetNamesFile   = "../asset_names.txt"
 
-	logInfoFile  = "../log.csv"
-	timeInfoFile = "../timer"
+	logInfoFile  = "../tmp/log.csv"
+	timeInfoFile = "../tmp/timer"
 )
 
 var (
@@ -35,10 +35,16 @@ var (
 
 	assetClient *ecomm.AssetClient
 
-	aucT              *bind.TransactOpts
+	platform = "eth"
+
+	aucT        *bind.TransactOpts
+	asset_names []string
+
 	usr_name          = "Auctioner 1"
 	auc_type          = "english"
 	support_auc_types = []string{"english", "dutch", "cb1p", "cb2p", "all"}
+
+	bid_key string
 	//auc_key  = "../../keys/key1"
 )
 
@@ -59,19 +65,29 @@ func main() {
 
 	flag.Parse()
 
-	fmt.Println("Load Auctioner: ", usr_name)
+	//fmt.Println("Load Auctioner: ", usr_name)
 	auc_key := load_auctioner(usr_name)
 	aucT, _ = cclib.NewTransactor(auc_key, password)
 
-	fmt.Println("Load asset names")
+	asset_names, err := readNamesFromFile(assetNamesFile)
+
+	check(err)
+	// unique_names, _ := readUniqueNamesFromFile(assetNamesFile)
+	// _ = writeNamesToFile(unique_names, assetNamesFile)
 
 	switch *command {
+	case "test":
+
 	case "create":
-		asset_names, err := readNamesFromFile(assetNamesFile)
-		check(err)
+		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
+		asset_name := asset_names[len(auction_infos)+4]
+
+		create(asset_name, auc_type, usr_name)
+
+	case "b-create":
 		var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines to finish
 
-		for _, asset_name := range asset_names[:10] {
+		for _, asset_name := range asset_names[51:55] {
 			wg.Add(1)                    // Increment the WaitGroup counter
 			go func(asset_name string) { // Launch a goroutine for each create operation
 				defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
@@ -82,8 +98,23 @@ func main() {
 		wg.Wait() // Wait for all goroutines to finish
 		log.Println("All assets have been added.")
 	case "bid":
-		// Test user bid multiple times in same time
-		return
+		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
+		index := len(auction_infos) - 1
+		auction_info := auction_infos[index]
+
+		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
+
+		platform = "eth"
+		userID := accounts[1].UserID
+		bid_key = load_bidder_key(userID)
+		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
+		bidAuction(auction_info.AuctionID, big.NewInt(4))
+
+		platform = "quo"
+		userID = accounts[2].UserID
+		bid_key = load_bidder_key(userID)
+		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
+		bidAuction(auction_info.AuctionID, big.NewInt(5))
 	case "bidH":
 		return
 	case "reveal":
@@ -105,88 +136,6 @@ func main() {
 	default:
 		fmt.Println("command not found")
 	}
-}
-
-// Use key 1 as default auctioner
-func create(asset_name string, auc_type string, usr_name string) {
-	t := time.Now()
-	//fmt.Println("Auc type:", auc_type)
-
-	if !stringInSlice(support_auc_types, auc_type) {
-		log.Println("[fabric] not support auction type")
-		return
-	}
-	log.Println("[fabric] Adding asset")
-	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex(), auc_type)
-	check(err)
-
-	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, asset_name, auc_type, t, "", 0)
-}
-
-func reveal(auctionID int) {
-	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
-
-	a, err := assetClient.GetAuction(auctionID)
-	check(err)
-
-	if a.Status != "open" {
-		err = fmt.Errorf("auction status error")
-		check(err)
-	}
-
-	log.Println("[fabric] Reveal auction")
-	_, err = assetClient.CloseAuction(auctionID)
-	check(err)
-
-	payload, _ := json.Marshal(a)
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
-
-	//@reset
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
-}
-
-func cancel(auctionID int) {
-	t := time.Now()
-
-	a, err := assetClient.GetAuction(auctionID)
-	check(err)
-
-	if a.Status != "open" {
-		err = fmt.Errorf("auction status error")
-		check(err)
-	}
-
-	log.Println("[fabric] Cancel auction")
-	_, err = assetClient.CancelAuction(auctionID)
-	check(err)
-
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, a.AssetID, a.AucType, t, "", 0)
-}
-
-func close(auctionID int) {
-	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
-
-	a, err := assetClient.GetAuction(auctionID)
-	check(err)
-
-	if a.Status != "open" {
-		err = fmt.Errorf("auction status error")
-		check(err)
-	}
-
-	log.Println("[fabric] Conclude auction")
-	_, err = assetClient.CloseAuction(auctionID)
-	check(err)
-
-	payload, _ := json.Marshal(a)
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
-
-	//@reset
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 }
 
 func check_status(auctionID int) {
@@ -241,8 +190,42 @@ func readNamesFromFile(filePath string) ([]string, error) {
 	return names, nil
 }
 
-func check(err error) {
+func readUniqueNamesFromFile(filePath string) ([]string, error) {
+	file, err := os.Open(filePath)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+	defer file.Close()
+
+	namesMap := make(map[string]bool)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		name := strings.TrimSpace(scanner.Text()) // Trim whitespace
+		if name != "" {
+			namesMap[name] = true
+		}
+	}
+
+	var uniqueNames []string
+	for name := range namesMap {
+		uniqueNames = append(uniqueNames, name)
+	}
+
+	return uniqueNames, scanner.Err()
+}
+
+func writeNamesToFile(names []string, filePath string) error {
+	file, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+	for _, name := range names {
+		if _, err := writer.WriteString(name + "\n"); err != nil {
+			return err
+		}
+	}
+	return writer.Flush()
 }

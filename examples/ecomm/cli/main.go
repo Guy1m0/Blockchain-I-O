@@ -27,10 +27,11 @@ const (
 	bidder2Key   = "../../keys/key3"
 	password     = "password"
 
-	contractInfoFile = "../contract_info.json"
-	userInfoFile     = "../user_info.json"
+	contractInfoFile = "../tmp/contract_info.json"
+	userInfoFile     = "../tmp/user_info.json"
+	auctionInfoFile  = "../tmp/auction_info.json"
+	logCSVPath       = "../tmp/log.csv"
 
-	logCSVPath     = "../log.csv"
 	defaultHeaders = "EventID,Event,AuctionType,StartTime,EndTime,KafkaReceived,GasCost,Note,TimeElapsed,KafkaTime\n"
 )
 
@@ -123,6 +124,9 @@ func initialize(token_name string) {
 
 	err = cleanFileContent(contractInfoFile)
 	check(err)
+
+	// err = cleanFileContent(auctionInfoFile)
+	// check(err)
 
 	fmt.Println("Initialize Fabric Stable Coin: ", token_name)
 	_, err = fabricToken.Initialize("Multi-Dai Stablecoin", "MDAI", "15")
