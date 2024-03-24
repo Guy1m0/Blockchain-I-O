@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
@@ -20,6 +19,7 @@ const (
 
 	userInfoFile     = "../user_info.json"
 	contractInfoFile = "../contract_info.json"
+	auctionInfoFile  = "../auction_info.json"
 
 	logInfoFile  = "../log.csv"
 	timeInfoFile = "../timer"
@@ -33,7 +33,8 @@ var (
 
 	aucT              *bind.TransactOpts
 	usr_name          = "Auctioner 1"
-	support_auc_types = []string{"english", "dutch", "cb1p", "cb2p"}
+	auc_type          = "english"
+	support_auc_types = []string{"english", "dutch", "cb1p", "cb2p", "all"}
 	//auc_key  = "../../keys/key1"
 )
 
@@ -46,34 +47,46 @@ func main() {
 	assetClient = ecomm.NewAssetClient()
 
 	command := flag.String("c", "", "command")
-	asset := flag.String("ast", "", "Asset name")
-	id := flag.String("id", "", "Auction ID")
-	auc_type := flag.String("t", "", "Auction type")
 
+	// asset := flag.String("ast", "", "Asset name")
+	// id := flag.String("id", "", "Auction ID")
 	flag.StringVar(&usr_name, "usr", usr_name, "Load User/Auctioner Information")
+	flag.StringVar(&auc_type, "t", auc_type, "Choose testing auction type")
+
 	flag.Parse()
 
 	fmt.Println("Load Auctioner: ", usr_name)
 	auc_key := load_auctioner(usr_name)
 	aucT, _ = cclib.NewTransactor(auc_key, password)
 
+	fmt.Println("Load asset names")
+
 	switch *command {
-	case "test":
-		test(*auc_type)
 	case "create":
-		create(*asset, *auc_type)
+		create(auc_type, usr_name, 100)
+		// Test add multiple assets in same time
+		return
+	case "bid":
+		// Test user bid multiple times in same time
+		return
+	case "bidH":
+		return
 	case "reveal":
-		id_, _ := strconv.Atoi(*id)
-		reveal(id_)
-	case "close":
-		id_, _ := strconv.Atoi(*id)
-		close(id_)
-	case "cancel":
-		id_, _ := strconv.Atoi(*id)
-		cancel(id_)
-	case "check":
-		id_, _ := strconv.Atoi(*id)
-		check_status(id_)
+		return
+	// case "create":
+	// 	create(*asset, *auc_type)
+	// case "reveal":
+	// 	id_, _ := strconv.Atoi(*id)
+	// 	reveal(id_)
+	// case "close":
+	// 	id_, _ := strconv.Atoi(*id)
+	// 	close(id_)
+	// case "cancel":
+	// 	id_, _ := strconv.Atoi(*id)
+	// 	cancel(id_)
+	// case "check":
+	// 	id_, _ := strconv.Atoi(*id)
+	// 	check_status(id_)
 	default:
 		fmt.Println("command not found")
 	}
@@ -84,7 +97,7 @@ func test(auc_type string) {
 }
 
 // Use key 1 as default auctioner
-func create(asset_name string, auc_type string) {
+func create(auc_type string, usr_name string, size int) {
 	t := time.Now()
 	//fmt.Println("Auc type:", auc_type)
 
@@ -92,7 +105,7 @@ func create(asset_name string, auc_type string) {
 		log.Println("[fabric] not support auction type")
 		return
 	}
-
+	asset_name := "t"
 	log.Println("[fabric] Adding asset")
 	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex(), auc_type)
 	check(err)
