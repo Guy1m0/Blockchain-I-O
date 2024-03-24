@@ -7,7 +7,6 @@ import (
 	"log"
 	"math/big"
 	"os"
-	"strings"
 	"sync"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
@@ -115,6 +114,7 @@ func main() {
 		bid_key = load_bidder_key(userID)
 		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
 		bidAuction(auction_info.AuctionID, big.NewInt(5))
+
 	case "bidH":
 		return
 	case "reveal":
@@ -188,44 +188,4 @@ func readNamesFromFile(filePath string) ([]string, error) {
 	}
 
 	return names, nil
-}
-
-func readUniqueNamesFromFile(filePath string) ([]string, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	namesMap := make(map[string]bool)
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		name := strings.TrimSpace(scanner.Text()) // Trim whitespace
-		if name != "" {
-			namesMap[name] = true
-		}
-	}
-
-	var uniqueNames []string
-	for name := range namesMap {
-		uniqueNames = append(uniqueNames, name)
-	}
-
-	return uniqueNames, scanner.Err()
-}
-
-func writeNamesToFile(names []string, filePath string) error {
-	file, err := os.Create(filePath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	writer := bufio.NewWriter(file)
-	for _, name := range names {
-		if _, err := writer.WriteString(name + "\n"); err != nil {
-			return err
-		}
-	}
-	return writer.Flush()
 }
