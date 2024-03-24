@@ -1,7 +1,6 @@
 package ecomm
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -244,27 +243,6 @@ func ReadAuctionsFromFile(filepath string) ([]AuctionInfo, error) {
 	}
 
 	return auctions, nil
-}
-
-// readNamesFromFile reads names from a file, one per line, and returns a slice of strings.
-func readNamesFromFile(filePath string) ([]string, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, err // Return an empty slice and the error
-	}
-	defer file.Close()
-
-	var names []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		names = append(names, scanner.Text())
-	}
-
-	if err := scanner.Err(); err != nil {
-		return names, err
-	}
-
-	return names, nil
 }
 
 func SplitSignature(sig string) (r [32]byte, s [32]byte, v uint8) {

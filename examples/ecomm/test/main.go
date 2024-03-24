@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"sync"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
@@ -20,6 +23,7 @@ const (
 	userInfoFile     = "../user_info.json"
 	contractInfoFile = "../contract_info.json"
 	auctionInfoFile  = "../auction_info.json"
+	assetNamesFile   = "../asset_names.txt"
 
 	logInfoFile  = "../log.csv"
 	timeInfoFile = "../timer"
@@ -63,9 +67,20 @@ func main() {
 
 	switch *command {
 	case "create":
-		create(auc_type, usr_name, 100)
-		// Test add multiple assets in same time
-		return
+		asset_names, err := readNamesFromFile(assetNamesFile)
+		check(err)
+		var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines to finish
+
+		for _, asset_name := range asset_names[:10] {
+			wg.Add(1)                    // Increment the WaitGroup counter
+			go func(asset_name string) { // Launch a goroutine for each create operation
+				defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
+				create(asset_name, auc_type, usr_name)
+			}(asset_name) // Pass asset_name as an argument to the goroutine
+		}
+
+		wg.Wait() // Wait for all goroutines to finish
+		log.Println("All assets have been added.")
 	case "bid":
 		// Test user bid multiple times in same time
 		return
@@ -92,12 +107,8 @@ func main() {
 	}
 }
 
-func test(auc_type string) {
-
-}
-
 // Use key 1 as default auctioner
-func create(auc_type string, usr_name string, size int) {
+func create(asset_name string, auc_type string, usr_name string) {
 	t := time.Now()
 	//fmt.Println("Auc type:", auc_type)
 
@@ -105,7 +116,6 @@ func create(auc_type string, usr_name string, size int) {
 		log.Println("[fabric] not support auction type")
 		return
 	}
-	asset_name := "t"
 	log.Println("[fabric] Adding asset")
 	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex(), auc_type)
 	check(err)
@@ -208,6 +218,27 @@ func stringInSlice(slice []string, target string) bool {
 		}
 	}
 	return false // Target string not found in the slice
+}
+
+// readNamesFromFile reads names from a file, one per line, and returns a slice of strings.
+func readNamesFromFile(filePath string) ([]string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err // Return an empty slice and the error
+	}
+	defer file.Close()
+
+	var names []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		names = append(names, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		return names, err
+	}
+
+	return names, nil
 }
 
 func check(err error) {
