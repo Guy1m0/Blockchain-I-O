@@ -43,7 +43,7 @@ var (
 	auc_type          = "english"
 	support_auc_types = []string{"english", "dutch", "cb1p", "cb2p", "all"}
 
-	bid_key string
+	//bid_key string
 	//auc_key  = "../../keys/key1"
 )
 
@@ -106,21 +106,21 @@ func main() {
 				defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
 				auction_info := auction_infos[size-i]
 				platform = "eth"
-				userID := accounts[1].UserID
-				bid_key = load_bidder_key(userID)
-				log.Printf("User %s Bid %d MDAI on %s auction deployed on ", userID, i*5, platform)
-				bidAuction(auction_info.AuctionID, big.NewInt(int64(i*3)))
+				userID := accounts[i].UserID
+				bid_key := load_bidder_key(userID)
+				log.Printf("User %s places bid %d MDAI for asset %d on %s platform", userID, i*3, size-i, platform)
+				bidAuction(auction_info.AuctionID, big.NewInt(int64(i*3)), bid_key)
 
 				platform = "quo"
-				userID = accounts[2].UserID
+				userID = accounts[i].UserID
 				bid_key = load_bidder_key(userID)
-				log.Printf("User %s Bid %d MDAI on %s auction deployed on ", userID, i*5, platform)
-				bidAuction(auction_info.AuctionID, big.NewInt(int64(i*5)))
+				log.Printf("User %s places bid %d MDAI for asset %d on %s platform", userID, i*5, size-i, platform)
+				bidAuction(auction_info.AuctionID, big.NewInt(int64(i*5)), bid_key)
 			}(i) // Pass asset_name as an argument to the goroutine
 		}
 
 		wg.Wait() // Wait for all goroutines to finish
-		log.Println("All assets have been added.")
+		log.Println("All bids have been placed.")
 	case "bid":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		index := len(auction_infos) - 1
@@ -130,15 +130,15 @@ func main() {
 
 		platform = "eth"
 		userID := accounts[1].UserID
-		bid_key = load_bidder_key(userID)
+		bid_key := load_bidder_key(userID)
 		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
-		bidAuction(auction_info.AuctionID, big.NewInt(4))
+		bidAuction(auction_info.AuctionID, big.NewInt(4), bid_key)
 
 		platform = "quo"
 		userID = accounts[2].UserID
 		bid_key = load_bidder_key(userID)
 		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
-		bidAuction(auction_info.AuctionID, big.NewInt(5))
+		bidAuction(auction_info.AuctionID, big.NewInt(5), bid_key)
 
 	case "bidH":
 		return

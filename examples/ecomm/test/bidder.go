@@ -38,7 +38,7 @@ func load_bidder_key(name string) string {
 }
 
 // also no relayer involved, 'locally' make bid
-func bidAuction(auction_id int, amount *big.Int) {
+func bidAuction(auction_id int, amount *big.Int, bid_key string) {
 	t := time.Now()
 
 	var contract_info ecomm.ContractInfo
@@ -100,7 +100,7 @@ func bidAuction(auction_id int, amount *big.Int) {
 	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, auc_type, total_cost, note)
 }
 
-func bidAuctionH(auction_id int, bidAmount *big.Int) {
+func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key string) {
 	t := time.Now()
 
 	var contract_info ecomm.ContractInfo
@@ -157,7 +157,7 @@ func bidAuctionH(auction_id int, bidAmount *big.Int) {
 
 }
 
-func withdraw(auction_id int) {
+func withdraw(auction_id int, bid_key string) {
 	t := time.Now()
 	client := ethClient
 
@@ -190,7 +190,7 @@ func withdraw(auction_id int) {
 	/////////////
 }
 
-func check_winner(auction_id int) {
+func check_winner(auction_id int, bid_key string) {
 	client := ethClient
 	bidT, err := cclib.NewTransactor(bid_key, password)
 	check(err)
@@ -224,7 +224,7 @@ func check_winner(auction_id int) {
 	fmt.Println("highest bid:", highestBid)
 }
 
-func sign_auction_result(auction_id int, prcd bool) {
+func sign_auction_result(auction_id int, prcd bool, bid_key string) {
 	// @reset timer
 	t := time.Now()
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
@@ -307,7 +307,7 @@ func sign_auction_result(auction_id int, prcd bool) {
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
 }
 
-func provide_feedback(auction_id int, feedback string) {
+func provide_feedback(auction_id int, feedback string, bid_key string) {
 	// @reset timer
 	t := time.Now()
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)
