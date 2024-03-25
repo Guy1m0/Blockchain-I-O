@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math/big"
 	"os"
 	"strings"
@@ -77,24 +78,6 @@ func WaitTx(client *ethclient.Client, tx *types.Transaction, label string) *type
 	receipt, err := bind.WaitMined(context.Background(), client, tx)
 	check(err)
 
-	// @todo: debug transaction if status == "Fail"
-
-	// transferEventSignature := []byte("Transfer(address,address,uint256)")
-	// hash := crypto.Keccak256Hash(transferEventSignature)
-
-	// for _, log := range receipt.Logs {
-	// 	if log.Topics[0].Hex() == hash.Hex() {
-	// 		src := common.BytesToAddress(log.Topics[1].Bytes())
-	// 		dst := common.BytesToAddress(log.Topics[2].Bytes())
-
-	// 		data := new(big.Int)
-	// 		data.SetBytes(log.Data)
-	// 		amount := data.Uint64()
-
-	// 		fmt.Printf("Transfer event: src: %s, dst: %s, amount: %d\n", src.Hex(), dst.Hex(), amount)
-	// 	}
-	// }
-
 	var status string
 	if receipt.Status == 1 {
 		status = "Success"
@@ -102,7 +85,7 @@ func WaitTx(client *ethclient.Client, tx *types.Transaction, label string) *type
 		status = "Fail"
 	}
 
-	fmt.Printf("Transaction mined in block: %d with status: %s and cost: %d\n", receipt.BlockNumber, status, receipt.GasUsed)
+	log.Printf("Transaction mined in block: %d with status: %s and cost: %d\n", receipt.BlockNumber, status, receipt.GasUsed)
 	return receipt
 }
 

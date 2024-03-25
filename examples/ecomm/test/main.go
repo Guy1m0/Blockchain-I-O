@@ -58,7 +58,7 @@ func main() {
 	command := flag.String("c", "", "command")
 
 	// asset := flag.String("ast", "", "Asset name")
-	// id := flag.String("id", "", "Auction ID")
+	//b := flag.String("id", "", "Auction ID")
 	flag.StringVar(&usr_name, "usr", usr_name, "Load User/Auctioner Information")
 	flag.StringVar(&auc_type, "t", auc_type, "Choose testing auction type")
 
@@ -92,6 +92,32 @@ func main() {
 				defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
 				create(asset_name, auc_type, usr_name)
 			}(asset_name) // Pass asset_name as an argument to the goroutine
+		}
+
+		wg.Wait() // Wait for all goroutines to finish
+		log.Println("All assets have been added.")
+	case "b-bid":
+		var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines to finish
+		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
+
+		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
+		for i := 1; i < 4; i++ {
+			wg.Add(1)        // Increment the WaitGroup counter
+			go func(i int) { // Launch a goroutine for each create operation
+				defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
+				auction_info := auction_infos[i]
+				platform = "eth"
+				userID := accounts[1].UserID
+				bid_key = load_bidder_key(userID)
+				log.Printf("User %s Bid %d MDAI on %s auction deployed on ", userID, i*5, platform)
+				bidAuction(auction_info.AuctionID, big.NewInt(int64(i*5)))
+
+				platform = "quo"
+				userID = accounts[2].UserID
+				bid_key = load_bidder_key(userID)
+				log.Printf("User %s Bid %d MDAI on %s auction deployed on ", userID, i*5, platform)
+				bidAuction(auction_info.AuctionID, big.NewInt(int64(i*5)))
+			}(i) // Pass asset_name as an argument to the goroutine
 		}
 
 		wg.Wait() // Wait for all goroutines to finish

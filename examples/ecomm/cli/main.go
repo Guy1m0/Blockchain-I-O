@@ -24,6 +24,7 @@ const (
 	rootKey  = "../../keys/key0"
 
 	auctionerKey = "../../keys/key1"
+	keyFolder    = "../../keys/"
 	bidder1Key   = "../../keys/key2"
 	bidder2Key   = "../../keys/key3"
 	password     = "password"
@@ -239,25 +240,27 @@ func initialize(token_name string) {
 
 func setup() {
 	aucT, err := cclib.NewTransactor(auctionerKey, password)
-	check(err)
-
-	bid1T, err := cclib.NewTransactor(bidder1Key, password)
-	check(err)
-
-	bid2T, err := cclib.NewTransactor(bidder2Key, password)
-	check(err)
-	//var user_info ecomm.UserInfo
 	eth_ERC20, quo_ERC20, fabric_ERC20 := load_ERC20()
+	check(err)
 
 	fmt.Println("Setup account for 'Auctioner 1' on Fabirc")
-	_, err = fabric_ERC20.Transfer(aucT.From.Hex(), "100")
+	_, err = fabric_ERC20.Transfer(aucT.From.Hex(), "0")
+
+	valueB_, err := fabric_ERC20.BalanceOf(aucT.From.Hex())
+	valueB, err := strconv.Atoi(valueB_)
 	check(err)
+	if valueB < 200 {
+		_, err = fabric_ERC20.Transfer(aucT.From.Hex(), "100")
+		check(err)
+	}
+
 	ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
 		UserID:  "Auctioner 1",
 		Address: aucT.From,
 		KeyFile: auctionerKey,
 	})
 
+<<<<<<< HEAD
 	fmt.Println("Setup account for 'Bidder 1' on Ethereum")
 	ecomm.TransferToken(ethClient, eth_ERC20, rootT, bid1T.From, 100)
 	valueB, _ := eth_ERC20.BalanceOf(&bind.CallOpts{}, bid1T.From)
@@ -283,6 +286,47 @@ func setup() {
 		Address: bid2T.From,
 		KeyFile: bidder2Key,
 	})
+=======
+	var bidT *bind.TransactOpts
+	for i := 1; i < 9; i++ {
+		bidT, err = cclib.NewTransactor(fmt.Sprintf("%skey%s", keyFolder, strconv.Itoa(i+1)), password)
+
+		log.Printf("Setup account for 'Bidder%d' on Fabric", i)
+		_, err = fabric_ERC20.Transfer(bidT.From.Hex(), "0")
+		check(err)
+		log.Printf("Receive MDAI for 'Bidder%d' on Etherrum", i)
+		ecomm.TransferToken(ethClient, eth_ERC20, rootT, bidT.From, 300)
+
+		log.Printf("Receive MDAI for 'Bidder%d' on Quo", i)
+		ecomm.TransferToken(quoClient, quo_ERC20, rootT, bidT.From, 300)
+
+		ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
+			UserID:  "Bidder " + strconv.Itoa(i),
+			Address: bidT.From,
+			KeyFile: fmt.Sprintf("%skey%s", keyFolder, strconv.Itoa(i+1)),
+		})
+	}
+
+	// fmt.Println("Setup account for 'Bidder 1' on Ethereum")
+	// ecomm.TransferToken(ethClient, eth_ERC20, rootT, bid1T.From, 100)
+	// _, err = fabric_ERC20.Transfer(bid1T.From.Hex(), "0")
+	// check(err)
+	// ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
+	// 	UserID:  "Bidder 1",
+	// 	Address: bid1T.From,
+	// 	KeyFile: bidder1Key,
+	// })
+
+	// fmt.Println("Setup account for 'Bidder 2' on Quorum")
+	// ecomm.TransferToken(quoClient, quo_ERC20, rootT, bid2T.From, 100)
+	// _, err = fabric_ERC20.Transfer(bid2T.From.Hex(), "0")
+	// check(err)
+	// ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
+	// 	UserID:  "Bidder 2",
+	// 	Address: bid2T.From,
+	// 	KeyFile: bidder2Key,
+	// })
+>>>>>>> 98b37be (add 8 bidders and 1 auctioneer)
 }
 
 func display() {
