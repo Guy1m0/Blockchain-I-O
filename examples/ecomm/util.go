@@ -41,6 +41,17 @@ func NewQuorumClient() *ethclient.Client {
 	return client
 }
 
+// CheckClientValidity checks if the given ethclient.Client can connect to the blockchain
+func CheckClientValidity(client *ethclient.Client) bool {
+	// Use context.Background() for a non-cancelable, non-timeout context
+	_, err := client.BlockNumber(context.Background())
+	if err != nil {
+		fmt.Printf("Error fetching latest block number: %v\n", err)
+		return false
+	}
+	return true
+}
+
 // func PrintFabricBalance(token *Chaincode, account string, label string) {
 // 	b, err := token.EvaluateTransaction("BalanceOf", account)
 // 	check(err)

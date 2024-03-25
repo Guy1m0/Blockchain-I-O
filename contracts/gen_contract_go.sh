@@ -1,5 +1,5 @@
 #!/bin/bash
-
+solc-select use 0.8.18
 # Check if the folder name is provided
 if [ -z "$1" ]; then
   echo "Please provide a folder name."

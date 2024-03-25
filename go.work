@@ -1,0 +1,9 @@
+go 1.20
+
+use (
+	./
+	./contracts/english_auction
+	./contracts/dutch_auction
+	./contracts/cb1p_auction
+	./contracts/cb2p_auction
+)
