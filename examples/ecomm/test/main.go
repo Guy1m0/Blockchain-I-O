@@ -69,7 +69,8 @@ func main() {
 	aucT, _ = cclib.NewTransactor(auc_key, password)
 
 	asset_names, err := readNamesFromFile(assetNamesFile)
-
+	check(err)
+	auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 	check(err)
 	// unique_names, _ := readUniqueNamesFromFile(assetNamesFile)
 	// _ = writeNamesToFile(unique_names, assetNamesFile)
@@ -78,15 +79,14 @@ func main() {
 	case "test":
 
 	case "create":
-		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		asset_name := asset_names[len(auction_infos)]
 
 		create(asset_name, auc_type, usr_name)
 
 	case "b-create":
 		var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines to finish
-
-		for _, asset_name := range asset_names[51:55] {
+		ind := len(auction_infos)
+		for _, asset_name := range asset_names[ind : ind+8] {
 			wg.Add(1)                    // Increment the WaitGroup counter
 			go func(asset_name string) { // Launch a goroutine for each create operation
 				defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
@@ -98,19 +98,18 @@ func main() {
 		log.Println("All assets have been added.")
 	case "b-bid":
 		var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines to finish
-		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
-
 		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
-		for i := 1; i < 4; i++ {
+		size := len(auction_infos)
+		for i := 1; i < 9; i++ {
 			wg.Add(1)        // Increment the WaitGroup counter
 			go func(i int) { // Launch a goroutine for each create operation
 				defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
-				auction_info := auction_infos[i]
+				auction_info := auction_infos[size-i]
 				platform = "eth"
 				userID := accounts[1].UserID
 				bid_key = load_bidder_key(userID)
 				log.Printf("User %s Bid %d MDAI on %s auction deployed on ", userID, i*5, platform)
-				bidAuction(auction_info.AuctionID, big.NewInt(int64(i*5)))
+				bidAuction(auction_info.AuctionID, big.NewInt(int64(i*3)))
 
 				platform = "quo"
 				userID = accounts[2].UserID

@@ -68,8 +68,6 @@ func main() {
 	flag.Parse()
 
 	switch *command {
-	case "test":
-		test()
 	case "init":
 		initialize(token_name)
 	case "setup":
@@ -119,19 +117,6 @@ func cleanFileContent(filePath string) error {
 	}
 
 	return nil
-}
-
-func test() {
-	_, tx, quo, _ := eth_stable_coin.DeployEthStableCoin(rootT, quoClient, big.NewInt(1))
-	ecomm.WaitTx(quoClient, tx, "Deploy ERC20 Stable Coin on Quorum")
-	//log.Println(receipt)
-
-	valueB, err := quo.TotalSupply(&bind.CallOpts{})
-	if err != nil {
-		log.Printf("Error fetching balance: %s", err)
-	} else {
-		log.Printf("Balance: %s", valueB.String())
-	}
 }
 
 // Deploy contracts and mint enough tokens
@@ -186,14 +171,6 @@ func initialize(token_name string) {
 
 	quo_MDAI_addr, tx, quo_MDAI, _ := eth_stable_coin.DeployEthStableCoin(rootT, quoClient, big.NewInt(1))
 	ecomm.WaitTx(quoClient, tx, "Deploy ERC20 Stable Coin on Quorum")
-	//log.Println(receipt)
-
-	// valueB, err := quo_MDAI.TotalSupply(&bind.CallOpts{})
-	// if err != nil {
-	// 	log.Printf("Error fetching balance: %s", err)
-	// } else {
-	// 	log.Printf("Balance: %s", valueB.String())
-	// }
 
 	quo_english_addr, tx, _, _ := english_auction.DeployEnglishAuction(rootT, quoClient, quo_MDAI_addr)
 	ecomm.WaitTx(quoClient, tx, "Deploy English Auction on Quorum")
@@ -213,8 +190,8 @@ func initialize(token_name string) {
 
 	ecomm.WriteJsonFile(contractInfoFile, ecomm.ContractInfo{
 		FabricTokenName: token_name,
-		//EthERC20:        eth_MDAI_addr,
-		QuoERC20: quo_MDAI_addr,
+		EthERC20:        eth_MDAI_addr,
+		QuoERC20:        quo_MDAI_addr,
 		EnglishAuction: ecomm.AuctionInfo{
 			Owner:   rootT.From,
 			QuoAddr: quo_english_addr,
@@ -260,33 +237,6 @@ func setup() {
 		KeyFile: auctionerKey,
 	})
 
-<<<<<<< HEAD
-	fmt.Println("Setup account for 'Bidder 1' on Ethereum")
-	ecomm.TransferToken(ethClient, eth_ERC20, rootT, bid1T.From, 100)
-	valueB, _ := eth_ERC20.BalanceOf(&bind.CallOpts{}, bid1T.From)
-	log.Printf("Balance: %s", valueB.String())
-
-	_, err = fabric_ERC20.Transfer(bid1T.From.Hex(), "0")
-	check(err)
-	ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
-		UserID:  "Bidder 1",
-		Address: bid1T.From,
-		KeyFile: bidder1Key,
-	})
-
-	fmt.Println("Setup account for 'Bidder 2' on Quorum")
-	ecomm.TransferToken(quoClient, quo_ERC20, rootT, bid2T.From, 100)
-	// valueB, _ = quo_ERC20.BalanceOf(&bind.CallOpts{}, bid2T.From)
-	// log.Printf("Balance: %s", valueB.String())
-
-	_, err = fabric_ERC20.Transfer(bid2T.From.Hex(), "0")
-	check(err)
-	ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
-		UserID:  "Bidder 2",
-		Address: bid2T.From,
-		KeyFile: bidder2Key,
-	})
-=======
 	var bidT *bind.TransactOpts
 	for i := 1; i < 9; i++ {
 		bidT, err = cclib.NewTransactor(fmt.Sprintf("%skey%s", keyFolder, strconv.Itoa(i+1)), password)
@@ -306,27 +256,6 @@ func setup() {
 			KeyFile: fmt.Sprintf("%skey%s", keyFolder, strconv.Itoa(i+1)),
 		})
 	}
-
-	// fmt.Println("Setup account for 'Bidder 1' on Ethereum")
-	// ecomm.TransferToken(ethClient, eth_ERC20, rootT, bid1T.From, 100)
-	// _, err = fabric_ERC20.Transfer(bid1T.From.Hex(), "0")
-	// check(err)
-	// ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
-	// 	UserID:  "Bidder 1",
-	// 	Address: bid1T.From,
-	// 	KeyFile: bidder1Key,
-	// })
-
-	// fmt.Println("Setup account for 'Bidder 2' on Quorum")
-	// ecomm.TransferToken(quoClient, quo_ERC20, rootT, bid2T.From, 100)
-	// _, err = fabric_ERC20.Transfer(bid2T.From.Hex(), "0")
-	// check(err)
-	// ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
-	// 	UserID:  "Bidder 2",
-	// 	Address: bid2T.From,
-	// 	KeyFile: bidder2Key,
-	// })
->>>>>>> 98b37be (add 8 bidders and 1 auctioneer)
 }
 
 func display() {
