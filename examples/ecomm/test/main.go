@@ -79,7 +79,7 @@ func main() {
 
 	case "create":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
-		asset_name := asset_names[len(auction_infos)+4]
+		asset_name := asset_names[len(auction_infos)]
 
 		create(asset_name, auc_type, usr_name)
 

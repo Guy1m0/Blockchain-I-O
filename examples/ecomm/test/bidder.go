@@ -12,7 +12,6 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb2p_auction"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/dutch_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
@@ -57,15 +56,15 @@ func bidAuction(auction_id int, amount *big.Int) {
 		erc20_address = contract_info.QuoERC20
 	}
 
-	var auction_contract ecomm.AuctionContract
 	//var auction_contract_close_bid ecomm.AuctionContractCloseBid
+	auction_contract, _ := english_auction.NewEnglishAuction(auction_addr, client)
+	// switch auc_type {
+	// case "english":
+	// 	auction_contract, _ = english_auction.NewEnglishAuction(auction_addr, client)
 
-	switch auc_type {
-	case "english":
-		auction_contract, err = english_auction.NewEnglishAuction(auction_addr, client)
-	case "dutch":
-		auction_contract, err = dutch_auction.NewDutchAuction(auction_addr, client)
-	}
+	// case "dutch":
+	// 	auction_contract, _ = dutch_auction.NewDutchAuction(auction_addr, client)
+	// }
 
 	check(err)
 
@@ -75,17 +74,24 @@ func bidAuction(auction_id int, amount *big.Int) {
 	eventID := a.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
 	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, auc_type, t, "", 0)
 
-	_, err = eth_stable_coin.NewEthStableCoin(erc20_address, client)
 	// @todo: Make approve and bid in a single transaction
 	// Approve amount of bid through ERC20 contract
-	//MDAI, _ := eth_stable_coin.NewEthStableCoin(erc20_address, client)
-	// tx1, _ := MDAI.Approve(bidT, auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
-	// receipt1 := ecomm.WaitTx(client, tx1, "Approve Auction Contract's allowance")
+	MDAI, _ := eth_stable_coin.NewEthStableCoin(erc20_address, client)
+	valueB, err := MDAI.BalanceOf(&bind.CallOpts{}, auction_addr)
+	log.Printf("Auction contract orig balance: %s", valueB)
+
+	tx1, _ := MDAI.Approve(bidT, auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
+	receipt1 := ecomm.WaitTx(client, tx1, "Approve Auction Contract's allowance")
+	allB, err := MDAI.Allowance(&bind.CallOpts{}, bidT.From, auction_addr)
+	log.Printf("Auction contract orig allowance: %s", allB)
 
 	tx2, _ := auction_contract.Bid(bidT, big.NewInt(int64(auction_id)), big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	receipt2 := ecomm.WaitTx(client, tx2, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.AuctionID, auction_addr))
 
-	note := "Cost: " + strconv.FormatUint(receipt2.GasUsed, 10)
+	valueB, err = MDAI.BalanceOf(&bind.CallOpts{}, auction_addr)
+	log.Printf("Auction contract after balance: %s", valueB)
+
+	note := "Cost: " + strconv.FormatUint(receipt1.GasUsed, 10)
 	note += " + " + strconv.FormatUint(receipt2.GasUsed, 10)
 	note += " Bid: MDAI " + big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB).String()
 

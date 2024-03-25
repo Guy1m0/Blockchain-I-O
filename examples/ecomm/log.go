@@ -158,10 +158,10 @@ func UpdateLog(filePath, eventName, eventID, aucType string, cost uint64, note s
 		if record[0] == eventID && record[1] == eventName {
 			// 3. Update the cost
 			if cost != 0 {
-				record[5] = strconv.FormatUint(cost, 10)
+				record[6] = strconv.FormatUint(cost, 10)
 			}
 			if note != "" {
-				record[6] = note
+				record[7] = note
 			}
 
 			// Write back to the CSV file
