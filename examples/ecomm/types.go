@@ -141,6 +141,8 @@ type AuctionContract interface {
 	Abort(opts *bind.TransactOpts, auctionId *big.Int, jsonString string) (*types.Transaction, error)
 	Commit(opts *bind.TransactOpts, auctionId *big.Int, jsonString string) (*types.Transaction, error)
 	ProvideFeedback(opts *bind.TransactOpts, auctionId *big.Int, _score *big.Int, _feedback string) (*types.Transaction, error)
+
+	HighestBid(opts *bind.CallOpts, arg0 *big.Int) (*big.Int, error)
 }
 
 type AuctionContractCloseBid interface {

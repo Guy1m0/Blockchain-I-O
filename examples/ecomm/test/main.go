@@ -76,7 +76,6 @@ func main() {
 	// _ = writeNamesToFile(unique_names, assetNamesFile)
 
 	switch *command {
-	case "test":
 
 	case "create":
 		asset_name := asset_names[len(auction_infos)]
@@ -96,6 +95,26 @@ func main() {
 
 		wg.Wait() // Wait for all goroutines to finish
 		log.Println("All assets have been added.")
+
+	case "bid":
+		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
+		index := len(auction_infos) - 1
+		auction_info := auction_infos[index]
+
+		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
+
+		platform = "eth"
+		userID := accounts[1].UserID
+		bid_key := load_bidder_key(userID)
+		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
+		bidAuction(auction_info.AuctionID, big.NewInt(0), bid_key)
+
+		platform = "quo"
+		userID = accounts[2].UserID
+		bid_key = load_bidder_key(userID)
+		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
+		bidAuction(auction_info.AuctionID, big.NewInt(0), bid_key)
+
 	case "b-bid":
 		var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines to finish
 		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
@@ -121,37 +140,19 @@ func main() {
 
 		wg.Wait() // Wait for all goroutines to finish
 		log.Println("All bids have been placed.")
-	case "bid":
+
+	case "bidH":
+		return
+	case "revealA":
+		return
+	case "reveal":
+		return
+	case "close":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		index := len(auction_infos) - 1
 		auction_info := auction_infos[index]
 
-		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
-
-		platform = "eth"
-		userID := accounts[1].UserID
-		bid_key := load_bidder_key(userID)
-		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
-		bidAuction(auction_info.AuctionID, big.NewInt(4), bid_key)
-
-		platform = "quo"
-		userID = accounts[2].UserID
-		bid_key = load_bidder_key(userID)
-		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
-		bidAuction(auction_info.AuctionID, big.NewInt(5), bid_key)
-
-	case "bidH":
-		return
-	case "reveal":
-		return
-	// case "create":
-	// 	create(*asset, *auc_type)
-	// case "reveal":
-	// 	id_, _ := strconv.Atoi(*id)
-	// 	reveal(id_)
-	// case "close":
-	// 	id_, _ := strconv.Atoi(*id)
-	// 	close(id_)
+		close(auction_info.AuctionID)
 	// case "cancel":
 	// 	id_, _ := strconv.Atoi(*id)
 	// 	cancel(id_)

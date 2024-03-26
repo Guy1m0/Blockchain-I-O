@@ -75,6 +75,13 @@ func bidAuction(auction_id int, amount *big.Int, bid_key string) {
 	eventID := a.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
 	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, auc_type, t, "", 0)
 
+	// Bid more than highest
+	if amount == big.NewInt(0) {
+		amount, err = auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
+		check(err)
+		amount.Add(amount, big.NewInt(1))
+	}
+
 	// @todo: Make approve and bid in a single transaction
 	// Approve amount of bid through ERC20 contract
 	MDAI, _ := eth_stable_coin.NewEthStableCoin(erc20_address, client)
