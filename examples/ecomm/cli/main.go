@@ -68,6 +68,8 @@ func main() {
 	flag.Parse()
 
 	switch *command {
+	case "test":
+		test()
 	case "init":
 		initialize(token_name)
 	case "setup":
@@ -117,6 +119,19 @@ func cleanFileContent(filePath string) error {
 	}
 
 	return nil
+}
+
+func test() {
+	_, tx, quo, _ := eth_stable_coin.DeployEthStableCoin(rootT, ethClient, big.NewInt(1))
+	ecomm.WaitTx(ethClient, tx, "Deploy ERC20 Stable Coin on Quorum")
+	//log.Println(receipt)
+
+	valueB, err := quo.TotalSupply(&bind.CallOpts{})
+	if err != nil {
+		log.Printf("Error fetching balance: %s", err)
+	} else {
+		log.Printf("Balance: %s", valueB.String())
+	}
 }
 
 // Deploy contracts and mint enough tokens
