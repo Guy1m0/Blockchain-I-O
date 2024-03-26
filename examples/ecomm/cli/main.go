@@ -122,8 +122,8 @@ func cleanFileContent(filePath string) error {
 }
 
 func test() {
-	_, tx, quo, _ := eth_stable_coin.DeployEthStableCoin(rootT, ethClient, big.NewInt(1))
-	ecomm.WaitTx(ethClient, tx, "Deploy ERC20 Stable Coin on Quorum")
+	_, tx, quo, _ := eth_stable_coin.DeployEthStableCoin(rootT, quoClient, big.NewInt(1))
+	ecomm.WaitTx(quoClient, tx, "Deploy ERC20 Stable Coin on Quorum")
 	//log.Println(receipt)
 
 	valueB, err := quo.TotalSupply(&bind.CallOpts{})
