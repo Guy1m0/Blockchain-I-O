@@ -6,4 +6,6 @@ use (
 	./contracts/dutch_auction
 	./contracts/cb1p_auction
 	./contracts/cb2p_auction
+	./contracts/fabric_asset
+	./contracts/fabric_erc20
 )

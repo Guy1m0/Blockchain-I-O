@@ -1,6 +1,6 @@
 module github.com/Guy1m0/Blockchain-I-O
 
-go 1.18
+go 1.20
 
 require (
 	github.com/Shopify/sarama v1.30.1
