@@ -132,7 +132,7 @@ func (cc *SmartContract) RevealAuction(
 		return fmt.Errorf("error setting auction: %v", err)
 	}
 
-	// Emit an event when an auction is started
+	// Emit an event when an auction is revealing
 	eventPayload, err := json.Marshal(auction)
 	if err != nil {
 		return fmt.Errorf("error marshalling event: %v", err)
@@ -154,6 +154,7 @@ func (cc *SmartContract) CancelAuction(
 	if err != nil {
 		return err
 	}
+
 	auction.Status = "closed"
 	err = cc.setAuction(ctx, auction)
 	if err != nil {
@@ -171,8 +172,12 @@ func (cc *SmartContract) CancelAuction(
 		return fmt.Errorf("error setting asset: %v", err)
 	}
 
-	// Emit an event when an auction is started
-	eventPayload := fmt.Sprintf("Auction ID: %d", auction.AuctionID)
+	// Emit an event when an auction is canceling
+	eventPayload, err := json.Marshal(auction)
+	if err != nil {
+		return fmt.Errorf("error marshalling event: %v", err)
+	}
+
 	err = ctx.GetStub().SetEvent("CancelAuction", []byte(eventPayload))
 	if err != nil {
 		return fmt.Errorf("error setting event: %v", err)
@@ -198,13 +203,15 @@ func (cc *SmartContract) CloseAuction(
 		return fmt.Errorf("error setting auction: %v", err)
 	}
 
-	// Emit an event when an auction is started
-	eventPayload := fmt.Sprintf("Auction ID: %d", auction.AuctionID)
+	// Emit an event when an auction is closing
+	eventPayload, err := json.Marshal(auction)
+	if err != nil {
+		return fmt.Errorf("error marshalling event: %v", err)
+	}
 	err = ctx.GetStub().SetEvent("CloseAuction", []byte(eventPayload))
 	if err != nil {
 		return fmt.Errorf("error setting event: %v", err)
 	}
-
 	return nil
 }
 
@@ -244,17 +251,16 @@ func (cc *SmartContract) FinAuction(
 		return err
 	}
 
-	// todo: make event payload reasonable
-	eventPayload := fmt.Sprintf("Auction: %d, closed with old owner: %s", auction.AuctionID, asset.Owner)
-	if prcd {
-		asset.Owner = auction.HighestBidder
-		eventPayload = fmt.Sprintf("Auction: %d, closed with new owner: %s", auction.AuctionID, asset.Owner)
-	}
-
 	asset.PendingAuctionID = 0
 	err = cc.setAsset(ctx, asset)
 	if err != nil {
 		return err
+	}
+
+	// Emit an event when an auction is canceling
+	eventPayload, err := json.Marshal(auction)
+	if err != nil {
+		return fmt.Errorf("error marshalling event: %v", err)
 	}
 
 	err = ctx.GetStub().SetEvent("AuctionClosed", []byte(eventPayload))

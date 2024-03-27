@@ -25,7 +25,7 @@ const (
 // the logic to execute when an event is received.
 // Fabric relayer
 func startFabricListener(client *ecomm.AssetClient) error {
-	events := []string{"AddAsset", "StartAuction", "CloseAuction", "CancelAuction", "AuctionClosed"}
+	events := []string{"AddAsset", "StartAuction", "CloseAuction", "CancelAuction", "AuctionClosed", "RevealAuction"}
 	var regs []fab.Registration
 	var notifiers []<-chan *fab.CCEvent
 
@@ -57,17 +57,22 @@ func startFabricListener(client *ecomm.AssetClient) error {
 				return err
 			}
 		case event := <-notifiers[2]:
-			err := handleCloseAuctionEvent(string(event.Payload))
+			err := handleCloseAuctionEvent(event.Payload)
 			if err != nil {
 				return err
 			}
 		case event := <-notifiers[3]:
-			err := handleCancelAuctionEvent(string(event.Payload))
+			err := handleCancelAuctionEvent(event.Payload)
 			if err != nil {
 				return err
 			}
 		case event := <-notifiers[4]:
-			err := handleAuctionClosedEvent(string(event.Payload))
+			err := handleAuctionClosedEvent(event.Payload)
+			if err != nil {
+				return err
+			}
+		case event := <-notifiers[5]:
+			err := handleRevealAuctionEvent(event.Payload)
 			if err != nil {
 				return err
 			}

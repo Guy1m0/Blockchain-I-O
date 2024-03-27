@@ -6,7 +6,6 @@ import (
 	"log"
 	"math/big"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
@@ -149,17 +148,33 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 	return err
 }
 
-func handleCancelAuctionEvent(eventPayload string) error {
+func handleRevealAuctionEvent(eventPayload []byte) error {
 	t := time.Now()
-	parts := strings.SplitN(eventPayload, ": ", 2)
-	if len(parts) < 2 {
-		return fmt.Errorf("received unexpected event: %s", eventPayload)
-	}
 
-	auctionID, err := strconv.Atoi(parts[1])
+	var result ecomm.Auction
+	err := json.Unmarshal(eventPayload, &result)
 	check(err)
-	auction, err := assetClient.GetAuction(auctionID)
+
+	auction, err := assetClient.GetAuction(result.AuctionID)
 	check(err)
+	log.Println("[fabric] Cancel Auction with ID:", result.AuctionID)
+
+	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, auction.AucType, t, "", 0)
+
+	return err
+}
+
+func handleCancelAuctionEvent(eventPayload []byte) error {
+	t := time.Now()
+
+	var result ecomm.Auction
+	err := json.Unmarshal(eventPayload, &result)
+	check(err)
+
+	auction, err := assetClient.GetAuction(result.AuctionID)
+	check(err)
+	log.Println("[fabric] Cancel Auction with ID:", result.AuctionID)
+
 	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, auction.AucType, t, "", 0)
 
 	log.Println("[ETH/QUO] Close auctions on both platforms")
@@ -200,17 +215,17 @@ func handleCancelAuctionEvent(eventPayload string) error {
 	return ccsvc.Publish(ecomm.AuctionCancelingEvent, payload)
 }
 
-func handleCloseAuctionEvent(eventPayload string) error {
+func handleCloseAuctionEvent(eventPayload []byte) error {
 	t := time.Now()
-	parts := strings.SplitN(eventPayload, ": ", 2)
-	if len(parts) < 2 {
-		return fmt.Errorf("received unexpected event: %s", eventPayload)
-	}
 
-	auctionID, err := strconv.Atoi(parts[1])
+	var result ecomm.Auction
+	err := json.Unmarshal(eventPayload, &result)
 	check(err)
-	auction, err := assetClient.GetAuction(auctionID)
+
+	auction, err := assetClient.GetAuction(result.AuctionID)
 	check(err)
+	log.Println("[fabric] Close Auction with ID:", result.AuctionID)
+
 	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, auction.AucType, t, "", 0)
 
 	log.Println("[ETH/QUO] Determin winner")
@@ -281,7 +296,19 @@ func handleCloseAuctionEvent(eventPayload string) error {
 	return nil
 }
 
-func handleAuctionClosedEvent(eventPayload string) error {
+func handleAuctionClosedEvent(eventPayload []byte) error {
+	t := time.Now()
+
+	var result ecomm.Auction
+	err := json.Unmarshal(eventPayload, &result)
+	check(err)
+
+	auction, err := assetClient.GetAuction(result.AuctionID)
+	check(err)
+	log.Println("[fabric] Cancel Auction with ID:", result.AuctionID)
+
+	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, auction.AucType, t, "", 0)
+
 	return nil
 }
 

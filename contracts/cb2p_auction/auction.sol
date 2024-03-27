@@ -14,15 +14,17 @@ contract ClosedBidSecondPriceAuction {
 
     // Current state of the auction.
     mapping (uint => mapping(address => bytes32)) bidHashes;
-    address[] public highestBidder;
-    uint[] public highestBid;
-    uint[] public secondHighestBid;
-    string[] public status;
-    string[] public asset_id;
+    // uint: AuctionID
+    mapping(uint => address) public highestBidder;
+    mapping(uint => uint) public secondHighestBid;
+    mapping(uint => uint) public highestBid;
+    mapping(uint => string) public status;
+    mapping(uint => string) public asset_id;
+    mapping(uint => string) public asset_owner;
 
-    // feedback
-    bytes32[] private feedback;
-    int[] private score;
+    // Feedback
+    mapping(string => string[]) private feedback;
+    mapping(string => int[]) private score;
 
     // Events that will be emitted on changes.
     event NewBidHash(uint auction, string id, address bidder, bytes32 bidHash);
@@ -31,7 +33,7 @@ contract ClosedBidSecondPriceAuction {
     event WithdrawBid(uint auction, string id, address bidder, uint amount);
     event DecisionMade(uint auction, address winner, uint amount, string id, bool prcd, string jsonString);
     event AwaitResponse(uint auction, address winner);
-    event RateAuction(uint auction, string id, int rating, bytes32 review);
+    event RateAuction(uint auctionId, string id, int rating, string review);
 
     IERC20 public immutable token;
 
@@ -40,16 +42,17 @@ contract ClosedBidSecondPriceAuction {
         owner = msg.sender;
     }
 
-    function create(string memory _asset_id) public {
+    function create(uint _auction_id, string memory _asset_id, string memory _asset_owner) public {
         require(msg.sender == owner, "Only owner can create new auction");
 
-        highestBidder.push(address(0));
-        highestBid.push(0);
-        secondHighestBid.push(0);
-        status.push("open");
-        asset_id.push(_asset_id);
-        feedback.push(bytes32(0));
-        score.push(0);
+        // Initialize the auction with default values
+        highestBidder[_auction_id] = address(0);
+        highestBid[_auction_id] = 0;
+        status[_auction_id] = "open";
+        asset_id[_auction_id] = _asset_id;
+        asset_owner[_auction_id] = _asset_owner;
+
+        // feedback and score are related to users, not auctions, so might not be set here
     }
 
     function bid(uint auctionId, bytes32 bidHash) public {
@@ -167,30 +170,28 @@ contract ClosedBidSecondPriceAuction {
         emit DecisionMade(auctionId, highestBidder[auctionId], highestBid[auctionId], asset_id[auctionId], true, jsonString);
     }
 
-    function provide_feedback(uint auctionId, int _score, bytes32 _feedback) public {
+    function provide_feedback(uint auctionId, int _score, string memory _feedback) public {
         // Use hash to check status
         require(keccak256(abi.encodePacked(status[auctionId])) == keccak256(abi.encodePacked("closing")), "Contract not in CLOSING status");
         // For testing only
         require(msg.sender == highestBidder[auctionId], "Not authorized access!");
 
-        score[auctionId] = _score;
-        feedback[auctionId] = _feedback;
+        score[asset_owner[auctionId]].push(_score);
+        feedback[asset_owner[auctionId]].push(_feedback);
 
         emit RateAuction(auctionId, asset_id[auctionId], _score, _feedback);
         status[auctionId] = "closed";
     }
 
-    function checkAverageScore() public view returns (int) {
+    function checkAverageScore(uint auctionId) public view returns (int) {
         int total = 0;
-        for(uint i=0;i<score.length;i++) {
-            // Use hash to check status
-            if(keccak256(abi.encodePacked(status[i])) == keccak256(abi.encodePacked("closed"))) {
-                total += score[i];
-            }
+        uint l = score[asset_owner[auctionId]].length;
+        for(uint i=0; i < l;i++) {
+            total += score[asset_owner[auctionId]][i];
         }
 
         // solidity does not support floats, so we multiply the rating by 100 to achieve accuracy up to two decimals (the user's client will have to divide the result by 100)
-        return (100*total/int(score.length));
+        return (100*total/int(l));
     }
 
 
