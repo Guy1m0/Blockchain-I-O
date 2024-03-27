@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -116,7 +117,7 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 	case "cb2p":
 
 	default:
-		fmt.Println("Auction type error")
+		log.Fatalf("Auction type error")
 
 	}
 
@@ -216,7 +217,7 @@ func handleCancelAuctionEvent(eventPayload []byte) error {
 }
 
 func handleCloseAuctionEvent(eventPayload []byte) error {
-	t := time.Now()
+	//t := time.Now()
 
 	var result ecomm.Auction
 	err := json.Unmarshal(eventPayload, &result)
@@ -226,22 +227,32 @@ func handleCloseAuctionEvent(eventPayload []byte) error {
 	check(err)
 	log.Println("[fabric] Close Auction with ID:", result.AuctionID)
 
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, auction.AucType, t, "", 0)
+	var eth_auction_contract, quo_auction_contract ecomm.AuctionContract
+	eth_auction_addr := common.HexToAddress(auction.EthAddr)
+	quo_auction_addr := common.HexToAddress(auction.QuorumAddr)
+
+	// load auction contract
+	switch auction.AucType {
+	case "english":
+		eth_auction_contract, err = english_auction.NewEnglishAuction(eth_auction_addr, ethClient)
+		check(err)
+
+		quo_auction_contract, err = english_auction.NewEnglishAuction(quo_auction_addr, quoClient)
+		check(err)
+	case "dutch":
+	case "cb1p":
+	case "cb2p":
+
+	default:
+		log.Fatalf("Auction type error")
+
+	}
 
 	log.Println("[ETH/QUO] Determin winner")
-	// load auction contract
-	eth_auction_addr := common.HexToAddress(auction.EthAddr)
-	eth_auction_contract, err := eth_auction.NewEthAuction(eth_auction_addr, ethClient)
-	check(err)
-
-	quo_auction_addr := common.HexToAddress(auction.QuorumAddr)
-	quo_auction_contract, err := eth_auction.NewEthAuction(quo_auction_addr, quoClient)
-	check(err)
-
 	// Check highest bid
-	eth_highestBid, _ := eth_auction_contract.HighestBid(&bind.CallOpts{})
+	eth_highestBid, _ := eth_auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(auction.AuctionID)))
 	//eth_highestBidder, _ := eth_auction_contract.HighestBidder(&bind.CallOpts{})
-	quo_highestBid, _ := quo_auction_contract.HighestBid(&bind.CallOpts{})
+	quo_highestBid, _ := quo_auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(auction.AuctionID)))
 	//quo_highestBidder, _ := quo_auction_contract.HighestBidder(&bind.CallOpts{})
 
 	eth_bool := false
@@ -256,43 +267,27 @@ func handleCloseAuctionEvent(eventPayload []byte) error {
 	authT, err := cclib.NewTransactor(root_key, password)
 	check(err)
 
-	// @reset timer
-	t = time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
-
 	// Change Auction Contract on Eth
-	tx, _ := eth_auction_contract.CloseAuction(authT, eth_bool)
-	receipt := ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDING'", eth_auction_addr))
-	fmt.Println(receipt.TxHash.Hex())
-	// payload, err = json.Marshal(&ecomm.Tx{
-	// 	Platform: "eth",
-	// 	Type:     "CloseAuction",
-	// 	Hash:     receipt.TxHash,
-	// })
-	// check(err)
-
-	// t = time.Now()
-	// cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
-	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	tx, _ := eth_auction_contract.CloseAuction(authT, big.NewInt(int64(auction.AuctionID)), eth_bool)
+	receipt1 := ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Change Auction %d status to 'ENDING'", auction.AuctionID))
 
 	// Change Auction Contract on Quo
-	tx, _ = quo_auction_contract.CloseAuction(authT, quo_bool)
-	receipt = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDING'", quo_auction_addr))
-	fmt.Println(receipt.TxHash.Hex())
-	// payload, err = json.Marshal(&ecomm.Tx{
-	// 	Platform: "quo",
-	// 	Type:     "CloseAuction",
-	// 	Hash:     receipt.TxHash,
-	// })
-	// check(err)
+	tx, _ = quo_auction_contract.CloseAuction(authT, big.NewInt(int64(auction.AuctionID)), quo_bool)
+	receipt2 := ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Change Auction %d status to 'ENDING'", auction.AuctionID))
 
-	// t = time.Now()
-	// cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
-	// //cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	cost := receipt1.GasUsed
+	note := "ETH:" + strconv.FormatUint(cost, 10)
+	cost += receipt2.GasUsed
+	note += " QUO:" + strconv.FormatUint(receipt2.GasUsed, 10)
 
-	// payload, _ = json.Marshal(a)
-	// ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
+	t := time.Now()
+	ecomm.LogEvent(logInfoFile, ecomm.AuctionClosingEvent, auction.AssetID, auction.AucType, t, note, cost)
 
+	payloadJSON, _ := json.Marshal(auction)
+	wrapper := ecomm.EventWrapper{Type: "Close Auction", Result: payloadJSON}
+	payload, _ := json.Marshal(wrapper)
+
+	err = ccsvc.Publish(ecomm.AuctionStartingEvent, payload)
 	return nil
 }
 

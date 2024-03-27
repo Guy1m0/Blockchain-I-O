@@ -96,7 +96,7 @@ func main() {
 		wg.Wait() // Wait for all goroutines to finish
 		log.Println("All assets have been added.")
 
-	case "bid":
+	case "bidE":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		index := len(auction_infos) - 1
 		if index == -1 {
@@ -112,9 +112,18 @@ func main() {
 		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
 		bidAuction(auction_info.AuctionID, big.NewInt(0), bid_key)
 
+	case "bidQ":
+		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
+		index := len(auction_infos) - 1
+		if index == -1 {
+			index = 0
+		}
+		auction_info := auction_infos[index]
+
+		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
 		platform = "quo"
-		userID = accounts[2].UserID
-		bid_key = load_bidder_key(userID)
+		userID := accounts[2].UserID
+		bid_key := load_bidder_key(userID)
 		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
 		bidAuction(auction_info.AuctionID, big.NewInt(0), bid_key)
 
@@ -160,6 +169,37 @@ func main() {
 		}
 
 		close(auction_info.AuctionID)
+	case "withE":
+		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
+		index := len(auction_infos) - 1
+		auction_info := auction_infos[index]
+		if index == -1 {
+			index = 0
+		}
+
+		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
+
+		platform = "eth"
+		userID := accounts[1].UserID
+		bid_key := load_bidder_key(userID)
+		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
+		withdraw(auction_info.AuctionID, bid_key)
+	case "withQ":
+		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
+		index := len(auction_infos) - 1
+		auction_info := auction_infos[index]
+		if index == -1 {
+			index = 0
+		}
+
+		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
+
+		platform = "quo"
+		userID := accounts[2].UserID
+		bid_key := load_bidder_key(userID)
+		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
+		withdraw(auction_info.AuctionID, bid_key)
+	//	withdraw()
 	// case "cancel":
 	// 	id_, _ := strconv.Atoi(*id)
 	// 	cancel(id_)
