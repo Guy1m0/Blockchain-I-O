@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/stable_coin"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -59,13 +59,13 @@ func CheckClientValidity(client *ethclient.Client) bool {
 // 	fmt.Printf("fabric ERC20 contract %s for account %s balance: %s\n", token.GetName(), label, string(b))
 // }
 
-func TransferToken(client *ethclient.Client, token *eth_stable_coin.EthStableCoin, auth *bind.TransactOpts, to common.Address, amount int64) {
+func TransferToken(client *ethclient.Client, token *stable_coin.StableCoin, auth *bind.TransactOpts, to common.Address, amount int64) {
 	tx, err := token.Transfer(auth, to, big.NewInt(0).Mul(big.NewInt(amount), DecimalB))
 	check(err)
 	WaitTx(client, tx, "transfer token")
 }
 
-func PrintTokenBalance(token *eth_stable_coin.EthStableCoin, address common.Address, tokenName, accountName string) {
+func PrintTokenBalance(token *stable_coin.StableCoin, address common.Address, tokenName, accountName string) {
 	valueB, err := token.BalanceOf(&bind.CallOpts{}, address)
 	check(err)
 	fmt.Printf("%s %s balance: %s\n",

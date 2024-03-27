@@ -15,7 +15,7 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb2p_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/dutch_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -139,7 +139,7 @@ func bidAuction(auction_id int, amount *big.Int) {
 
 	// @todo: Make approve and bid in a single transaction
 	// Approve amount of bid through ERC20 contract
-	MDAI, _ := eth_stable_coin.NewEthStableCoin(erc20_address, client)
+	MDAI, _ := stable_coin.NewStableCoin(erc20_address, client)
 	tx1, _ := MDAI.Approve(bidT, auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
 	receipt1 := ecomm.WaitTx(client, tx1, "Approve Auction Contract's allowance")
 

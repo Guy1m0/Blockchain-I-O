@@ -243,7 +243,7 @@ func (svc *CCService) listenKafkaConsumer(consumer *consumergroup.ConsumerGroup)
 		if !ok {
 			continue
 		}
-		log.Printf("Received event: %s\n", message.Topic)
+		log.Printf("[Kafka] Received event: %s\n", message.Topic)
 		go handler(message.Value)
 		consumer.CommitUpto(message)
 	}

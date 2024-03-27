@@ -6,13 +6,14 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -85,6 +86,12 @@ func main() {
 }
 
 func reset_log() error {
+	// Ensure the directory exists
+	dir := filepath.Dir(logCSVPath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
 	// Open (or create) the file in write mode to reset it or create a new one
 	file, err := os.Create(logCSVPath)
 	if err != nil {
@@ -122,7 +129,7 @@ func cleanFileContent(filePath string) error {
 }
 
 func test() {
-	_, tx, quo, _ := eth_stable_coin.DeployEthStableCoin(rootT, quoClient, big.NewInt(1))
+	_, tx, quo, _ := stable_coin.DeployStableCoin(rootT, quoClient, big.NewInt(1))
 	ecomm.WaitTx(quoClient, tx, "Deploy ERC20 Stable Coin on Quorum")
 	//log.Println(receipt)
 
@@ -162,7 +169,7 @@ func initialize(token_name string) {
 	supply, _ := big.NewInt(0).SetString("1"+strings.Repeat("0", ecomm.Decimal+10), 10)
 
 	fmt.Println("Deploy ERC20 contracts on Eth and Quorum")
-	eth_MDAI_addr, tx, eth_MDAI, _ := eth_stable_coin.DeployEthStableCoin(rootT, ethClient, big.NewInt(1))
+	eth_MDAI_addr, tx, eth_MDAI, _ := stable_coin.DeployStableCoin(rootT, ethClient, big.NewInt(1))
 	ecomm.WaitTx(ethClient, tx, "Deploy ERC20 Stable Coin on Ethereum")
 	// valueB, _ := eth_MDAI.BalanceOf(&bind.CallOpts{}, common.HexToAddress("0xd0a73fe9d44184e9f1264ce2097064212e67ebfe"))
 	// log.Printf("Balance: %s", valueB.String())
@@ -184,7 +191,7 @@ func initialize(token_name string) {
 	check(err)
 	ecomm.WaitTx(ethClient, tx, "Mint ERC20 Stable Coin on Ethereum")
 
-	quo_MDAI_addr, tx, quo_MDAI, _ := eth_stable_coin.DeployEthStableCoin(rootT, quoClient, big.NewInt(1))
+	quo_MDAI_addr, tx, quo_MDAI, _ := stable_coin.DeployStableCoin(rootT, quoClient, big.NewInt(1))
 	ecomm.WaitTx(quoClient, tx, "Deploy ERC20 Stable Coin on Quorum")
 
 	quo_english_addr, tx, _, _ := english_auction.DeployEnglishAuction(rootT, quoClient, quo_MDAI_addr)
@@ -344,14 +351,14 @@ func add_user(user_id string, platform string, amount string) {
 	})
 }
 
-func load_ERC20() (*eth_stable_coin.EthStableCoin, *eth_stable_coin.EthStableCoin, *ecomm.Erc20Client) {
+func load_ERC20() (*stable_coin.StableCoin, *stable_coin.StableCoin, *ecomm.Erc20Client) {
 	var contract_info ecomm.ContractInfo
 	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
 
-	eth_ERC20, err := eth_stable_coin.NewEthStableCoin(contract_info.EthERC20, ethClient)
+	eth_ERC20, err := stable_coin.NewStableCoin(contract_info.EthERC20, ethClient)
 	check(err)
 
-	quo_ERC20, err := eth_stable_coin.NewEthStableCoin(contract_info.QuoERC20, quoClient)
+	quo_ERC20, err := stable_coin.NewStableCoin(contract_info.QuoERC20, quoClient)
 	check(err)
 
 	fabric_ERC20 := ecomm.NewErc20Client(contract_info.FabricTokenName)

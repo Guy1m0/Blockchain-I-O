@@ -14,7 +14,7 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb2p_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/dutch_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -76,7 +76,8 @@ func bidAuction(auction_id int, amount *big.Int, bid_key string) {
 	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, auc_type, t, "", 0)
 
 	// Bid more than highest
-	if amount == big.NewInt(0) {
+	log.Println(amount, amount.Cmp(big.NewInt(0)))
+	if amount.Cmp(big.NewInt(0)) == 0 {
 		amount, err = auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
 		check(err)
 		amount.Add(amount, big.NewInt(1))
@@ -84,7 +85,7 @@ func bidAuction(auction_id int, amount *big.Int, bid_key string) {
 
 	// @todo: Make approve and bid in a single transaction
 	// Approve amount of bid through ERC20 contract
-	MDAI, _ := eth_stable_coin.NewEthStableCoin(erc20_address, client)
+	MDAI, _ := stable_coin.NewStableCoin(erc20_address, client)
 	// valueB, err := MDAI.BalanceOf(&bind.CallOpts{}, auction_addr)
 	// log.Printf("Auction contract orig balance: %s", valueB)
 

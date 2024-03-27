@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_stable_coin"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -65,14 +65,14 @@ func debugTransaction(tx *types.Transaction) error {
 	return nil
 }
 
-func load_ERC20() (*eth_stable_coin.EthStableCoin, *eth_stable_coin.EthStableCoin, *ecomm.Erc20Client) {
+func load_ERC20() (*stable_coin.StableCoin, *stable_coin.StableCoin, *ecomm.Erc20Client) {
 	var contract_info ecomm.ContractInfo
 	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
 
-	eth_ERC20, err := eth_stable_coin.NewEthStableCoin(contract_info.EthERC20, ethClient)
+	eth_ERC20, err := stable_coin.NewStableCoin(contract_info.EthERC20, ethClient)
 	check(err)
 
-	quo_ERC20, err := eth_stable_coin.NewEthStableCoin(contract_info.QuoERC20, quoClient)
+	quo_ERC20, err := stable_coin.NewStableCoin(contract_info.QuoERC20, quoClient)
 	check(err)
 
 	fabric_ERC20 := ecomm.NewErc20Client(contract_info.FabricTokenName)

@@ -99,6 +99,9 @@ func main() {
 	case "bid":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		index := len(auction_infos) - 1
+		if index == -1 {
+			index = 0
+		}
 		auction_info := auction_infos[index]
 
 		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
@@ -151,6 +154,10 @@ func main() {
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		index := len(auction_infos) - 1
 		auction_info := auction_infos[index]
+
+		if index == -1 {
+			index = 0
+		}
 
 		close(auction_info.AuctionID)
 	// case "cancel":
