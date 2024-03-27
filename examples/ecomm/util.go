@@ -319,6 +319,16 @@ func StartAuction(assetClient *AssetClient, assetID, ethAddr, quorumAddr string)
 	return a
 }
 
+// stringInSlice checks if a string exists in a slice of strings.
+func stringInSlice(slice []string, target string) bool {
+	for _, item := range slice {
+		if item == target {
+			return true // Found the target string in the slice
+		}
+	}
+	return false // Target string not found in the slice
+}
+
 func check(err error) {
 	if err != nil {
 		panic(err)
