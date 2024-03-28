@@ -126,8 +126,9 @@ func bidAuction(auction_id int, amount *big.Int) {
 	bidT, err := cclib.NewTransactor(bid_key, "password")
 	check(err)
 
-	eventID := a.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
-	LogEvent(logInfoFile, BidEvent, eventID, auc_type, t, "", 0)
+	//eventID := a.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
+	keyWords := fmt.Sprintf("%s_%s_%s", platform, bidT.From.String()[36:], amount)
+	LogEvent(logInfoFile, a.AssetID, BidEvent, keyWords, t, "", 0)
 
 	// @todo: Make approve and bid in a single transaction
 	// Approve amount of bid through ERC20 contract
@@ -143,7 +144,7 @@ func bidAuction(auction_id int, amount *big.Int) {
 	note += " Bid: MDAI " + big.NewInt(0).Mul(big.NewInt(amount.Int64()), DecimalB).String()
 
 	total_cost := receipt1.GasUsed + receipt2.GasUsed
-	UpdateLog(logInfoFile, BidEvent, eventID, auc_type, total_cost, note)
+	UpdateLog(logInfoFile, a.AssetID, BidEvent, keyWords, total_cost, note)
 }
 
 func bidAuctionH(auction_id int, bidAmount *big.Int) {

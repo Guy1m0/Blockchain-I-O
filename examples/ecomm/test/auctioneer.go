@@ -10,7 +10,7 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 )
 
-// Use key 1 as default auctioner
+// Use key 1 as default auctioneer
 func create(asset_name string, auc_type string, usr_name string) {
 	t := time.Now()
 	//fmt.Println("Auc type:", auc_type)
@@ -23,7 +23,7 @@ func create(asset_name string, auc_type string, usr_name string) {
 	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex(), auc_type)
 	check(err)
 
-	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, asset_name, auc_type, t, "", 0)
+	ecomm.LogEvent(logInfoFile, asset_name, ecomm.AssetAddingEvent, "", t, "", 0)
 }
 
 func reveal(auctionID int) {
@@ -65,7 +65,7 @@ func cancel(auctionID int) {
 	_, err = assetClient.CancelAuction(auctionID)
 	check(err)
 
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, a.AssetID, a.AucType, t, "", 0)
+	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.AuctionCancelingEvent, "", t, "", 0)
 }
 
 func close(auctionID int) {
@@ -86,7 +86,7 @@ func close(auctionID int) {
 
 	//payload, _ := json.Marshal(a)
 	t = time.Now()
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionClosingEvent, a.AssetID, a.AucType, t, "", 0)
+	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.AuctionClosingEvent, "", t, "", 0)
 	//cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
 
 	//@reset

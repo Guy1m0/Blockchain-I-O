@@ -8,16 +8,19 @@ import (
 )
 
 const (
-	AssetAddingEvent     = "auctioner.add_asset"
+	AssetAddingEvent     = "auctioneer.add_asset"
 	AuctionStartingEvent = "relayer.start_auction"
 
-	AuctionClosingEvent    = "auctioner.close_auction"
-	AuctionCancelingEvent  = "auctioner.cancel_auction"
-	AuctionFinalizingEvent = "auctioner.fin_auction"
+	AuctionClosingEvent    = "auctioneer.close_auction"
+	AuctionCancelingEvent  = "auctioneer.cancel_auction"
+	AuctionRevealingEvent  = "auctioneer.reveal_auction"
+	AuctionFinalizingEvent = "auctioneer.fin_auction"
 
 	AuctionStateUpdatingEvent = "relayer.update_auction_state"
 
-	BidEvent                 = "bidder.bid_auc"
+	BidEvent                 = "bidder.bid"
+	BidHashEvent             = "bidder.conceal_bid"
+	RevealBidEvent           = "bidder.reveal_bid"
 	WithdrawEvent            = "bidder.withdraw"
 	CommitAuctionResultEvent = "bidder.cmt_result"
 	AbortAuctionResultEvent  = "bidder.abt_result"

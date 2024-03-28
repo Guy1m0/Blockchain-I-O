@@ -3,7 +3,6 @@ package ecomm
 import (
 	"encoding/csv"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -14,9 +13,9 @@ import (
 var mu sync.Mutex
 
 type EventLog struct {
-	EventID       string
+	AssetID       string
 	Event         string
-	AucType       string
+	KeyWords      string
 	StartTime     time.Time
 	EndTime       time.Time
 	KafkaReceived time.Time
@@ -28,9 +27,9 @@ type EventLog struct {
 
 func (e EventLog) toSlice() []string {
 	return []string{
-		e.EventID,
+		e.AssetID,
 		e.Event,
-		e.AucType,
+		e.KeyWords,
 		e.StartTime.String(),
 		e.EndTime.String(),
 		e.KafkaReceived.String(),
@@ -41,7 +40,7 @@ func (e EventLog) toSlice() []string {
 	}
 }
 
-func LogEvent(filePath, event, eventID, auc_type string, record_time time.Time, note string, cost uint64) (*EventLog, error) {
+func LogEvent(filePath, assetID, event, keyWords string, record_time time.Time, note string, cost uint64) (*EventLog, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -60,7 +59,7 @@ func LogEvent(filePath, event, eventID, auc_type string, record_time time.Time, 
 	// Check if file is empty or newly created, if so, add the headers
 	if len(records) == 0 {
 		headers := []string{
-			"EventID", "Event", "AuctionType", "StartTime", "EndTime", "TimeElapsed", "KafkaReceived", "KafkaTime", "GasCost", "Note",
+			"AssetID", "Event", "KeyWords", "StartTime", "EndTime", "TimeElapsed", "KafkaReceived", "KafkaTime", "GasCost", "Note",
 		}
 		records = append(records, headers)
 	}
@@ -71,7 +70,7 @@ func LogEvent(filePath, event, eventID, auc_type string, record_time time.Time, 
 	// Check if the event with the given eventID exists
 	var existingIndex = -1
 	for i, record := range records {
-		if record[0] == eventID && record[1] == event {
+		if record[0] == assetID && record[1] == event && record[2] == keyWords {
 			//fmt.Println("Find record: ", record)
 			existingIndex = i
 			break
@@ -79,25 +78,22 @@ func LogEvent(filePath, event, eventID, auc_type string, record_time time.Time, 
 	}
 
 	if existingIndex == -1 {
-		event_log.EventID = eventID
+		event_log.AssetID = assetID
 		event_log.Event = event
+		event_log.KeyWords = keyWords
 
 		event_log.StartTime = record_time
 		event_log.Cost = cost
 		event_log.Note = note
 
-		if auc_type == "" {
-			log.Println("Auction type is missing")
-		}
-		event_log.AucType = auc_type
 		//log.Println("Save time:", event_log.StartTime)
 
 		records = append(records, event_log.toSlice())
 	} else {
 		event_log = EventLog{
-			EventID:       records[existingIndex][0],
+			AssetID:       records[existingIndex][0],
 			Event:         records[existingIndex][1],
-			AucType:       records[existingIndex][2],
+			KeyWords:      records[existingIndex][2],
 			StartTime:     parseTime(records[existingIndex][3]),
 			EndTime:       parseTime(records[existingIndex][4]),
 			KafkaReceived: parseTime(records[existingIndex][5]),
@@ -141,7 +137,7 @@ func LogEvent(filePath, event, eventID, auc_type string, record_time time.Time, 
 	return &event_log, nil
 }
 
-func UpdateLog(filePath, eventName, eventID, aucType string, cost uint64, note string) error {
+func UpdateLog(filePath, assetID, eventName, keyWords string, cost uint64, note string) error {
 	mu.Lock()
 	defer mu.Unlock()
 	// 1. Open the CSV file
@@ -155,7 +151,7 @@ func UpdateLog(filePath, eventName, eventID, aucType string, cost uint64, note s
 
 	// 2. Find the correct row using eventName and eventID
 	for _, record := range records {
-		if record[0] == eventID && record[1] == eventName {
+		if record[0] == assetID && record[1] == eventName && record[2] == keyWords {
 			// 3. Update the cost
 			if cost != 0 {
 				record[6] = strconv.FormatUint(cost, 10)

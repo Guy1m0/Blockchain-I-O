@@ -18,7 +18,7 @@ var (
 	//auc_key  = "../../keys/key1"
 )
 
-// Use key 1 as default auctioner
+// Use key 1 as default auctioneer
 func create(asset_name string, auc_type string, usr_name string) {
 	t := time.Now()
 	//fmt.Println("Auc type:", auc_type)

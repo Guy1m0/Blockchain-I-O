@@ -28,7 +28,7 @@ var (
 	assetClient *ecomm.AssetClient
 
 	aucT              *bind.TransactOpts
-	usr_name          = "Auctioner 1"
+	usr_name          = "Auctioneer 1"
 	support_auc_types = []string{"english", "dutch", "cb1p", "cb2p"}
 	//auc_key  = "../../keys/key1"
 )
@@ -41,11 +41,11 @@ func main() {
 	id := flag.String("id", "", "Auction ID")
 	auc_type := flag.String("t", "", "Auction type")
 
-	flag.StringVar(&usr_name, "usr", usr_name, "Load User/Auctioner Information")
+	flag.StringVar(&usr_name, "usr", usr_name, "Load User/auctioneer Information")
 	flag.Parse()
 
-	fmt.Println("Load Auctioner: ", usr_name)
-	auc_key := load_auctioner(usr_name)
+	fmt.Println("Load auctioneer: ", usr_name)
+	auc_key := load_auctioneer(usr_name)
 	aucT, _ = cclib.NewTransactor(auc_key, password)
 
 	switch *command {
@@ -68,7 +68,7 @@ func main() {
 	}
 }
 
-// Use key 1 as default auctioner
+// Use key 1 as default auctioneer
 func create(asset_name string, auc_type string) {
 	t := time.Now()
 	//fmt.Println("Auc type:", auc_type)
@@ -82,7 +82,7 @@ func create(asset_name string, auc_type string) {
 	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex(), auc_type)
 	check(err)
 
-	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, asset_name, auc_type, t, "", 0)
+	ecomm.LogEvent(logInfoFile, asset_name, ecomm.AssetAddingEvent, auc_type, t, "", 0)
 }
 
 func reveal(auctionID int) {
@@ -159,7 +159,7 @@ func check_status(auctionID int) {
 
 }
 
-func load_auctioner(name string) string {
+func load_auctioneer(name string) string {
 	users, err := ecomm.ReadUsersFromFile(userInfoFile)
 	check(err)
 

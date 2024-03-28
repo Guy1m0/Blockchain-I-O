@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 )
 
@@ -17,12 +16,14 @@ func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreased, bid 
 	log.Printf("[%s] HighestBidIncreased Event", strings.ToUpper(bid.Platform))
 
 	amount := new(big.Int).Div(eventPayload.BidAmount, ecomm.DecimalB).String()
-	eventID := eventPayload.Id + "_" + bid.Platform + "_" + eventPayload.Bidder.String()[36:]
-	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, eventPayload.AuctionType, t, "", 0)
+	asset, _ := assetClient.GetAsset(eventPayload.Id)
+	keyWords := fmt.Sprintf("%s_%s_%s", bid.Platform, eventPayload.Bidder.String()[36:], amount)
+	//eventID := eventPayload.Id + "_" + bid.Platform + "_" + eventPayload.Bidder.String()[36:]
+	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidEvent, keyWords, t, "", 0)
 
-	bid.BidAmount = amount
+	bid.BidAmount = eventPayload.BidAmount.String()
 	bid.Bidder = eventPayload.Bidder
-	bid.AssetID = eventPayload.Id
+	bid.AssetID = asset.ID
 
 	payloadJSON, _ := json.Marshal(bid)
 	wrapper := ecomm.EventWrapper{Type: "Bid", Result: payloadJSON}
@@ -41,8 +42,10 @@ func handleNewBidHashEvent(eventPayload ecomm.NewBidHash, bidHash ecomm.BidHash,
 	log.Printf("[%s] NewBidHash Event", strings.ToUpper(bidHash.Platform))
 
 	//amount := new(big.Int).Div(eventPayload.BidAmount, ecomm.DecimalB).String()
-	eventID := eventPayload.Id + "_" + bidHash.Platform + "_" + eventPayload.Bidder.String()[36:]
-	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, "", t, "", 0)
+	//eventID := eventPayload.Id + "_" + bidHash.Platform + "_" + eventPayload.Bidder.String()[36:]
+	asset, _ := assetClient.GetAsset(eventPayload.Id)
+	keyWords := fmt.Sprintf("%s_%s_%s", bidHash.Platform, eventPayload.Bidder.String()[36:], string(bidHash.BidHash[8:]))
+	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidHashEvent, keyWords, t, "", 0)
 
 	bidHash.BidHash = eventPayload.BidHash
 	bidHash.Bidder = eventPayload.Bidder
@@ -64,14 +67,16 @@ func handleWithdrawBidEvent(eventPayload ecomm.WithdrawBid, bid ecomm.Bid, t tim
 	log.Printf("[%s] WithdrawBid Event", strings.ToUpper(bid.Platform))
 
 	amount := new(big.Int).Div(eventPayload.Amount, ecomm.DecimalB).String()
-	eventID := eventPayload.Id + "_" + bid.Platform + "_" + eventPayload.Bidder.String()[36:]
-	ecomm.LogEvent(logInfoFile, ecomm.WithdrawEvent, eventID, "", t, "", 0)
+	asset, _ := assetClient.GetAsset(eventPayload.Id)
+	keyWords := fmt.Sprintf("%s_%s", bid.Platform, eventPayload.Bidder.String()[36:])
+	//eventID := eventPayload.Id + "_" + bid.Platform + "_" + eventPayload.Bidder.String()[36:]
+	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.WithdrawEvent, keyWords, t, "Withdraw: MDAI "+eventPayload.Amount.String(), 0)
 
 	bid.BidAmount = amount
 	bid.Bidder = eventPayload.Bidder
 	bid.AssetID = eventPayload.Id
 
-	ecomm.UpdateLog(logInfoFile, ecomm.WithdrawEvent, eventID, "", 0, "Withdraw: MDAI "+amount)
+	//ecomm.UpdateLog(logInfoFile, ecomm.WithdrawEvent, eventID, "", 0, "Withdraw: MDAI "+amount)
 
 	payloadJSON, _ := json.Marshal(bid)
 	wrapper := ecomm.EventWrapper{Type: "Withdraw", Result: payloadJSON}
@@ -83,7 +88,7 @@ func handleWithdrawBidEvent(eventPayload ecomm.WithdrawBid, bid ecomm.Bid, t tim
 
 func handleDecisionMadeEvent(eventPayload ecomm.DecisionMade, t time.Time) error {
 	payload := eventPayload.JsonString
-	cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, []byte(eventPayload.JsonString), t, timeInfoFile)
+	//cclib.LogEventToFile(logInfoFile, ecomm.RelayerDetectedEvent, []byte(eventPayload.JsonString), t, timeInfoFile)
 
 	var result ecomm.AuctionResult
 
@@ -120,7 +125,7 @@ func handleDecisionMadeEvent(eventPayload ecomm.DecisionMade, t time.Time) error
 func smartContractEvent(eventPayload []byte) {
 	t := time.Now()
 	var wrapper ecomm.EventWrapper
-	var event, eventID string
+	var event, keyWords, assetId string
 	err := json.Unmarshal([]byte(eventPayload), &wrapper)
 	check(err)
 
@@ -129,28 +134,36 @@ func smartContractEvent(eventPayload []byte) {
 		var bid ecomm.Bid
 		err = json.Unmarshal(wrapper.Result, &bid)
 		check(err)
-
+		//ecomm.Decimal
 		event = ecomm.BidEvent
-		eventID = bid.AssetID + "_" + bid.Platform + "_" + bid.Bidder.String()[36:]
+		amount := new(big.Int)
+		amount.SetString(bid.BidAmount, 10)
+		amount.Div(amount, ecomm.DecimalB)
+		assetId = bid.AssetID
+		//eventID = bid.AssetID + "_" + bid.Platform + "_" + bid.Bidder.String()[36:]
+		keyWords = fmt.Sprintf("%s_%s_%s", bid.Platform, bid.Bidder.String()[36:], amount)
+
 		//fmt.Printf("Received Asset: %+v\n", asset)
 	case "Withdraw":
 		var bid ecomm.Bid
 		err = json.Unmarshal(wrapper.Result, &bid)
 		check(err)
 
+		event = ecomm.BidEvent
+		assetId = bid.AssetID
 		event = ecomm.WithdrawEvent
-		eventID = bid.AssetID + "_" + bid.Platform + "_" + bid.Bidder.String()[36:]
+		keyWords = fmt.Sprintf("%s_%s", bid.Platform, bid.Bidder.String()[36:])
 
 	case "BidHash":
 		var bidHash ecomm.BidHash
 		err = json.Unmarshal(wrapper.Result, &bidHash)
 		check(err)
-
+		assetId = bidHash.AssetID
 		event = ecomm.WithdrawEvent
-		eventID = bidHash.AssetID + "_" + bidHash.Platform + "_" + bidHash.Bidder.String()[36:]
+		keyWords = fmt.Sprintf("%s_%s_%s", bidHash.Platform, bidHash.Bidder.String()[36:], string(bidHash.BidHash[8:]))
 	default:
 		fmt.Printf("Unknown type: %s\n", wrapper.Type)
 	}
 
-	ecomm.LogEvent(logInfoFile, event, eventID, "", t, "", 0)
+	ecomm.LogEvent(logInfoFile, assetId, event, keyWords, t, "", 0)
 }

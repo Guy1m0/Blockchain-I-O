@@ -39,7 +39,7 @@ var (
 	aucT        *bind.TransactOpts
 	asset_names []string
 
-	usr_name          = "Auctioner 1"
+	usr_name          = "auctioneer 1"
 	auc_type          = "english"
 	support_auc_types = []string{"english", "dutch", "cb1p", "cb2p", "all"}
 
@@ -59,13 +59,13 @@ func main() {
 
 	// asset := flag.String("ast", "", "Asset name")
 	//b := flag.String("id", "", "Auction ID")
-	flag.StringVar(&usr_name, "usr", usr_name, "Load User/Auctioner Information")
+	flag.StringVar(&usr_name, "usr", usr_name, "Load User/auctioneer Information")
 	flag.StringVar(&auc_type, "t", auc_type, "Choose testing auction type")
 
 	flag.Parse()
 
-	//fmt.Println("Load Auctioner: ", usr_name)
-	auc_key := load_auctioner(usr_name)
+	//fmt.Println("Load auctioneer: ", usr_name)
+	auc_key := load_auctioneer(usr_name)
 	aucT, _ = cclib.NewTransactor(auc_key, password)
 
 	asset_names, err := readNamesFromFile(assetNamesFile)
@@ -219,7 +219,7 @@ func check_status(auctionID int) {
 
 }
 
-func load_auctioner(name string) string {
+func load_auctioneer(name string) string {
 	users, err := ecomm.ReadUsersFromFile(userInfoFile)
 	check(err)
 

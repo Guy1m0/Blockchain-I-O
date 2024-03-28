@@ -78,12 +78,12 @@ func bidAuction(auction_id int, amount *big.Int, bid_key string) {
 		highest.Div(highest, ecomm.DecimalB)
 		check(err)
 		amount.Add(highest, big.NewInt(1))
-		log.Printf("highest: %s bidAmount: %s", highest, amount)
+		//log.Printf("highest: %s bidAmount: %s", highest, amount)
 	}
 
 	//eventID := fmt.Sprintf("%s_%s_%s_%s", a.AssetID, platform, bidT.From.String()[36:], amount)
-	eventID := fmt.Sprintf("%s_%s_%s", a.AssetID, platform, bidT.From.String()[36:])
-	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, auc_type, t, "", 0)
+	keyWords := fmt.Sprintf("%s_%s_%s", platform, bidT.From.String()[36:], amount)
+	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.BidEvent, keyWords, t, "", 0)
 
 	// @todo: Make approve and bid in a single transaction
 	// Approve amount of bid through ERC20 contract
@@ -107,7 +107,7 @@ func bidAuction(auction_id int, amount *big.Int, bid_key string) {
 	note += " Bid: MDAI " + big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB).String()
 
 	total_cost := receipt1.GasUsed + receipt2.GasUsed
-	ecomm.UpdateLog(logInfoFile, ecomm.BidEvent, eventID, auc_type, total_cost, note)
+	ecomm.UpdateLog(logInfoFile, a.AssetID, ecomm.BidEvent, keyWords, total_cost, note)
 }
 
 func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key string) {
@@ -149,8 +149,8 @@ func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key string) {
 	bidT, err := cclib.NewTransactor(bid_key, "password")
 	check(err)
 
-	eventID := a.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
-	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, auc_type, t, "", 0)
+	keyWords := fmt.Sprintf("%s_%s_%s", platform, bidT.From.String()[36:], bidAmount)
+	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.BidEvent, keyWords, t, "", 0)
 
 	// Compute the hash of the bid amount
 	// Solidity equivalent: keccak256(abi.encodePacked(bidAmount))
@@ -182,11 +182,14 @@ func withdraw(auction_id int, bid_key string) {
 
 	bidT, err := cclib.NewTransactor(bid_key, "password")
 	check(err)
-	eventID := auction.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
+	//eventID := auction.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
+	//@todo withdraw bidAmount
+	keyWords := fmt.Sprintf("%s_%s", platform, bidT.From.String()[36:])
 
-	ecomm.LogEvent(logInfoFile, ecomm.WithdrawEvent, eventID, auc_type, t, "", 0)
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.WithdrawEvent, keyWords, t, "", 0)
 
 	// same interface for all 4 kinds auction contracts
+	// @todo support all 4 auctions
 	auction_contract, err := english_auction.NewEnglishAuction(auction_addr, client)
 	check(err)
 
@@ -194,7 +197,7 @@ func withdraw(auction_id int, bid_key string) {
 	check(err)
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Withdraw bid on Auction ID: %d through contract: %s", auction.AuctionID, auction_addr))
 
-	ecomm.UpdateLog(logInfoFile, ecomm.WithdrawEvent, eventID, auc_type, receipt.GasUsed, "")
+	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.WithdrawEvent, keyWords, receipt.GasUsed, "")
 	//debugTransaction(tx)
 	// log
 	/////////////

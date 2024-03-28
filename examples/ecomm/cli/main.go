@@ -24,18 +24,18 @@ const (
 	key_path = "../../keys/"
 	rootKey  = "../../keys/key0"
 
-	auctionerKey = "../../keys/key1"
-	keyFolder    = "../../keys/"
-	bidder1Key   = "../../keys/key2"
-	bidder2Key   = "../../keys/key3"
-	password     = "password"
+	auctioneerKey = "../../keys/key1"
+	keyFolder     = "../../keys/"
+	bidder1Key    = "../../keys/key2"
+	bidder2Key    = "../../keys/key3"
+	password      = "password"
 
 	contractInfoFile = "../tmp/contract_info.json"
 	userInfoFile     = "../tmp/user_info.json"
 	auctionInfoFile  = "../tmp/auction_info.json"
 	logCSVPath       = "../tmp/log.csv"
 
-	defaultHeaders = "EventID,Event,AuctionType,StartTime,EndTime,KafkaReceived,GasCost,Note,TimeElapsed,KafkaTime\n"
+	defaultHeaders = "AssetID,Event,KeyWords,StartTime,EndTime,KafkaReceived,GasCost,Note,TimeElapsed,KafkaTime\n"
 )
 
 var (
@@ -238,11 +238,11 @@ func initialize(token_name string) {
 }
 
 func setup() {
-	aucT, err := cclib.NewTransactor(auctionerKey, password)
+	aucT, err := cclib.NewTransactor(auctioneerKey, password)
 	eth_ERC20, quo_ERC20, fabric_ERC20 := load_ERC20()
 	check(err)
 
-	fmt.Println("Setup account for 'Auctioner 1' on Fabirc")
+	fmt.Println("Setup account for 'auctioneer 1' on Fabirc")
 	_, err = fabric_ERC20.Transfer(aucT.From.Hex(), "0")
 
 	valueB_, err := fabric_ERC20.BalanceOf(aucT.From.Hex())
@@ -254,9 +254,9 @@ func setup() {
 	}
 
 	ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
-		UserID:  "Auctioner 1",
+		UserID:  "auctioneer 1",
 		Address: aucT.From,
-		KeyFile: auctionerKey,
+		KeyFile: auctioneerKey,
 	})
 
 	var bidT *bind.TransactOpts
@@ -296,7 +296,7 @@ func display() {
 	for _, user := range users {
 		// Eth balance
 		valueB, _ := eth_ERC20.BalanceOf(&bind.CallOpts{}, user.Address)
-		log.Printf("For user: %s has balance: %s", user.UserID, valueB.String())
+		//log.Printf("For user: %s has balance: %s", user.UserID, valueB.String())
 		eth_balance := big.NewInt(0).Div(valueB, DecimalB).String()
 
 		// Quo balance

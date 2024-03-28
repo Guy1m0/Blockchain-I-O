@@ -31,8 +31,8 @@ func handleAddAssetEvent(eventPayload []byte) error {
 	check(err)
 
 	auc_type := result.AucType
-	fmt.Println("Auc Type:", auc_type)
-	ecomm.LogEvent(logInfoFile, ecomm.AssetAddingEvent, assetID, auc_type, t, "", 0)
+	//fmt.Println("Auc Type:", auc_type)
+	ecomm.LogEvent(logInfoFile, assetID, ecomm.AssetAddingEvent, "", t, "", 0)
 
 	payloadJSON, _ := json.Marshal(asset)
 	wrapper := ecomm.EventWrapper{Type: "Asset", Result: payloadJSON}
@@ -72,7 +72,7 @@ func handleAddAssetEvent(eventPayload []byte) error {
 	_, err = assetClient.StartAuction(args)
 
 	check(err)
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, assetID, auc_type, t, "", 0)
+	ecomm.LogEvent(logInfoFile, assetID, ecomm.AuctionStartingEvent, auc_type, t, "", 0)
 	return nil
 }
 
@@ -127,10 +127,10 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 	note += " QUO:" + strconv.FormatUint(receipt2.GasUsed, 10)
 
 	t := time.Now()
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionStartingEvent, auction.AssetID, auction.AucType, t, note, cost)
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.AuctionStartingEvent, auction.AucType, t, note, cost)
 
 	log.Println("[fabirc] Start Auction with ID: ", result.ID)
-	log.Println("AuctionID", auction.AuctionID)
+	//log.Println("AuctionID", auction.AuctionID)
 
 	payloadJSON, _ := json.Marshal(auction)
 	wrapper := ecomm.EventWrapper{Type: "Start Auction", Result: payloadJSON}
@@ -160,7 +160,7 @@ func handleRevealAuctionEvent(eventPayload []byte) error {
 	check(err)
 	log.Println("[fabric] Cancel Auction with ID:", result.AuctionID)
 
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, auction.AucType, t, "", 0)
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.AuctionRevealingEvent, "", t, "", 0)
 
 	return err
 }
@@ -176,7 +176,7 @@ func handleCancelAuctionEvent(eventPayload []byte) error {
 	check(err)
 	log.Println("[fabric] Cancel Auction with ID:", result.AuctionID)
 
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, auction.AucType, t, "", 0)
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.AuctionCancelingEvent, "", t, "", 0)
 
 	log.Println("[ETH/QUO] Close auctions on both platforms")
 	// load auction contract
@@ -206,7 +206,7 @@ func handleCancelAuctionEvent(eventPayload []byte) error {
 	cost += receipt.GasUsed
 	note += " QUO:" + strconv.FormatUint(receipt.GasUsed, 10)
 
-	ecomm.UpdateLog(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, "", cost, note)
+	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.AuctionCancelingEvent, "", cost, note)
 	//ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
 
 	payloadJSON, _ := json.Marshal(auction)
@@ -241,6 +241,11 @@ func handleCloseAuctionEvent(eventPayload []byte) error {
 		check(err)
 	case "dutch":
 	case "cb1p":
+		// eth_auction_contract, err = cb1p_auction.NewCb1pAuction(eth_auction_addr, ethClient)
+		// check(err)
+
+		// quo_auction_contract, err = english_auction.NewEnglishAuction(quo_auction_addr, quoClient)
+		// check(err)
 	case "cb2p":
 
 	default:
@@ -281,7 +286,7 @@ func handleCloseAuctionEvent(eventPayload []byte) error {
 	note += " QUO:" + strconv.FormatUint(receipt2.GasUsed, 10)
 
 	t := time.Now()
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionClosingEvent, auction.AssetID, auction.AucType, t, note, cost)
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.AuctionClosingEvent, "", t, note, cost)
 
 	payloadJSON, _ := json.Marshal(auction)
 	wrapper := ecomm.EventWrapper{Type: "Close Auction", Result: payloadJSON}
@@ -332,7 +337,7 @@ func handleAuctionClosedEvent(eventPayload []byte) error {
 func chainCodeEvent(eventPayload []byte) {
 	t := time.Now()
 	var wrapper ecomm.EventWrapper
-	var event, eventID, auc_type string
+	var event, assetId, keyWords string
 
 	err := json.Unmarshal([]byte(eventPayload), &wrapper)
 	check(err)
@@ -344,7 +349,9 @@ func chainCodeEvent(eventPayload []byte) {
 		check(err)
 
 		event = ecomm.AssetAddingEvent
-		eventID = asset.ID
+		assetId = asset.ID
+		// auction, _ := assetClient.GetAuction(asset.PendingAuctionID)
+		// keyWords = auction.AucType
 		//fmt.Printf("Received Asset: %+v\n", asset)
 	case "Start Auction":
 		var auction ecomm.Auction
@@ -352,21 +359,22 @@ func chainCodeEvent(eventPayload []byte) {
 		check(err)
 
 		event = ecomm.AuctionStartingEvent
-		eventID = auction.AssetID
+		assetId = auction.AssetID
+		keyWords = auction.AucType
 	case "Cancel Auction":
 		var auction ecomm.Auction
 		err = json.Unmarshal(wrapper.Result, &auction)
 		check(err)
 
 		event = ecomm.AuctionCancelingEvent
-		eventID = auction.AssetID
+		assetId = auction.AssetID
 	case "Close Auction":
 		var auction ecomm.Auction
 		err = json.Unmarshal(wrapper.Result, &auction)
 		check(err)
 
 		event = ecomm.AuctionClosingEvent
-		eventID = auction.AssetID
+		assetId = auction.AssetID
 		//fmt.Printf("Received Auction: %+v\n", auction)
 	// case "Bid":
 	// 	var bid ecomm.Bid
@@ -381,5 +389,5 @@ func chainCodeEvent(eventPayload []byte) {
 	}
 	//log.Println("Kafka received event:", event, "with ID:", eventID)
 	//cclib.LogEventToFile(logInfoFile, ecomm.KafkaReceivedEvent, payload, t, timeInfoFile)
-	ecomm.LogEvent(logInfoFile, event, eventID, auc_type, t, "", 0)
+	ecomm.LogEvent(logInfoFile, assetId, event, keyWords, t, "", 0)
 }
