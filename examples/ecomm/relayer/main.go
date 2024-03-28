@@ -83,8 +83,8 @@ func main() {
 	ccsvc.Register(ecomm.AssetAddingEvent, chainCodeEvent)
 	ccsvc.Register(ecomm.AuctionStartingEvent, chainCodeEvent)
 	ccsvc.Register(ecomm.AuctionClosingEvent, chainCodeEvent)
-	ccsvc.Register(ecomm.AuctionCancelingEvent, chainCodeEvent)
-	ccsvc.Register(ecomm.AuctionFinalizingEvent, chainCodeEvent)
+	ccsvc.Register(ecomm.CancelAuctionEvent, chainCodeEvent)
+	ccsvc.Register(ecomm.FinAuctionEvent, chainCodeEvent)
 
 	ccsvc.Register(ecomm.BidEvent, smartContractEvent)
 	ccsvc.Register(ecomm.WithdrawEvent, smartContractEvent)

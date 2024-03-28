@@ -12,7 +12,6 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb2p_auction"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/dutch_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
@@ -57,15 +56,7 @@ func bidAuction(auction_id int, amount *big.Int, bid_key string) {
 		erc20_address = contract_info.QuoERC20
 	}
 
-	var auction_contract ecomm.AuctionContract
-	//auction_contract, _ := english_auction.NewEnglishAuction(auction_addr, client)
-	switch auc_type {
-	case "english":
-		auction_contract, _ = english_auction.NewEnglishAuction(auction_addr, client)
-
-	case "dutch":
-		auction_contract, _ = dutch_auction.NewDutchAuction(auction_addr, client)
-	}
+	var auction_contract english_auction.EnglishAuction
 
 	check(err)
 
@@ -366,6 +357,14 @@ func provide_feedback(auction_id int, feedback string, bid_key string) {
 	})
 
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+}
+
+func autoCommit(eventPayload []byte) {
+	var result ecomm.Auction
+
+	err := json.Unmarshal([]byte(eventPayload), &result)
+	check(err)
+
 }
 
 func check(err error) {

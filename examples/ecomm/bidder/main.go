@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"math/big"
-	"strconv"
 
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -41,12 +39,12 @@ func main() {
 	check(err)
 	assetClient = ecomm.NewAssetClient()
 
-	// Handle bash command
-	command := flag.String("c", "", "command")
-	id_ := flag.String("id", "", "Auction ID")
-	amount_ := flag.String("amt", "", "Bid amount")
+	// // Handle bash command
+	// command := flag.String("c", "", "command")
+	// id_ := flag.String("id", "", "Auction ID")
+	// amount_ := flag.String("amt", "", "Bid amount")
 
-	feedback := flag.String("fb", "", "Detail feedback with format 'score@comments'")
+	// feedback := flag.String("fb", "", "Detail feedback with format 'score@comments'")
 
 	flag.StringVar(&platform, "p", platform, "specify platform")
 	flag.StringVar(&auc_type, "t", auc_type, "choose auction type")
@@ -54,35 +52,35 @@ func main() {
 	flag.Parse()
 
 	fmt.Println("Load User/Bidder: ", usr_name)
-	bid_key = ecomm.load_bidder_key(usr_name)
+	// bid_key = ecomm.load_bidder_key(usr_name)
 
-	switch *command {
-	case "bid":
-		amount := new(big.Int)
-		amount.SetString(*amount_, 10)
-		id, _ := strconv.Atoi(*id_)
-		ecomm.bidAuction(id, amount)
-	case "bidH":
-		amount := new(big.Int)
-		amount.SetString(*amount_, 10)
-		id, _ := strconv.Atoi(*id_)
-		ecomm.bidAuctionH(id, amount)
-	case "check":
-		id, _ := strconv.Atoi(*id_)
-		ecomm.check_winner(id)
-	case "prcd":
-		id, _ := strconv.Atoi(*id_)
-		ecomm.sign_auction_result(id, true)
-	case "abt":
-		id, _ := strconv.Atoi(*id_)
-		ecomm.sign_auction_result(id, false)
-	case "with":
-		id, _ := strconv.Atoi(*id_)
-		ecomm.withdraw(id)
-	case "rate":
-		id, _ := strconv.Atoi(*id_)
-		ecomm.provide_feedback(id, *feedback)
-	}
+	// switch *command {
+	// case "bid":
+	// 	amount := new(big.Int)
+	// 	amount.SetString(*amount_, 10)
+	// 	id, _ := strconv.Atoi(*id_)
+	// 	ecomm.bidAuction(id, amount)
+	// case "bidH":
+	// 	amount := new(big.Int)
+	// 	amount.SetString(*amount_, 10)
+	// 	id, _ := strconv.Atoi(*id_)
+	// 	ecomm.bidAuctionH(id, amount)
+	// case "check":
+	// 	id, _ := strconv.Atoi(*id_)
+	// 	ecomm.check_winner(id)
+	// case "prcd":
+	// 	id, _ := strconv.Atoi(*id_)
+	// 	ecomm.sign_auction_result(id, true)
+	// case "abt":
+	// 	id, _ := strconv.Atoi(*id_)
+	// 	ecomm.sign_auction_result(id, false)
+	// case "with":
+	// 	id, _ := strconv.Atoi(*id_)
+	// 	ecomm.withdraw(id)
+	// case "rate":
+	// 	id, _ := strconv.Atoi(*id_)
+	// 	ecomm.provide_feedback(id, *feedback)
+	// }
 }
 
 func check(err error) {

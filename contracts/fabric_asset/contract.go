@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
@@ -186,12 +187,40 @@ func (cc *SmartContract) CancelAuction(
 	return nil
 }
 
-func (cc *SmartContract) CloseAuction(
+func (cc *SmartContract) DetermineWinner(
 	ctx contractapi.TransactionContextInterface, IDStr string,
 ) error {
-
 	ID, _ := strconv.Atoi(IDStr)
 	auction, err := cc.GetAuction(ctx, ID)
+
+	if err != nil {
+		return err
+	}
+
+	// Emit an event when an auction is closing
+	eventPayload, err := json.Marshal(auction)
+	if err != nil {
+		return fmt.Errorf("error marshalling event: %v", err)
+	}
+	err = ctx.GetStub().SetEvent("DetermineWinner", []byte(eventPayload))
+	if err != nil {
+		return fmt.Errorf("error setting event: %v", err)
+	}
+	return nil
+
+}
+
+func (cc *SmartContract) CloseAuction(
+	ctx contractapi.TransactionContextInterface, argjson string,
+) error {
+
+	var args ecomm.CloseAuctionArgs
+	err := json.Unmarshal([]byte(argjson), &args)
+	if err != nil {
+		return err
+	}
+
+	auction, err := cc.GetAuction(ctx, args.AuctionID)
 
 	if err != nil {
 		return err

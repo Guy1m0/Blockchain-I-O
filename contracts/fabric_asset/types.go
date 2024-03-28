@@ -21,6 +21,12 @@ type StartAuctionArgs struct {
 	Signature []byte
 }
 
+type CloseAuctionArgs struct {
+	HighestBid         string `json:"highestBid"`
+	HighestBidder      string `json:"highestBidder"`
+	HighestBidPlatform string `json:"highestBidPlatform"`
+}
+
 type Auction struct {
 	AuctionID  int    `json:"auctionId"`
 	AssetID    string `json:"assetId"`

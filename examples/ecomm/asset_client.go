@@ -79,9 +79,14 @@ func (cc *AssetClient) StartAuction(args StartAuctionArgs) ([]byte, error) {
 	return cc.contract.SubmitTransaction("StartAuction", string(b))
 }
 
-func (cc *AssetClient) CloseAuction(ID int) ([]byte, error) {
+func (cc *AssetClient) DetermineWinner(ID int) ([]byte, error) {
 	IDStr := strconv.FormatInt(int64(ID), 10)
-	return cc.contract.SubmitTransaction("CloseAuction", IDStr)
+	return cc.contract.SubmitTransaction("DetermineWinner", IDStr)
+}
+
+func (cc *AssetClient) CloseAuction(args CloseAuctionArgs) ([]byte, error) {
+	b, _ := json.Marshal(args)
+	return cc.contract.SubmitTransaction("CloseAuction", string(b))
 }
 
 func (cc *AssetClient) RevealAuction(ID int) ([]byte, error) {

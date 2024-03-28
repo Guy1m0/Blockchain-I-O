@@ -117,7 +117,7 @@ func handleDecisionMadeEvent(eventPayload ecomm.DecisionMade, t time.Time) error
 		fabric_ERC20_contract.Transfer(asset.Owner, quotient.String())
 	}
 
-	ccsvc.Publish(ecomm.AuctionFinalizingEvent, []byte(payload))
+	ccsvc.Publish(ecomm.FinAuctionEvent, []byte(payload))
 	//t := time.Now()
 	return nil
 }

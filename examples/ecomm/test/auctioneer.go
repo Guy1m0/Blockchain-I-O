@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -27,27 +26,27 @@ func create(asset_name string, auc_type string, usr_name string) {
 }
 
 func reveal(auctionID int) {
-	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	// t := time.Now()
+	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
-	a, err := assetClient.GetAuction(auctionID)
-	check(err)
+	// a, err := assetClient.GetAuction(auctionID)
+	// check(err)
 
-	if a.Status != "open" {
-		err = fmt.Errorf("auction status error")
-		check(err)
-	}
+	// if a.Status != "open" {
+	// 	err = fmt.Errorf("auction status error")
+	// 	check(err)
+	// }
 
-	log.Println("[fabric] Reveal auction")
-	_, err = assetClient.CloseAuction(auctionID)
-	check(err)
+	// log.Println("[fabric] Reveal auction")
+	// _, err = assetClient.CloseAuction(auctionID)
+	// check(err)
 
-	payload, _ := json.Marshal(a)
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
+	// payload, _ := json.Marshal(a)
+	// t = time.Now()
+	// cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
 
-	//@reset
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	// //@reset
+	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
 }
 
 func cancel(auctionID int) {
@@ -65,7 +64,7 @@ func cancel(auctionID int) {
 	_, err = assetClient.CancelAuction(auctionID)
 	check(err)
 
-	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.AuctionCancelingEvent, "", t, "", 0)
+	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.CancelAuctionEvent, "", t, "", 0)
 }
 
 func close(auctionID int) {
@@ -80,13 +79,13 @@ func close(auctionID int) {
 		check(err)
 	}
 
-	log.Println("[fabric] Conclude auction")
-	_, err = assetClient.CloseAuction(auctionID)
+	log.Println("[fabric] Determine Auction Winner")
+	_, err = assetClient.DetermineWinner(auctionID)
 	check(err)
 
 	//payload, _ := json.Marshal(a)
 	t = time.Now()
-	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.AuctionClosingEvent, "", t, "", 0)
+	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.DetermineWinnerEvent, "", t, "", 0)
 	//cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
 
 	//@reset

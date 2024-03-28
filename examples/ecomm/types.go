@@ -132,10 +132,15 @@ type EventWrapper struct {
 	Result json.RawMessage `json:"result"`
 }
 
+// type ContractChecker interface {
+// 	HighestBid(opts *bind.CallOpts, arg0 *big.Int) (*big.Int, error)
+// 	HighestBidder(opts *bind.CallOpts, arg0 *big.Int) (common.Address, error)
+// }
+
 type AuctionContract interface {
 	// Common across most auction types
 	//CreateAuction(assetId string) error
-	Bid(opts *bind.TransactOpts, auctionId *big.Int, bidAmount *big.Int) (*types.Transaction, error) // Flexible input
+	//Bid(opts *bind.TransactOpts, auctionId *big.Int, bidAmount *big.Int) (*types.Transaction, error) // Flexible input
 	Withdraw(opts *bind.TransactOpts, auctionId *big.Int) (*types.Transaction, error)
 	CloseAuction(opts *bind.TransactOpts, auctionId *big.Int, not_winner_platform bool) (*types.Transaction, error) // Might be type-specific
 	Abort(opts *bind.TransactOpts, auctionId *big.Int, jsonString string) (*types.Transaction, error)
@@ -143,6 +148,7 @@ type AuctionContract interface {
 	ProvideFeedback(opts *bind.TransactOpts, auctionId *big.Int, _score *big.Int, _feedback string) (*types.Transaction, error)
 
 	HighestBid(opts *bind.CallOpts, arg0 *big.Int) (*big.Int, error)
+	HighestBidder(opts *bind.CallOpts, arg0 *big.Int) (common.Address, error)
 }
 
 type AuctionContractCloseBid interface {
@@ -182,6 +188,14 @@ type FinalizeAuctionArgs struct {
 	AuctionID    int
 	EthResult    CrossChainAuctionResult
 	QuorumResult CrossChainAuctionResult
+}
+
+type CloseAuctionArgs struct {
+	AuctionID int `json:"auctionId"`
+
+	HighestBid         string `json:"highestBid"`
+	HighestBidder      string `json:"highestBidder"`
+	HighestBidPlatform string `json:"highestBidPlatform"`
 }
 
 type AssetAddingEventPayload struct {

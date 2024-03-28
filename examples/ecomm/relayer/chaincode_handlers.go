@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
@@ -160,7 +161,7 @@ func handleRevealAuctionEvent(eventPayload []byte) error {
 	check(err)
 	log.Println("[fabric] Cancel Auction with ID:", result.AuctionID)
 
-	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.AuctionRevealingEvent, "", t, "", 0)
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.RevealAuctionEvent, "", t, "", 0)
 
 	return err
 }
@@ -176,7 +177,7 @@ func handleCancelAuctionEvent(eventPayload []byte) error {
 	check(err)
 	log.Println("[fabric] Cancel Auction with ID:", result.AuctionID)
 
-	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.AuctionCancelingEvent, "", t, "", 0)
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.CancelAuctionEvent, "", t, "", 0)
 
 	log.Println("[ETH/QUO] Close auctions on both platforms")
 	// load auction contract
@@ -206,33 +207,29 @@ func handleCancelAuctionEvent(eventPayload []byte) error {
 	cost += receipt.GasUsed
 	note += " QUO:" + strconv.FormatUint(receipt.GasUsed, 10)
 
-	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.AuctionCancelingEvent, "", cost, note)
+	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.CancelAuctionEvent, "", cost, note)
 	//ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
 
 	payloadJSON, _ := json.Marshal(auction)
 	wrapper := ecomm.EventWrapper{Type: "Cancel Auction", Result: payloadJSON}
 	payload, _ := json.Marshal(wrapper)
 
-	return ccsvc.Publish(ecomm.AuctionCancelingEvent, payload)
+	return ccsvc.Publish(ecomm.CancelAuctionEvent, payload)
 }
 
-func handleCloseAuctionEvent(eventPayload []byte) error {
-	//t := time.Now()
-
+func handleDetWinnerEvent(eventPayload []byte) error {
 	var result ecomm.Auction
 	err := json.Unmarshal(eventPayload, &result)
 	check(err)
 
-	auction, err := assetClient.GetAuction(result.AuctionID)
-	check(err)
 	log.Println("[fabric] Close Auction with ID:", result.AuctionID)
 
 	var eth_auction_contract, quo_auction_contract ecomm.AuctionContract
-	eth_auction_addr := common.HexToAddress(auction.EthAddr)
-	quo_auction_addr := common.HexToAddress(auction.QuorumAddr)
+	eth_auction_addr := common.HexToAddress(result.EthAddr)
+	quo_auction_addr := common.HexToAddress(result.QuorumAddr)
 
 	// load auction contract
-	switch auction.AucType {
+	switch result.AucType {
 	case "english":
 		eth_auction_contract, err = english_auction.NewEnglishAuction(eth_auction_addr, ethClient)
 		check(err)
@@ -241,58 +238,109 @@ func handleCloseAuctionEvent(eventPayload []byte) error {
 		check(err)
 	case "dutch":
 	case "cb1p":
-		// eth_auction_contract, err = cb1p_auction.NewCb1pAuction(eth_auction_addr, ethClient)
-		// check(err)
+		eth_auction_contract, err = cb1p_auction.NewCb1pAuction(eth_auction_addr, ethClient)
+		check(err)
 
-		// quo_auction_contract, err = english_auction.NewEnglishAuction(quo_auction_addr, quoClient)
-		// check(err)
+		quo_auction_contract, err = cb1p_auction.NewCb1pAuction(quo_auction_addr, quoClient)
+		check(err)
 	case "cb2p":
 
 	default:
 		log.Fatalf("Auction type error")
-
 	}
 
 	log.Println("[ETH/QUO] Determin winner")
 	// Check highest bid
-	eth_highestBid, _ := eth_auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(auction.AuctionID)))
-	//eth_highestBidder, _ := eth_auction_contract.HighestBidder(&bind.CallOpts{})
-	quo_highestBid, _ := quo_auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(auction.AuctionID)))
-	//quo_highestBidder, _ := quo_auction_contract.HighestBidder(&bind.CallOpts{})
+	eth_highestBid, _ := eth_auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(result.AuctionID)))
+	quo_highestBid, _ := quo_auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(result.AuctionID)))
 
-	eth_bool := false
-	quo_bool := true
+	highestBidPlatform := "eth"
+	highestBid := eth_highestBid.String()
+	highestBidder, _ := eth_auction_contract.HighestBidder(&bind.CallOpts{}, big.NewInt(int64(result.AuctionID)))
 
 	if eth_highestBid.Cmp(quo_highestBid) < 0 {
-		eth_bool = true
-		quo_bool = false
+		highestBidPlatform = "quo"
+		highestBid = quo_highestBid.String()
+		highestBidder, _ = quo_auction_contract.HighestBidder(&bind.CallOpts{}, big.NewInt(int64(result.AuctionID)))
 	}
+
+	args := ecomm.CloseAuctionArgs{
+		AuctionID:          result.AuctionID,
+		HighestBid:         highestBid,
+		HighestBidder:      highestBidder.String(),
+		HighestBidPlatform: highestBidPlatform,
+	}
+
+	assetClient.CloseAuction(args)
+
+	t := time.Now()
+	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.DetermineWinnerEvent, "", t, "", 0)
+
+	return nil
+
+}
+func handleCloseAuction(eventPayload []byte) error {
+	var result ecomm.Auction
+	err := json.Unmarshal(eventPayload, &result)
+	check(err)
 
 	log.Println("[ETH/QUO] Change contract state")
 	authT, err := cclib.NewTransactor(root_key, password)
 	check(err)
 
+	var eth_auction_contract, quo_auction_contract ecomm.AuctionContract
+	eth_auction_addr := common.HexToAddress(result.EthAddr)
+	quo_auction_addr := common.HexToAddress(result.QuorumAddr)
+
+	// load auction contract
+	switch result.AucType {
+	case "english":
+		eth_auction_contract, err = english_auction.NewEnglishAuction(eth_auction_addr, ethClient)
+		check(err)
+
+		quo_auction_contract, err = english_auction.NewEnglishAuction(quo_auction_addr, quoClient)
+		check(err)
+	case "dutch":
+	case "cb1p":
+		eth_auction_contract, err = cb1p_auction.NewCb1pAuction(eth_auction_addr, ethClient)
+		check(err)
+
+		quo_auction_contract, err = cb1p_auction.NewCb1pAuction(quo_auction_addr, quoClient)
+		check(err)
+	case "cb2p":
+
+	default:
+		log.Fatalf("Auction type error")
+	}
+
+	var eth_bool, quo_bool bool
+	if result.HighestBidPlatform == "eth" {
+		eth_bool = false
+		quo_bool = true
+	} else {
+		eth_bool = true
+		quo_bool = false
+	}
+
 	// Change Auction Contract on Eth
-	tx, _ := eth_auction_contract.CloseAuction(authT, big.NewInt(int64(auction.AuctionID)), eth_bool)
-	receipt1 := ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Change Auction %d status to 'ENDING'", auction.AuctionID))
+	tx, _ := eth_auction_contract.CloseAuction(authT, big.NewInt(int64(result.AuctionID)), eth_bool)
+	receipt1 := ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Change Auction %d status to 'ENDING'", result.AuctionID))
 
 	// Change Auction Contract on Quo
-	tx, _ = quo_auction_contract.CloseAuction(authT, big.NewInt(int64(auction.AuctionID)), quo_bool)
-	receipt2 := ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Change Auction %d status to 'ENDING'", auction.AuctionID))
+	tx, _ = quo_auction_contract.CloseAuction(authT, big.NewInt(int64(result.AuctionID)), quo_bool)
+	receipt2 := ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Change Auction %d status to 'ENDING'", result.AuctionID))
 
 	cost := receipt1.GasUsed
 	note := "ETH:" + strconv.FormatUint(cost, 10)
 	cost += receipt2.GasUsed
 	note += " QUO:" + strconv.FormatUint(receipt2.GasUsed, 10)
 
-	t := time.Now()
-	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.AuctionClosingEvent, "", t, note, cost)
-
-	payloadJSON, _ := json.Marshal(auction)
+	payloadJSON, _ := json.Marshal(result)
 	wrapper := ecomm.EventWrapper{Type: "Close Auction", Result: payloadJSON}
 	payload, _ := json.Marshal(wrapper)
 
 	err = ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
+
 	return nil
 }
 
@@ -307,7 +355,7 @@ func handleAuctionClosedEvent(eventPayload []byte) error {
 	check(err)
 	log.Println("[fabric] Cancel Auction with ID:", result.AuctionID)
 
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, auction.AssetID, auction.AucType, t, "", 0)
+	ecomm.LogEvent(logInfoFile, ecomm.AuctionClosingEvent, auction.AssetID, auction.AucType, t, "", 0)
 
 	return nil
 }
@@ -366,7 +414,7 @@ func chainCodeEvent(eventPayload []byte) {
 		err = json.Unmarshal(wrapper.Result, &auction)
 		check(err)
 
-		event = ecomm.AuctionCancelingEvent
+		event = ecomm.CancelAuctionEvent
 		assetId = auction.AssetID
 	case "Close Auction":
 		var auction ecomm.Auction

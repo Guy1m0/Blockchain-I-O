@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
@@ -29,11 +30,12 @@ const (
 )
 
 var (
-	ethClient *ethclient.Client
-	quoClient *ethclient.Client
-
+	ethClient   *ethclient.Client
+	quoClient   *ethclient.Client
 	assetClient *ecomm.AssetClient
+	ccsvc       *cclib.CCService
 
+	zkNodes  = "localhost:2181"
 	platform = "eth"
 
 	aucT        *bind.TransactOpts
@@ -54,6 +56,7 @@ func main() {
 	quoClient, err = ethclient.Dial(fmt.Sprintf("http://%s:8546", "localhost"))
 	check(err)
 	assetClient = ecomm.NewAssetClient()
+	ccsvc, _ = cclib.NewEventService(strings.Split(zkNodes, ","), "relayer") //zookeeper node
 
 	command := flag.String("c", "", "command")
 
@@ -167,6 +170,7 @@ func main() {
 		if index == -1 {
 			index = 0
 		}
+		ccsvc.Register(ecomm.AuctionClosingEvent, autoCommit)
 
 		close(auction_info.AuctionID)
 	case "withE":
