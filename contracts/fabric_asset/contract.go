@@ -251,6 +251,11 @@ func (cc *SmartContract) FinAuction(
 		return err
 	}
 
+	if prcd {
+		asset.Owner = auction.HighestBidder
+		//eventPayload = fmt.Sprintf("Auction: %d, closed with new owner: %s", auction.AuctionID, asset.Owner)
+	}
+
 	asset.PendingAuctionID = 0
 	err = cc.setAsset(ctx, asset)
 	if err != nil {

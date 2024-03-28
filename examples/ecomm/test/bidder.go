@@ -72,16 +72,18 @@ func bidAuction(auction_id int, amount *big.Int, bid_key string) {
 	bidT, err := cclib.NewTransactor(bid_key, "password")
 	check(err)
 
-	eventID := a.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
-	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, auc_type, t, "", 0)
-
 	// Bid more than highest
-	log.Println(amount, amount.Cmp(big.NewInt(0)))
 	if amount.Cmp(big.NewInt(0)) == 0 {
-		amount, err = auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
+		highest, err := auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
+		highest.Div(highest, ecomm.DecimalB)
 		check(err)
-		amount.Add(amount, big.NewInt(1))
+		amount.Add(highest, big.NewInt(1))
+		log.Printf("highest: %s bidAmount: %s", highest, amount)
 	}
+
+	//eventID := fmt.Sprintf("%s_%s_%s_%s", a.AssetID, platform, bidT.From.String()[36:], amount)
+	eventID := fmt.Sprintf("%s_%s_%s", a.AssetID, platform, bidT.From.String()[36:])
+	ecomm.LogEvent(logInfoFile, ecomm.BidEvent, eventID, auc_type, t, "", 0)
 
 	// @todo: Make approve and bid in a single transaction
 	// Approve amount of bid through ERC20 contract

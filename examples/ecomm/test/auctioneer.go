@@ -84,9 +84,10 @@ func close(auctionID int) {
 	_, err = assetClient.CloseAuction(auctionID)
 	check(err)
 
-	payload, _ := json.Marshal(a)
+	//payload, _ := json.Marshal(a)
 	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
+	ecomm.LogEvent(logInfoFile, ecomm.AuctionClosingEvent, a.AssetID, a.AucType, t, "", 0)
+	//cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
 
 	//@reset
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)

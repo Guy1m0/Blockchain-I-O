@@ -287,7 +287,7 @@ func handleCloseAuctionEvent(eventPayload []byte) error {
 	wrapper := ecomm.EventWrapper{Type: "Close Auction", Result: payloadJSON}
 	payload, _ := json.Marshal(wrapper)
 
-	err = ccsvc.Publish(ecomm.AuctionStartingEvent, payload)
+	err = ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
 	return nil
 }
 
@@ -332,7 +332,8 @@ func handleAuctionClosedEvent(eventPayload []byte) error {
 func chainCodeEvent(eventPayload []byte) {
 	t := time.Now()
 	var wrapper ecomm.EventWrapper
-	var event, eventID string
+	var event, eventID, auc_type string
+
 	err := json.Unmarshal([]byte(eventPayload), &wrapper)
 	check(err)
 
@@ -359,6 +360,13 @@ func chainCodeEvent(eventPayload []byte) {
 
 		event = ecomm.AuctionCancelingEvent
 		eventID = auction.AssetID
+	case "Close Auction":
+		var auction ecomm.Auction
+		err = json.Unmarshal(wrapper.Result, &auction)
+		check(err)
+
+		event = ecomm.AuctionClosingEvent
+		eventID = auction.AssetID
 		//fmt.Printf("Received Auction: %+v\n", auction)
 	// case "Bid":
 	// 	var bid ecomm.Bid
@@ -373,5 +381,5 @@ func chainCodeEvent(eventPayload []byte) {
 	}
 	//log.Println("Kafka received event:", event, "with ID:", eventID)
 	//cclib.LogEventToFile(logInfoFile, ecomm.KafkaReceivedEvent, payload, t, timeInfoFile)
-	ecomm.LogEvent(logInfoFile, event, eventID, "", t, "", 0)
+	ecomm.LogEvent(logInfoFile, event, eventID, auc_type, t, "", 0)
 }
