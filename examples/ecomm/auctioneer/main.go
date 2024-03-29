@@ -98,7 +98,7 @@ func reveal(auctionID int) {
 	}
 
 	log.Println("[fabric] Reveal auction")
-	_, err = assetClient.CloseAuction(auctionID)
+	//_, err = assetClient.CloseAuction(auctionID)
 	check(err)
 
 	payload, _ := json.Marshal(a)
@@ -124,7 +124,7 @@ func cancel(auctionID int) {
 	_, err = assetClient.CancelAuction(auctionID)
 	check(err)
 
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionCancelingEvent, a.AssetID, a.AucType, t, "", 0)
+	ecomm.LogEvent(logInfoFile, ecomm.CancelAuctionEvent, a.AssetID, a.AucType, t, "", 0)
 }
 
 func close(auctionID int) {
@@ -140,7 +140,7 @@ func close(auctionID int) {
 	}
 
 	log.Println("[fabric] Conclude auction")
-	_, err = assetClient.CloseAuction(auctionID)
+	//_, err = assetClient.CloseAuction(auctionID)
 	check(err)
 
 	payload, _ := json.Marshal(a)
