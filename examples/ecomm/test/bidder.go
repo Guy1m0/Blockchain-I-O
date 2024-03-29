@@ -56,7 +56,8 @@ func bidAuction(auction_id int, amount *big.Int, bid_key string) {
 		erc20_address = contract_info.QuoERC20
 	}
 
-	var auction_contract english_auction.EnglishAuction
+	//var auction_contract english_auction.EnglishAuction
+	auction_contract, err := english_auction.NewEnglishAuction(auction_addr, client)
 
 	check(err)
 
