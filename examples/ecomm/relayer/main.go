@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"strings"
-	"sync"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
@@ -23,8 +22,8 @@ var (
 	//fabric_network *gateway.Network
 	ccsvc *cclib.CCService
 
-	auctionResults   map[int]*ecomm.FinalizeAuctionArgs
-	auctionResultsMu sync.Mutex
+	// auctionResults   map[int]*ecomm.FinalizeAuctionArgs
+	// auctionResultsMu sync.Mutex
 
 	ethClient *ethclient.Client
 	quoClient *ethclient.Client
@@ -67,7 +66,7 @@ func main() {
 	flag.Parse()
 
 	// Initialize
-	auctionResults = make(map[int]*ecomm.FinalizeAuctionArgs)
+	//auctionResults = make(map[int]*ecomm.FinalizeAuctionArgs)
 
 	assetClient = ecomm.NewAssetClient()
 	ethClient = ecomm.NewEthClient()
@@ -83,11 +82,12 @@ func main() {
 	ccsvc.Register(ecomm.AuctionStartingEvent, chainCodeEvent)
 	ccsvc.Register(ecomm.AuctionClosingEvent, chainCodeEvent)
 	ccsvc.Register(ecomm.DetermineWinnerEvent, chainCodeEvent)
-	ccsvc.Register(ecomm.CancelAuctionEvent, chainCodeEvent)
+	//ccsvc.Register(ecomm.CancelAuctionEvent, chainCodeEvent)
 	ccsvc.Register(ecomm.FinAuctionEvent, chainCodeEvent)
 
 	ccsvc.Register(ecomm.BidEvent, smartContractEvent)
 	ccsvc.Register(ecomm.WithdrawEvent, smartContractEvent)
+	ccsvc.Register(ecomm.CommitAuctionResultEvent, smartContractEvent)
 
 	err := ccsvc.Start(true)
 	check(err)

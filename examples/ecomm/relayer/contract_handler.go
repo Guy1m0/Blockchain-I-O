@@ -98,12 +98,18 @@ func handleDecisionMadeEvent(eventPayload ecomm.DecisionMade, t time.Time) error
 	}
 
 	auction, err := assetClient.GetAuction(result.AuctionID)
+	check(err)
+
 	log.Printf("[%s] Decesion Made Event", strings.ToUpper(result.Platform))
 
 	proceed := eventPayload.Prcd
 	if proceed {
 		ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.CommitAuctionResultEvent, "", t, "", 0)
-		ccsvc.Publish(ecomm.CommitAuctionResultEvent, []byte(payload))
+		payloadJSON, _ := json.Marshal(result)
+		wrapper := ecomm.EventWrapper{Type: "Commit", Result: payloadJSON}
+		payload_, _ := json.Marshal(wrapper)
+
+		ccsvc.Publish(ecomm.CommitAuctionResultEvent, payload_)
 	} else {
 		ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.AbortAuctionResultEvent, "", t, "", 0)
 		ccsvc.Publish(ecomm.AbortAuctionResultEvent, []byte(payload))
@@ -111,12 +117,6 @@ func handleDecisionMadeEvent(eventPayload ecomm.DecisionMade, t time.Time) error
 
 	t = time.Now()
 	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.FinAuctionEvent, "", t, "", 0)
-
-	payloadJSON, _ := json.Marshal(result)
-	wrapper := ecomm.EventWrapper{Type: "Commit", Result: payloadJSON}
-	payload_, _ := json.Marshal(wrapper)
-
-	ccsvc.Publish(ecomm.CommitAuctionResultEvent, payload_)
 
 	_, err = assetClient.FinAuction(result, proceed)
 	check(err)
@@ -178,7 +178,7 @@ func smartContractEvent(eventPayload []byte) {
 		event = ecomm.WithdrawEvent
 		keyWords = fmt.Sprintf("%s_%s_%s", bidHash.Platform, bidHash.Bidder.String()[36:], string(bidHash.BidHash[8:]))
 
-	case "commit":
+	case "Commit":
 		var result ecomm.AuctionResult
 		err = json.Unmarshal(wrapper.Result, &result)
 		check(err)

@@ -401,7 +401,7 @@ func handleAuctionClosedEvent(eventPayload []byte) error {
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Burn the bid %s placed by the winner %s", auction.HighestBid, auction.HighestBidder))
 
 	t := time.Now()
-	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.FinAuctionEvent, "", t, "", receipt.GasUsed)
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.FinAuctionEvent, "", t, auction.HighestBidPlatform, receipt.GasUsed)
 
 	payloadJSON, _ := json.Marshal(auction)
 	wrapper := ecomm.EventWrapper{Type: "Fin Auction", Result: payloadJSON}
@@ -483,21 +483,12 @@ func chainCodeEvent(eventPayload []byte) {
 
 		event = ecomm.AuctionClosingEvent
 		assetId = auction.AssetID
-		//fmt.Printf("Received Auction: %+v\n", auction)
-	// case "Bid":
-	// 	var bid ecomm.Bid
-	// 	err = json.Unmarshal(wrapper.Result, &bid)
-	// 	check(err)
-
-	// 	event = ecomm.BidEvent
-	// 	eventID = bid.AssetID
-	//fmt.Printf("Received Bid: %+v\n", bid)
 	case "Fin Auction":
 		var auction ecomm.Auction
 		err = json.Unmarshal(wrapper.Result, &auction)
 		check(err)
 
-		event = ecomm.AuctionClosingEvent
+		event = ecomm.FinAuctionEvent
 		assetId = auction.AssetID
 	default:
 		fmt.Printf("Unknown type: %s\n", wrapper.Type)
