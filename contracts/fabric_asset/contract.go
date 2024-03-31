@@ -322,12 +322,12 @@ func (cc *SmartContract) verifyAuctionResult(result AuctionResult) bool {
 		HighestBidder: result.HighestBidder,
 	}
 
-	pubkey, err := crypto.SigToPub(tmp.Hash(), result.signature)
+	pubkey, err := crypto.SigToPub(tmp.Hash(), result.Signature)
 	if err != nil {
 		return false
 	}
 
-	if result.highestBidder == crypto.PubkeyToAddress(*pubkey).Hex() {
+	if result.HighestBidder == crypto.PubkeyToAddress(*pubkey).Hex() {
 		return true
 	}
 	return false

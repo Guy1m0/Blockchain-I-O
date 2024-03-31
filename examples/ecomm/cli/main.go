@@ -316,6 +316,7 @@ func display() {
 		table.Append(row)
 		//fmt.Println(user.UserID, user.Address, user.KeyFile)
 	}
+
 	table.Render()
 }
 

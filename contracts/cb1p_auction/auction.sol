@@ -32,7 +32,8 @@ contract ClosedBidFirstPriceAuction {
     event DecisionMade(uint auctionId, address winner, uint amount, string id, bool prcd, string jsonString);
     event AwaitResponse(uint auctionId, address winner);
     event RateAuction(uint auctionId, string id, int rating, string review);
-
+    event Pay(uint auctionId, uint amount);
+    
     IERC20 public immutable token;
 
     constructor(address _token) {
@@ -134,6 +135,20 @@ contract ClosedBidFirstPriceAuction {
         }
 
         emit AwaitResponse(auctionId, highestBidder[auctionId]);
+    }
+
+        function pay(uint auctionId) public {
+        // Use hash to check status
+        require(keccak256(abi.encodePacked(status[auctionId])) == keccak256(abi.encodePacked("closing")), "Contract not in Closing status");
+        require(msg.sender == owner, "Only owner can burn bidder's payment");
+
+        if (highestBid[auctionId] > 0) {
+            token.transferFrom(address(this), address(0), highestBid[auctionId]);
+            highestBidder[auctionId] = address(0);
+            highestBid[auctionId] = 0;
+        }
+
+        emit Pay(auctionId, highestBid[auctionId]);
     }
 
     function abort(uint auctionId, string memory jsonString) public {

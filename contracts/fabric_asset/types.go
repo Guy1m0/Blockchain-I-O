@@ -70,7 +70,7 @@ type AuctionResult struct {
 	AuctionID   int
 	AuctionAddr string
 
-	HighestBid    int
+	HighestBid    string
 	HighestBidder string
 
 	Signature []byte // acknowledged by bidder?
@@ -83,7 +83,7 @@ func (ar *AuctionResult) Hash() []byte {
 	h.Write([]byte(strconv.Itoa(ar.AuctionID)))
 	h.Write([]byte(ar.AuctionAddr))
 
-	h.Write([]byte(strconv.Itoa(ar.HighestBid)))
+	h.Write([]byte(ar.HighestBid))
 	h.Write([]byte(ar.HighestBidder))
 
 	h.Write([]byte(""))

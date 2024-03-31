@@ -166,11 +166,8 @@ func main() {
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		index := len(auction_infos) - 1
 		auction_info := auction_infos[index]
-
-		if index == -1 {
-			index = 0
-		}
-		ccsvc.Register(ecomm.AuctionClosingEvent, autoCommit)
+		//ccsvc.Register(ecomm.AuctionClosingEvent, autoCommit)
+		//ccsvc.Start(true)
 
 		close(auction_info.AuctionID)
 	case "withE":
@@ -210,6 +207,12 @@ func main() {
 	// case "check":
 	// 	id_, _ := strconv.Atoi(*id)
 	// 	check_status(id_)
+	case "commit":
+		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
+		index := len(auction_infos) - 1
+		auction_info := auction_infos[index]
+
+		sign_auction_result(auction_info.AuctionID)
 	default:
 		fmt.Println("command not found")
 	}

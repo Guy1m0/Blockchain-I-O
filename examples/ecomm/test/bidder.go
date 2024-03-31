@@ -232,6 +232,8 @@ func check_winner(auction_id int, bid_key string) {
 func sign_auction_result(auction_id int) {
 	t := time.Now()
 	auction, err := assetClient.GetAuction(auction_id)
+	check(err)
+
 	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.CommitAuctionResultEvent, "", t, "", 0)
 
 	var bidKey string
@@ -350,11 +352,20 @@ func provide_feedback(auction_id int, feedback string, bid_key string) {
 }
 
 func autoCommit(eventPayload []byte) {
-	var result ecomm.Auction
-	err := json.Unmarshal([]byte(eventPayload), &result)
+	var wrapper ecomm.EventWrapper
+	// var event, assetId, keyWords string
+
+	err := json.Unmarshal([]byte(eventPayload), &wrapper)
 	check(err)
 
-	sign_auction_result(result.AuctionID)
+	switch wrapper.Type {
+	case "Close Auction":
+		var auction ecomm.Auction
+		err = json.Unmarshal(wrapper.Result, &auction)
+		check(err)
+
+		sign_auction_result(auction.AuctionID)
+	}
 }
 
 func check(err error) {

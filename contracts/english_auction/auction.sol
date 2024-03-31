@@ -4,6 +4,7 @@ pragma solidity ^0.8.18;
 
 interface IERC20 {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
+    //function burn(address usr, uint wad) external;
 }
 
 contract EnglishAuction {
@@ -30,6 +31,7 @@ contract EnglishAuction {
     event DecisionMade(uint auctionId, address winner, uint amount, string id, bool prcd, string jsonString);
     event AwaitResponse(uint auctionId, address winner);
     event RateAuction(uint auctionId, string id, int rating, string review);
+    event Pay(uint auctionId, uint amount);
     //event ContractCreation()
 
     IERC20 public immutable token;
@@ -75,6 +77,20 @@ contract EnglishAuction {
         highestBidder[auctionId] = msg.sender;
         highestBid[auctionId] = bidAmount;
         emit HighestBidIncreased(auctionId, asset_id[auctionId], msg.sender, bidAmount, auction_type);
+    }
+
+    function pay(uint auctionId) public {
+        // Use hash to check status
+        require(keccak256(abi.encodePacked(status[auctionId])) == keccak256(abi.encodePacked("closing")), "Contract not in Closing status");
+        require(msg.sender == owner, "Only owner can burn bidder's payment");
+
+        if (highestBid[auctionId] > 0) {
+            token.transferFrom(address(this), address(0), highestBid[auctionId]);
+            highestBidder[auctionId] = address(0);
+            highestBid[auctionId] = 0;
+        }
+
+        emit Pay(auctionId, highestBid[auctionId]);
     }
 
 

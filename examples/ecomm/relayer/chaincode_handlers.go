@@ -12,7 +12,6 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -161,7 +160,7 @@ func handleRevealAuctionEvent(eventPayload []byte) error {
 
 	auction, err := assetClient.GetAuction(result.AuctionID)
 	check(err)
-	log.Println("[fabric] Cancel Auction with ID:", result.AuctionID)
+	log.Println("[fabric] Reveal Auction with ID:", result.AuctionID)
 
 	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.RevealAuctionEvent, "", t, "", 0)
 
@@ -356,7 +355,7 @@ func handleCloseAuctionEvent(eventPayload []byte) error {
 
 	err = ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
 
-	return nil
+	return err
 }
 
 func handleAuctionClosedEvent(eventPayload []byte) error {
@@ -367,7 +366,7 @@ func handleAuctionClosedEvent(eventPayload []byte) error {
 	auction, err := assetClient.GetAuction(result.AuctionID)
 	check(err)
 
-	log.Println("[fabric] Cancel Auction with ID:", auction.AuctionID)
+	log.Println("[fabric] Close Auction with ID:", auction.AuctionID)
 
 	if auction.Status != "closed" {
 		log.Fatalf("Failed to closed")
@@ -375,33 +374,40 @@ func handleAuctionClosedEvent(eventPayload []byte) error {
 
 	// atomic swap
 	// if proceed {
-	eth_ERC20, quo_ERC20, fabric_ERC20 := load_ERC20()
+	_, _, fabric_ERC20 := load_ERC20()
 	amt, _ := new(big.Int).SetString(auction.HighestBid, 10)
 	quotient := new(big.Int).Div(amt, ecomm.DecimalB)
 
-	_, err = fabric_ERC20.Transfer(auction.HighestBidder, quotient.String())
+	asset, _ := assetClient.GetAsset(auction.AssetID)
+	_, err = fabric_ERC20.Transfer(asset.Owner, quotient.String())
 	check(err)
-	var token stable_coin.StableCoin
+
 	var from common.Address
 	var client *ethclient.Client
 
 	if auction.HighestBidPlatform == "eth" {
-		token = *eth_ERC20
 		from = common.HexToAddress(auction.EthAddr)
 		client = ethClient
 	} else {
-		token = *quo_ERC20
 		from = common.HexToAddress(auction.QuorumAddr)
 		client = quoClient
 	}
 
-	tx, err := token.Burn(rootT, from, amt)
+	auction_contract, err := english_auction.NewEnglishAuction(from, client)
+	check(err)
+
+	tx, err := auction_contract.Pay(rootT, big.NewInt(int64(auction.AuctionID)))
 	check(err)
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Burn the bid %s placed by the winner %s", auction.HighestBid, auction.HighestBidder))
 
 	t := time.Now()
 	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.FinAuctionEvent, "", t, "", receipt.GasUsed)
-	ccsvc.Publish(ecomm.FinAuctionEvent, eventPayload)
+
+	payloadJSON, _ := json.Marshal(auction)
+	wrapper := ecomm.EventWrapper{Type: "Fin Auction", Result: payloadJSON}
+	payload, _ := json.Marshal(wrapper)
+
+	ccsvc.Publish(ecomm.FinAuctionEvent, payload)
 	return nil
 }
 
@@ -462,8 +468,10 @@ func chainCodeEvent(eventPayload []byte) {
 		event = ecomm.CancelAuctionEvent
 		assetId = auction.AssetID
 	case "Determine Winner":
-		var auction ecomm.Auction
-		err = json.Unmarshal(wrapper.Result, &auction)
+		var args ecomm.CloseAuctionArgs
+		err = json.Unmarshal(wrapper.Result, &args)
+		check(err)
+		auction, err := assetClient.GetAuction(args.AuctionID)
 		check(err)
 
 		event = ecomm.DetermineWinnerEvent
@@ -484,6 +492,13 @@ func chainCodeEvent(eventPayload []byte) {
 	// 	event = ecomm.BidEvent
 	// 	eventID = bid.AssetID
 	//fmt.Printf("Received Bid: %+v\n", bid)
+	case "Fin Auction":
+		var auction ecomm.Auction
+		err = json.Unmarshal(wrapper.Result, &auction)
+		check(err)
+
+		event = ecomm.AuctionClosingEvent
+		assetId = auction.AssetID
 	default:
 		fmt.Printf("Unknown type: %s\n", wrapper.Type)
 	}

@@ -112,6 +112,12 @@ func handleDecisionMadeEvent(eventPayload ecomm.DecisionMade, t time.Time) error
 	t = time.Now()
 	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.FinAuctionEvent, "", t, "", 0)
 
+	payloadJSON, _ := json.Marshal(result)
+	wrapper := ecomm.EventWrapper{Type: "Commit", Result: payloadJSON}
+	payload_, _ := json.Marshal(wrapper)
+
+	ccsvc.Publish(ecomm.CommitAuctionResultEvent, payload_)
+
 	_, err = assetClient.FinAuction(result, proceed)
 	check(err)
 
@@ -171,6 +177,16 @@ func smartContractEvent(eventPayload []byte) {
 		assetId = bidHash.AssetID
 		event = ecomm.WithdrawEvent
 		keyWords = fmt.Sprintf("%s_%s_%s", bidHash.Platform, bidHash.Bidder.String()[36:], string(bidHash.BidHash[8:]))
+
+	case "commit":
+		var result ecomm.AuctionResult
+		err = json.Unmarshal(wrapper.Result, &result)
+		check(err)
+
+		event = ecomm.CommitAuctionResultEvent
+		auction, _ := assetClient.GetAuction(result.AuctionID)
+		assetId = auction.AssetID
+
 	default:
 		fmt.Printf("Unknown type: %s\n", wrapper.Type)
 	}
