@@ -142,9 +142,8 @@ func startListeningForAuctionEvents(auction_addr common.Address, auction_abi str
 	contractAbi, err := abi.JSON(strings.NewReader(string(auction_abi)))
 	check(err)
 
-	// Listen to "HighestBidIncreased" and "DecisionMade" events
 	logs := make(chan types.Log)
-	sub, err := client.SubscribeFilterLogs(context.Background(), query, logs)
+	_, err = client.SubscribeFilterLogs(context.Background(), query, logs)
 	check(err)
 
 	for vLog := range logs {
@@ -192,19 +191,17 @@ func startListeningForAuctionEvents(auction_addr common.Address, auction_abi str
 			handleNewBidHashEvent(event, result, t)
 
 		case contractAbi.Events["DecisionMade"].ID.Hex():
-			var event ecomm.DecisionMade
 			t := time.Now()
-
+			var event ecomm.DecisionMade
 			err := contractAbi.UnpackIntoInterface(&event, "DecisionMade", vLog.Data)
 			check(err)
 
 			// call handler
 			handleDecisionMadeEvent(event, t)
 			fmt.Printf("Decision Made: Winner %s, Amount %s, ID %s\n", event.Winner.Hex(), event.Amount.String(), event.Id)
-
-			// Unsubscribe and break out of the loop
-			sub.Unsubscribe()
-			return
+			// // Unsubscribe and break out of the loop
+			// sub.Unsubscribe()
+			// return
 			// break
 		}
 	}

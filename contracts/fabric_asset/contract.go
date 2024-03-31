@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	//"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
@@ -309,7 +310,7 @@ func (cc *SmartContract) FinAuction(
 	return nil
 }
 
-// can add some mech to check if bidder has DID creditional
+// can add some mech to check if bidder has valid signature
 func (cc *SmartContract) verifyAuctionResult(result AuctionResult) bool {
 
 	tmp := &AuctionResult{
@@ -321,7 +322,15 @@ func (cc *SmartContract) verifyAuctionResult(result AuctionResult) bool {
 		HighestBidder: result.HighestBidder,
 	}
 
-	return VerifySignature(tmp.Hash(), result.Signature, result.HighestBidder)
+	pubkey, err := crypto.SigToPub(tmp.Hash(), result.signature)
+	if err != nil {
+		return false
+	}
+
+	if result.highestBidder == crypto.PubkeyToAddress(*pubkey).Hex() {
+		return true
+	}
+	return false
 }
 
 func (cc *SmartContract) GetAsset(

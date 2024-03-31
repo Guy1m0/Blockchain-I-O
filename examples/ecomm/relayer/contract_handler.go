@@ -97,27 +97,37 @@ func handleDecisionMadeEvent(eventPayload ecomm.DecisionMade, t time.Time) error
 		log.Fatalf("Failed to unmarshal JSON: %v", err)
 	}
 
+	auction, err := assetClient.GetAuction(result.AuctionID)
 	log.Printf("[%s] Decesion Made Event", strings.ToUpper(result.Platform))
 
 	proceed := eventPayload.Prcd
+	if proceed {
+		ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.CommitAuctionResultEvent, "", t, "", 0)
+		ccsvc.Publish(ecomm.CommitAuctionResultEvent, []byte(payload))
+	} else {
+		ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.AbortAuctionResultEvent, "", t, "", 0)
+		ccsvc.Publish(ecomm.AbortAuctionResultEvent, []byte(payload))
+	}
+
+	t = time.Now()
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.FinAuctionEvent, "", t, "", 0)
 
 	_, err = assetClient.FinAuction(result, proceed)
 	check(err)
 
 	// transfer token to original owner
-	if proceed {
-		fabric_ERC20_contract := ecomm.NewErc20Client(fabric_ERC20)
-		auction, _ := assetClient.GetAuction(result.AuctionID)
-		asset, _ := assetClient.GetAsset(auction.AssetID)
+	// if proceed {
+	// 	fabric_ERC20_contract := ecomm.NewErc20Client(fabric_ERC20)
+	// 	auction, _ := assetClient.GetAuction(result.AuctionID)
+	// 	asset, _ := assetClient.GetAsset(auction.AssetID)
 
-		amt := result.HighestBid
-		//amt, _ := new(big.Int).SetString(result.HighestBid, 10)
-		//big.NewInt(int64(result.HighestBid))
-		quotient := new(big.Int).Div(&amt, ecomm.DecimalB)
-		fabric_ERC20_contract.Transfer(asset.Owner, quotient.String())
-	}
+	// 	amt := result.HighestBid
+	// 	//amt, _ := new(big.Int).SetString(result.HighestBid, 10)
+	// 	//big.NewInt(int64(result.HighestBid))
+	// 	quotient := new(big.Int).Div(&amt, ecomm.DecimalB)
+	// 	fabric_ERC20_contract.Transfer(asset.Owner, quotient.String())
+	// }
 
-	ccsvc.Publish(ecomm.FinAuctionEvent, []byte(payload))
 	//t := time.Now()
 	return nil
 }

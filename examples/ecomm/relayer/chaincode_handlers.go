@@ -12,10 +12,12 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 // fabric relayer
@@ -358,18 +360,48 @@ func handleCloseAuctionEvent(eventPayload []byte) error {
 }
 
 func handleAuctionClosedEvent(eventPayload []byte) error {
-	t := time.Now()
-
 	var result ecomm.Auction
 	err := json.Unmarshal(eventPayload, &result)
 	check(err)
 
 	auction, err := assetClient.GetAuction(result.AuctionID)
 	check(err)
-	log.Println("[fabric] Cancel Auction with ID:", result.AuctionID)
 
-	ecomm.LogEvent(logInfoFile, ecomm.AuctionClosingEvent, auction.AssetID, auction.AucType, t, "", 0)
+	log.Println("[fabric] Cancel Auction with ID:", auction.AuctionID)
 
+	if auction.Status != "closed" {
+		log.Fatalf("Failed to closed")
+	}
+
+	// atomic swap
+	// if proceed {
+	eth_ERC20, quo_ERC20, fabric_ERC20 := load_ERC20()
+	amt, _ := new(big.Int).SetString(auction.HighestBid, 10)
+	quotient := new(big.Int).Div(amt, ecomm.DecimalB)
+
+	_, err = fabric_ERC20.Transfer(auction.HighestBidder, quotient.String())
+	check(err)
+	var token stable_coin.StableCoin
+	var from common.Address
+	var client *ethclient.Client
+
+	if auction.HighestBidPlatform == "eth" {
+		token = *eth_ERC20
+		from = common.HexToAddress(auction.EthAddr)
+		client = ethClient
+	} else {
+		token = *quo_ERC20
+		from = common.HexToAddress(auction.QuorumAddr)
+		client = quoClient
+	}
+
+	tx, err := token.Burn(rootT, from, amt)
+	check(err)
+	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Burn the bid %s placed by the winner %s", auction.HighestBid, auction.HighestBidder))
+
+	t := time.Now()
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.FinAuctionEvent, "", t, "", receipt.GasUsed)
+	ccsvc.Publish(ecomm.FinAuctionEvent, eventPayload)
 	return nil
 }
 

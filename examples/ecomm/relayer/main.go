@@ -10,8 +10,9 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb2p_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/dutch_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -28,9 +29,10 @@ var (
 	ethClient *ethclient.Client
 	quoClient *ethclient.Client
 
-	eth_ERC20    common.Address
-	quo_ERC20    common.Address
-	fabric_ERC20 string
+	rootT *bind.TransactOpts
+	// eth_ERC20    stable_coin.StableCoin
+	// quo_ERC20    stable_coin.StableCoin
+	// fabric_ERC20 string
 
 	// english_auction_info ecomm.AuctionInfo
 	// cb1p_auction_info    ecomm.AuctionInfo
@@ -70,15 +72,12 @@ func main() {
 	assetClient = ecomm.NewAssetClient()
 	ethClient = ecomm.NewEthClient()
 	quoClient = ecomm.NewQuorumClient()
+	rootT, _ = cclib.NewTransactor(root_key, password)
 
 	ccsvc, _ = cclib.NewEventService(strings.Split(zkNodes, ","), "relayer") //zookeeper node
 	//check(err)
 
 	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
-
-	eth_ERC20 = contract_info.EthERC20
-	quo_ERC20 = contract_info.QuoERC20
-	fabric_ERC20 = contract_info.FabricTokenName
 
 	ccsvc.Register(ecomm.AssetAddingEvent, chainCodeEvent)
 	ccsvc.Register(ecomm.AuctionStartingEvent, chainCodeEvent)
@@ -100,6 +99,21 @@ func main() {
 	// go startAuctionListener("english_auction", english_auction.QuoAddr.String(), "quo")
 	// startListeningForAuctionEvents()
 	// startListeningForAuctionEvents()
+}
+
+func load_ERC20() (*stable_coin.StableCoin, *stable_coin.StableCoin, *ecomm.Erc20Client) {
+	var contract_info ecomm.ContractInfo
+	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
+
+	eth_ERC20, err := stable_coin.NewStableCoin(contract_info.EthERC20, ethClient)
+	check(err)
+
+	quo_ERC20, err := stable_coin.NewStableCoin(contract_info.QuoERC20, quoClient)
+	check(err)
+
+	fabric_ERC20 := ecomm.NewErc20Client(contract_info.FabricTokenName)
+
+	return eth_ERC20, quo_ERC20, fabric_ERC20
 }
 
 func check(err error) {

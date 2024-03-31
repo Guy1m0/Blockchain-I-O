@@ -17,8 +17,8 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 func load_bidder_key(name string) string {
@@ -229,54 +229,64 @@ func check_winner(auction_id int, bid_key string) {
 	fmt.Println("highest bid:", highestBid)
 }
 
-func sign_auction_result(auction_id int, prcd bool, bid_key string) {
-	// @reset timer
+func sign_auction_result(auction_id int) {
 	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	auction, err := assetClient.GetAuction(auction_id)
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.CommitAuctionResultEvent, "", t, "", 0)
 
-	client := ethClient
+	var bidKey string
+	inval_addr := true
+	accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
 
-	//assetClient := ecomm.NewAssetClient() // return Fabric asset contract
-	a, err := assetClient.GetAuction(auction_id)
-	check(err)
+	for i := 1; i < 9; i++ {
+		if auction.HighestBidder == accounts[i].Address.String() {
+			bidKey = load_bidder_key(accounts[i].UserID)
+			inval_addr = false
+			break
+		}
+	}
 
-	auction_addr := common.HexToAddress(a.EthAddr)
-	if platform != "eth" {
-		auction_addr = common.HexToAddress(a.QuorumAddr)
+	if inval_addr {
+		log.Fatalf("Invalid winner address%s", auction.HighestBidder)
+	}
+
+	var auction_addr common.Address
+	var client *ethclient.Client
+	if auction.HighestBidPlatform == "eth" {
+		auction_addr = common.HexToAddress(auction.EthAddr)
+		client = ethClient
+	} else {
+		auction_addr = common.HexToAddress(auction.QuorumAddr)
 		client = quoClient
 	}
 
-	bidT, err := cclib.NewTransactor(bid_key, "password")
-	check(err)
-
-	// log
-	payload, _ := json.Marshal(a)
-	if prcd {
-		cclib.LogEventToFile(logInfoFile, ecomm.CommitAuctionResultEvent, payload, t, timeInfoFile)
-	} else {
-		cclib.LogEventToFile(logInfoFile, ecomm.AbortAuctionResultEvent, payload, t, timeInfoFile)
+	var auction_contract ecomm.AuctionContract
+	// load auction contract
+	switch auction.AucType {
+	case "english":
+		auction_contract, err = english_auction.NewEnglishAuction(auction_addr, client)
+		check(err)
+	case "dutch":
+	case "cb1p":
+		auction_contract, err = cb1p_auction.NewCb1pAuction(auction_addr, client)
+		check(err)
+	case "cb2p":
+	default:
+		log.Fatalf("Auction type error")
 	}
 
-	auction_contract, err := english_auction.NewEnglishAuction(auction_addr, client)
+	bidT, err := cclib.NewTransactor(bidKey, "password")
 	check(err)
-
-	highestBidder, _ := auction_contract.HighestBidder(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
-	if highestBidder != bidT.From {
-		log.Panicln("Not authorized to commit the auction")
-	}
-
-	highestBid, _ := auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
-
 	auction_result := &ecomm.AuctionResult{
-		Platform:    platform,
-		AuctionID:   auction_id,
+		Platform:    auction.HighestBidPlatform,
+		AuctionID:   auction.AuctionID,
 		AuctionAddr: auction_addr.Hex(),
 
-		HighestBid:    *highestBid,
+		HighestBid:    auction.HighestBid,
 		HighestBidder: bidT.From.Hex(),
 	}
 
-	signer, _ := cclib.NewSigner(bid_key, password)
+	signer, _ := cclib.NewSigner(bidKey, password)
 	sig, err := signer.Sign(auction_result.Hash())
 	check(err)
 
@@ -284,32 +294,11 @@ func sign_auction_result(auction_id int, prcd bool, bid_key string) {
 	jsonString, err := json.Marshal(auction_result)
 	check(err)
 
-	t = time.Now()
-
-	var tx *types.Transaction
-	var p_type string
-	if prcd {
-		tx, err = auction_contract.Commit(bidT, big.NewInt(int64(auction_id)), string(jsonString))
-		p_type = "Commit"
-		cclib.LogEventToFile(logInfoFile, ecomm.CommitAuctionResultEvent, jsonString, t, timeInfoFile)
-	} else {
-		tx, err = auction_contract.Abort(bidT, big.NewInt(int64(auction_id)), string(jsonString))
-		p_type = "Abort"
-		cclib.LogEventToFile(logInfoFile, ecomm.AbortAuctionResultEvent, jsonString, t, timeInfoFile)
-	}
+	tx, err := auction_contract.Commit(bidT, big.NewInt(int64(auction.AuctionID)), string(jsonString))
 	check(err)
+	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Sign Auction Result on Auction ID: %d through contract: %s", auction.AuctionID, auction_addr))
 
-	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Sign Auction Result on Auction ID: %d through contract: %s", a.AuctionID, auction_addr))
-	//debugTransaction(tx)
-	// log
-	payload, _ = json.Marshal(&ecomm.Tx{
-		Platform: platform,
-		Type:     p_type,
-		Hash:     receipt.TxHash,
-	})
-
-	t = time.Now()
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.CommitAuctionResultEvent, "", receipt.GasUsed, auction.HighestBidPlatform)
 }
 
 func provide_feedback(auction_id int, feedback string, bid_key string) {
@@ -362,10 +351,10 @@ func provide_feedback(auction_id int, feedback string, bid_key string) {
 
 func autoCommit(eventPayload []byte) {
 	var result ecomm.Auction
-
 	err := json.Unmarshal([]byte(eventPayload), &result)
 	check(err)
 
+	sign_auction_result(result.AuctionID)
 }
 
 func check(err error) {
