@@ -1,4 +1,4 @@
-package asset
+package fabric_asset
 
 import (
 	"github.com/ethereum/go-ethereum/crypto"

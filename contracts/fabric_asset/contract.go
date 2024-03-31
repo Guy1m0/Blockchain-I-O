@@ -1,11 +1,11 @@
-package asset
+package fabric_asset
 
 import (
 	"encoding/json"
 	"fmt"
 	"strconv"
 
-	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
+	//"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
 
@@ -214,7 +214,7 @@ func (cc *SmartContract) CloseAuction(
 	ctx contractapi.TransactionContextInterface, argjson string,
 ) error {
 
-	var args ecomm.CloseAuctionArgs
+	var args CloseAuctionArgs
 	err := json.Unmarshal([]byte(argjson), &args)
 	if err != nil {
 		return err
@@ -227,6 +227,10 @@ func (cc *SmartContract) CloseAuction(
 	}
 
 	auction.Status = "closing"
+	auction.HighestBid = args.HighestBid
+	auction.HighestBidder = args.HighestBidder
+	auction.HighestBidPlatform = args.HighestBidPlatform
+
 	err = cc.setAuction(ctx, auction)
 	if err != nil {
 		return fmt.Errorf("error setting auction: %v", err)

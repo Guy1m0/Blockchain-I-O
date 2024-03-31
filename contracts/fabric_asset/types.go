@@ -1,4 +1,4 @@
-package asset
+package fabric_asset
 
 import (
 	"strconv"
@@ -22,6 +22,8 @@ type StartAuctionArgs struct {
 }
 
 type CloseAuctionArgs struct {
+	AuctionID int `json:"auctionId"`
+
 	HighestBid         string `json:"highestBid"`
 	HighestBidder      string `json:"highestBidder"`
 	HighestBidPlatform string `json:"highestBidPlatform"`

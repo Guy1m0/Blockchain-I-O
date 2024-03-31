@@ -218,11 +218,13 @@ func handleCancelAuctionEvent(eventPayload []byte) error {
 }
 
 func handleDetWinnerEvent(eventPayload []byte) error {
+	//t := time.Now()
 	var result ecomm.Auction
 	err := json.Unmarshal(eventPayload, &result)
 	check(err)
 
-	log.Println("[fabric] Close Auction with ID:", result.AuctionID)
+	log.Println("[fabric] DetermineWinner with ID:", result.AuctionID)
+	//ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.DetermineWinnerEvent, "", t, "", 0)
 
 	var eth_auction_contract, quo_auction_contract ecomm.AuctionContract
 	eth_auction_addr := common.HexToAddress(result.EthAddr)
@@ -263,23 +265,31 @@ func handleDetWinnerEvent(eventPayload []byte) error {
 		highestBid = quo_highestBid.String()
 		highestBidder, _ = quo_auction_contract.HighestBidder(&bind.CallOpts{}, big.NewInt(int64(result.AuctionID)))
 	}
+	t := time.Now()
+	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.DetermineWinnerEvent, "", t, "", 0)
 
 	args := ecomm.CloseAuctionArgs{
-		AuctionID:          result.AuctionID,
+		AuctionID: result.AuctionID,
+
 		HighestBid:         highestBid,
 		HighestBidder:      highestBidder.String(),
 		HighestBidPlatform: highestBidPlatform,
 	}
 
-	assetClient.CloseAuction(args)
+	t = time.Now()
+	_, err = assetClient.CloseAuction(args)
+	check(err)
+	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.AuctionClosingEvent, "", t, "", 0)
 
-	t := time.Now()
-	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.DetermineWinnerEvent, "", t, "", 0)
+	payloadJSON, _ := json.Marshal(args)
+	wrapper := ecomm.EventWrapper{Type: "Determine Winner", Result: payloadJSON}
+	payload, _ := json.Marshal(wrapper)
 
+	ccsvc.Publish(ecomm.DetermineWinnerEvent, payload)
 	return nil
 
 }
-func handleCloseAuction(eventPayload []byte) error {
+func handleCloseAuctionEvent(eventPayload []byte) error {
 	var result ecomm.Auction
 	err := json.Unmarshal(eventPayload, &result)
 	check(err)
@@ -334,6 +344,9 @@ func handleCloseAuction(eventPayload []byte) error {
 	note := "ETH:" + strconv.FormatUint(cost, 10)
 	cost += receipt2.GasUsed
 	note += " QUO:" + strconv.FormatUint(receipt2.GasUsed, 10)
+
+	t := time.Now()
+	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.AuctionClosingEvent, "", t, note, cost)
 
 	payloadJSON, _ := json.Marshal(result)
 	wrapper := ecomm.EventWrapper{Type: "Close Auction", Result: payloadJSON}
@@ -415,6 +428,13 @@ func chainCodeEvent(eventPayload []byte) {
 		check(err)
 
 		event = ecomm.CancelAuctionEvent
+		assetId = auction.AssetID
+	case "Determine Winner":
+		var auction ecomm.Auction
+		err = json.Unmarshal(wrapper.Result, &auction)
+		check(err)
+
+		event = ecomm.DetermineWinnerEvent
 		assetId = auction.AssetID
 	case "Close Auction":
 		var auction ecomm.Auction
