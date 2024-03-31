@@ -78,13 +78,15 @@ func (cc *SmartContract) StartAuction(
 		return err
 	}
 	auction := Auction{
-		AuctionID: lastID + 1,
-		AssetID:   args.AssetID,
-		AucType:   args.AucType,
+		AuctionID:  lastID + 1,
+		AssetID:    args.AssetID,
+		AssetOwner: asset.Owner,
 
+		AucType:    args.AucType,
 		EthAddr:    args.EthAddr,
 		QuorumAddr: args.QuorumAddr,
-		Status:     "open",
+
+		Status: "open",
 	}
 	err = cc.setAuction(ctx, &auction)
 	if err != nil {

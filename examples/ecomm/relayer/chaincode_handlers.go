@@ -51,15 +51,15 @@ func handleAddAssetEvent(eventPayload []byte) error {
 	case "english":
 		ethAddr = contract_info.EnglishAuction.EthAddr
 		quoAddr = contract_info.EnglishAuction.QuoAddr
-	case "dutch":
-		ethAddr = contract_info.DutchAuction.EthAddr
-		quoAddr = contract_info.DutchAuction.QuoAddr
+	// case "dutch":
+	// 	ethAddr = contract_info.DutchAuction.EthAddr
+	// 	quoAddr = contract_info.DutchAuction.QuoAddr
 	case "cb1p":
 		ethAddr = contract_info.Cb1pAuction.EthAddr
 		quoAddr = contract_info.Cb1pAuction.QuoAddr
-	case "cb2p":
-		ethAddr = contract_info.Cb2pAuction.EthAddr
-		quoAddr = contract_info.Cb2pAuction.QuoAddr
+	// case "cb2p":
+	// 	ethAddr = contract_info.Cb2pAuction.EthAddr
+	// 	quoAddr = contract_info.Cb2pAuction.QuoAddr
 	default:
 		fmt.Println("Auction type error")
 	}
@@ -378,8 +378,9 @@ func handleAuctionClosedEvent(eventPayload []byte) error {
 	amt, _ := new(big.Int).SetString(auction.HighestBid, 10)
 	quotient := new(big.Int).Div(amt, ecomm.DecimalB)
 
-	asset, _ := assetClient.GetAsset(auction.AssetID)
-	_, err = fabric_ERC20.Transfer(asset.Owner, quotient.String())
+	//asset, _ := assetClient.GetAsset(auction.AssetID)
+
+	_, err = fabric_ERC20.Transfer(auction.AssetOwner, quotient.String())
 	check(err)
 
 	var from common.Address
@@ -411,28 +412,6 @@ func handleAuctionClosedEvent(eventPayload []byte) error {
 	return nil
 }
 
-// func handleSignedAuctionResult(payload []byte) {
-// 	var result ecomm.SignedAuctionResult
-// 	err := json.Unmarshal(payload, &result)
-// 	check(err)
-
-// 	mutex.Lock()
-// 	defer mutex.Unlock()
-
-// 	merged := auctionResults[result.AuctionID]
-// 	if result.Platform == "ethereum" {
-// 		merged.EthResult.AuctionResult = result.AuctionResult
-// 		merged.EthResult.Signatures = append(merged.EthResult.Signatures, result.Signature)
-// 	} else {
-// 		merged.QuorumResult.AuctionResult = result.AuctionResult
-// 		merged.QuorumResult.Signatures = append(merged.QuorumResult.Signatures, result.Signature)
-// 	}
-
-// 	if len(merged.EthResult.Signatures) >= 2 && len(merged.QuorumResult.Signatures) >= 2 {
-// 		assetClient.FinalizeAuction(*merged)
-// 	}
-// }
-
 func chainCodeEvent(eventPayload []byte) {
 	t := time.Now()
 	var wrapper ecomm.EventWrapper
@@ -449,9 +428,7 @@ func chainCodeEvent(eventPayload []byte) {
 
 		event = ecomm.AssetAddingEvent
 		assetId = asset.ID
-		// auction, _ := assetClient.GetAuction(asset.PendingAuctionID)
-		// keyWords = auction.AucType
-		//fmt.Printf("Received Asset: %+v\n", asset)
+
 	case "Start Auction":
 		var auction ecomm.Auction
 		err = json.Unmarshal(wrapper.Result, &auction)

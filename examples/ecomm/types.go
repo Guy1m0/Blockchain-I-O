@@ -30,15 +30,22 @@ type AuctionInfo struct {
 	QuoAddr common.Address
 }
 
+type AucConractInfo struct {
+	AucType string
+	Owner   common.Address
+	EthAddr common.Address
+	QuoAddr common.Address
+}
+
 type ContractInfo struct {
 	FabricTokenName string
 	EthERC20        common.Address
 	QuoERC20        common.Address
 
-	EnglishAuction AuctionInfo
-	DutchAuction   AuctionInfo
-	Cb1pAuction    AuctionInfo
-	Cb2pAuction    AuctionInfo
+	EnglishAuction AucConractInfo
+	//DutchAuction   AucConractInfo
+	Cb1pAuction AucConractInfo
+	//Cb2pAuction    AucConractInfo
 }
 
 // type EnglishAuctionInfo struct {
@@ -62,6 +69,8 @@ type Asset struct {
 type Auction struct {
 	AuctionID  int    `json:"auctionId"`
 	AssetID    string `json:"assetId"`
+	AssetOwner string `json:"assetOwner"`
+
 	AucType    string `json:"aucType"`
 	EthAddr    string `json:"ethAddr"`
 	QuorumAddr string `json:"quorumAddr"`

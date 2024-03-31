@@ -13,7 +13,6 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -38,7 +37,7 @@ var (
 	zkNodes  = "localhost:2181"
 	platform = "eth"
 
-	aucT        *bind.TransactOpts
+	//aucT        *bind.TransactOpts
 	asset_names []string
 
 	usr_name          = "auctioneer 1"
@@ -66,10 +65,6 @@ func main() {
 	flag.StringVar(&auc_type, "t", auc_type, "Choose testing auction type")
 
 	flag.Parse()
-
-	//fmt.Println("Load auctioneer: ", usr_name)
-	auc_key := load_auctioneer(usr_name)
-	aucT, _ = cclib.NewTransactor(auc_key, password)
 
 	asset_names, err := readNamesFromFile(assetNamesFile)
 	check(err)
@@ -174,9 +169,6 @@ func main() {
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		index := len(auction_infos) - 1
 		auction_info := auction_infos[index]
-		if index == -1 {
-			index = 0
-		}
 
 		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
 

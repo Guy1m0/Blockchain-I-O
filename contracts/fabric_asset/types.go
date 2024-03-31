@@ -32,6 +32,8 @@ type CloseAuctionArgs struct {
 type Auction struct {
 	AuctionID  int    `json:"auctionId"`
 	AssetID    string `json:"assetId"`
+	AssetOwner string `json:"assetOwner"`
+
 	AucType    string `json:"aucType"`
 	EthAddr    string `json:"ethAddr"`
 	QuorumAddr string `json:"quorumAddr"`

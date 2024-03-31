@@ -19,6 +19,8 @@ func create(asset_name string, auc_type string, usr_name string) {
 		return
 	}
 	log.Println("[fabric] Adding asset")
+	auc_key := load_auctioneer(usr_name)
+	aucT, _ := cclib.NewTransactor(auc_key, password)
 	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex(), auc_type)
 	check(err)
 

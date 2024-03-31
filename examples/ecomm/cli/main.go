@@ -214,8 +214,9 @@ func initialize(token_name string) {
 		FabricTokenName: token_name,
 		EthERC20:        eth_MDAI_addr,
 		QuoERC20:        quo_MDAI_addr,
-		EnglishAuction: ecomm.AuctionInfo{
+		EnglishAuction: ecomm.AucConractInfo{
 			Owner:   rootT.From,
+			AucType: "English",
 			QuoAddr: quo_english_addr,
 			EthAddr: eth_english_addr,
 		},
@@ -224,8 +225,9 @@ func initialize(token_name string) {
 		// 	QuoAddr: quo_dutch_addr,
 		// 	EthAddr: eth_dutch_addr,
 		// },
-		Cb1pAuction: ecomm.AuctionInfo{
+		Cb1pAuction: ecomm.AucConractInfo{
 			Owner:   rootT.From,
+			AucType: "ClosedBid1stPrice",
 			QuoAddr: quo_closed_bid_addr,
 			EthAddr: eth_closed_bid_addr,
 		},
@@ -244,8 +246,10 @@ func setup() {
 
 	fmt.Println("Setup account for 'auctioneer 1' on Fabirc")
 	_, err = fabric_ERC20.Transfer(aucT.From.Hex(), "0")
+	check(err)
 
 	valueB_, err := fabric_ERC20.BalanceOf(aucT.From.Hex())
+	check(err)
 	valueB, err := strconv.Atoi(valueB_)
 	check(err)
 	if valueB < 200 {
@@ -262,7 +266,7 @@ func setup() {
 	var bidT *bind.TransactOpts
 	for i := 1; i < 9; i++ {
 		bidT, err = cclib.NewTransactor(fmt.Sprintf("%skey%s", keyFolder, strconv.Itoa(i+1)), password)
-
+		check(err)
 		log.Printf("Setup account for 'Bidder%d' on Fabric", i)
 		_, err = fabric_ERC20.Transfer(bidT.From.Hex(), "0")
 		check(err)
@@ -301,7 +305,7 @@ func display() {
 
 		// Quo balance
 		valueB, _ = quo_ERC20.BalanceOf(&bind.CallOpts{}, user.Address)
-		log.Printf("For user: %s has balance: %s", user.UserID, valueB.String())
+		//log.Printf("For user: %s has balance: %s", user.UserID, valueB.String())
 
 		quo_balance := big.NewInt(0).Div(valueB, DecimalB).String()
 		// Fabric balance
@@ -315,6 +319,32 @@ func display() {
 		}
 		table.Append(row)
 		//fmt.Println(user.UserID, user.Address, user.KeyFile)
+	}
+	var contract_info ecomm.ContractInfo
+	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
+	auction_infos := []ecomm.AucConractInfo{
+		contract_info.EnglishAuction,
+		//contract_info.DutchAuction,
+		contract_info.Cb1pAuction,
+		//contract_info.Cb2pAuction,
+	}
+
+	for _, auction_info := range auction_infos {
+		// Eth balance
+		valueB, _ := eth_ERC20.BalanceOf(&bind.CallOpts{}, auction_info.EthAddr)
+		eth_balance := big.NewInt(0).Div(valueB, DecimalB).String()
+
+		// Quo balance
+		valueB, _ = quo_ERC20.BalanceOf(&bind.CallOpts{}, auction_info.QuoAddr)
+		quo_balance := big.NewInt(0).Div(valueB, DecimalB).String()
+
+		row := []string{
+			"Auction: " + auction_info.AucType,
+			eth_balance,
+			quo_balance,
+			"0",
+		}
+		table.Append(row)
 	}
 
 	table.Render()
