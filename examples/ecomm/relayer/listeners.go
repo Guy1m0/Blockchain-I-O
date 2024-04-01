@@ -66,11 +66,11 @@ func startFabricListener(client *ecomm.AssetClient) error {
 			if err != nil {
 				return err
 			}
-		case event := <-notifiers[4]:
-			err := handleCancelAuctionEvent(event.Payload)
-			if err != nil {
-				return err
-			}
+		// case event := <-notifiers[4]:
+		// 	err := handleCancelAuctionEvent(event.Payload)
+		// 	if err != nil {
+		// 		return err
+		// 	}
 		case event := <-notifiers[5]:
 			err := handleAuctionClosedEvent(event.Payload)
 			if err != nil {
@@ -161,7 +161,21 @@ func startListeningForAuctionEvents(auction_addr common.Address, auction_abi str
 			}
 			// call handler
 			handleHighestBidIncreasedEvent(event, result, t)
-			fmt.Printf("New highest bid for %s: %s by bidder %s\n", event.AuctionType, event.BidAmount.String(), event.Bidder.Hex())
+			fmt.Printf("New highest bid for auction %s with amount %s by bidder %s\n", event.AuctionId, event.BidAmount.String(), event.Bidder.Hex())
+		case contractAbi.Events["BidTooLow"].ID.Hex():
+			t := time.Now()
+			var event ecomm.BidTooLow
+			err := contractAbi.UnpackIntoInterface(&event, "BidTooLow", vLog.Data)
+			check(err)
+
+			result := ecomm.Bid{
+				Platform:    platform,
+				AuctionAddr: auction_addr,
+			}
+			// call handler
+			handleBidTooLowEvent(event, result, t)
+			fmt.Printf("Bid too low for auction %s with amount %s by bidder %s\n", event.AuctionId, event.BidAmount.String(), event.Bidder.Hex())
+
 		case contractAbi.Events["WithdrawBid"].ID.Hex():
 			t := time.Now()
 			var event ecomm.WithdrawBid

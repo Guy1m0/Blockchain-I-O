@@ -38,6 +38,31 @@ func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreased, bid 
 }
 
 // Smart Contract handler
+func handleBidTooLowEvent(eventPayload ecomm.BidTooLow, bid ecomm.Bid, t time.Time) error {
+	log.Printf("[%s] BidTooLow Event", strings.ToUpper(bid.Platform))
+
+	amount := new(big.Int).Div(eventPayload.BidAmount, ecomm.DecimalB).String()
+	asset, _ := assetClient.GetAsset(eventPayload.Id)
+	keyWords := fmt.Sprintf("%s_%s_%s", bid.Platform, eventPayload.Bidder.String()[36:], amount)
+	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidEvent, keyWords, t, "Bid too low with amount"+eventPayload.BidAmount.String(), 0)
+
+	bid.BidAmount = eventPayload.BidAmount.String()
+	bid.Bidder = eventPayload.Bidder
+	bid.AssetID = asset.ID
+
+	payloadJSON, _ := json.Marshal(bid)
+	wrapper := ecomm.EventWrapper{Type: "Bid", Result: payloadJSON}
+	payload, _ := json.Marshal(wrapper)
+
+	// asset, _ := assetClient.GetAsset(eventPayload.Id)
+	// auction, _ := assetClient.GetAuction(asset.PendingAuctionID)
+	// fmt.Println("find auction in new bid: ", auction.ID, "status: ", auction.Status)
+
+	ccsvc.Publish(ecomm.BidEvent, payload)
+	return nil
+}
+
+// Smart Contract handler
 func handleNewBidHashEvent(eventPayload ecomm.NewBidHash, bidHash ecomm.BidHash, t time.Time) error {
 	log.Printf("[%s] NewBidHash Event", strings.ToUpper(bidHash.Platform))
 

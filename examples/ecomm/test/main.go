@@ -207,7 +207,7 @@ func createTesting(s, batch_size int) {
 func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 	var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines to finish
 	accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
-	log.Println(len(auction_infos), s, batch_size)
+	//log.Println(len(auction_infos), s, batch_size)
 
 	auctions := auction_infos[s-batch_size-1 : s]
 	counter := len(auctions) * batch_size
@@ -226,7 +226,7 @@ func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 			bid_key := load_bidder_key(userID)
 			// //log.Printf("User %s places bid %d MDAI for asset %d on %s platform", userID, i*5, size-i, platform)
 
-			//bidAuction(auction_id, big.NewInt(int64(index+1)), bid_key, platform)
+			bidAuction(auction_id, big.NewInt(int64(index+1)), bid_key, platform)
 
 			platform = "eth"
 			// userID := accounts[acc_ind].UserID
@@ -253,7 +253,7 @@ func closeTesting(s, batch_size int) {
 	}
 
 	wg.Wait() // Wait for all goroutines to finish
-	log.Println("All assets have been added.")
+	log.Println("All auctions have been closed.")
 }
 
 func commitTesting(s, batch_size int) {
@@ -287,7 +287,7 @@ func commitTesting(s, batch_size int) {
 	}
 
 	wg.Wait() // Wait for all goroutines to finish
-	log.Println("All assets have been added.")
+	log.Println("All auction results have been committed.")
 }
 
 func load_auctioneer(name string) string {

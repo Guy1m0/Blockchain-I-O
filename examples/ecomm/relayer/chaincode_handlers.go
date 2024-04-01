@@ -11,7 +11,8 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
-	"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
+
+	//"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -167,56 +168,56 @@ func handleRevealAuctionEvent(eventPayload []byte) error {
 	return err
 }
 
-func handleCancelAuctionEvent(eventPayload []byte) error {
-	t := time.Now()
+// func handleCancelAuctionEvent(eventPayload []byte) error {
+// 	t := time.Now()
 
-	var result ecomm.Auction
-	err := json.Unmarshal(eventPayload, &result)
-	check(err)
+// 	var result ecomm.Auction
+// 	err := json.Unmarshal(eventPayload, &result)
+// 	check(err)
 
-	auction, err := assetClient.GetAuction(result.AuctionID)
-	check(err)
-	log.Println("[fabric] Cancel Auction with ID:", result.AuctionID)
+// 	auction, err := assetClient.GetAuction(result.AuctionID)
+// 	check(err)
+// 	log.Println("[fabric] Cancel Auction with ID:", result.AuctionID)
 
-	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.CancelAuctionEvent, "", t, "", 0)
+// 	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.CancelAuctionEvent, "", t, "", 0)
 
-	log.Println("[ETH/QUO] Close auctions on both platforms")
-	// load auction contract
-	eth_auction_addr := common.HexToAddress(auction.EthAddr)
-	eth_auction_contract, err := eth_auction.NewEthAuction(eth_auction_addr, ethClient)
-	check(err)
+// 	log.Println("[ETH/QUO] Close auctions on both platforms")
+// 	// load auction contract
+// 	eth_auction_addr := common.HexToAddress(auction.EthAddr)
+// 	eth_auction_contract, err := english_auction.NewEnglishAuction(eth_auction_addr, ethClient)
+// 	check(err)
 
-	quo_auction_addr := common.HexToAddress(auction.QuorumAddr)
-	quo_auction_contract, err := eth_auction.NewEthAuction(quo_auction_addr, quoClient)
-	check(err)
+// 	quo_auction_addr := common.HexToAddress(auction.QuorumAddr)
+// 	quo_auction_contract, err := english_auction.NewEnglishAuction(quo_auction_addr, quoClient)
+// 	check(err)
 
-	log.Println("[ETH/QUO] Change contract state")
-	authT, err := cclib.NewTransactor(root_key, password)
-	check(err)
+// 	log.Println("[ETH/QUO] Change contract state")
+// 	authT, err := cclib.NewTransactor(root_key, password)
+// 	check(err)
 
-	// Change Auction Contract on Eth
-	tx, _ := eth_auction_contract.CloseAuction(authT, true)
-	receipt := ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDED'", eth_auction_addr))
+// 	// Change Auction Contract on Eth
+// 	tx, _ := eth_auction_contract.CloseAuction(authT, true)
+// 	receipt := ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDED'", eth_auction_addr))
 
-	cost := receipt.GasUsed
-	note := "ETH:" + strconv.FormatUint(cost, 10)
+// 	cost := receipt.GasUsed
+// 	note := "ETH:" + strconv.FormatUint(cost, 10)
 
-	// Change Auction Contract on Quo
-	tx, _ = quo_auction_contract.CloseAuction(authT, true)
-	receipt = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDED'", quo_auction_addr))
+// 	// Change Auction Contract on Quo
+// 	tx, _ = quo_auction_contract.CloseAuction(authT, true)
+// 	receipt = ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Change Auction %s status to 'ENDED'", quo_auction_addr))
 
-	cost += receipt.GasUsed
-	note += " QUO:" + strconv.FormatUint(receipt.GasUsed, 10)
+// 	cost += receipt.GasUsed
+// 	note += " QUO:" + strconv.FormatUint(receipt.GasUsed, 10)
 
-	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.CancelAuctionEvent, "", cost, note)
-	//ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
+// 	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.CancelAuctionEvent, "", cost, note)
+// 	//ccsvc.Publish(ecomm.AuctionClosingEvent, payload)
 
-	payloadJSON, _ := json.Marshal(auction)
-	wrapper := ecomm.EventWrapper{Type: "Cancel Auction", Result: payloadJSON}
-	payload, _ := json.Marshal(wrapper)
+// 	payloadJSON, _ := json.Marshal(auction)
+// 	wrapper := ecomm.EventWrapper{Type: "Cancel Auction", Result: payloadJSON}
+// 	payload, _ := json.Marshal(wrapper)
 
-	return ccsvc.Publish(ecomm.CancelAuctionEvent, payload)
-}
+// 	return ccsvc.Publish(ecomm.CancelAuctionEvent, payload)
+// }
 
 func handleDetWinnerEvent(eventPayload []byte) error {
 	//t := time.Now()

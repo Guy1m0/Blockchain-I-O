@@ -27,7 +27,7 @@ contract EnglishAuction {
 
     // Events that will be emitted on changes.
     event HighestBidIncreased(uint auctionId, string id, address bidder, uint bidAmount, string auctionType);
-    event BidTooLow(uint auctionId, uint bidAmount, uint highestBid, string message);
+    event BidTooLow(uint auctionId, string id, address bidder, uint bidAmount, uint highestBid, string auctionType);
 
     event WithdrawBid(uint auctionId, string id, address bidder, uint amount);
     event DecisionMade(uint auctionId, address winner, uint amount, string id, bool prcd, string jsonString);
@@ -63,7 +63,7 @@ contract EnglishAuction {
 
         // Check that the bid is higher than the current highest bid
         if (bidAmount <= highestBid[auctionId]) {
-            emit BidTooLow(auctionId, bidAmount, highestBid[auctionId], "Bid is not high enough");
+            emit BidTooLow(auctionId, asset_id[auctionId], msg.sender, bidAmount, highestBid[auctionId], auction_type);
             return; // Exit the function
         }
         // Attempt to transfer the tokens from the bidder to the contract

@@ -83,12 +83,18 @@ func bidAuction(auction_id int, amount *big.Int, bid_key, platform string) {
 	// valueB, err := MDAI.BalanceOf(&bind.CallOpts{}, auction_addr)
 	// log.Printf("Auction contract orig balance: %s", valueB)
 
-	tx1, _ := MDAI.Approve(bidT, auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
+	tx1, err := MDAI.Approve(bidT, auction_addr, big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
+	if err != nil {
+		log.Fatalf("Failed to approve: %v", err)
+	}
 	receipt1 := ecomm.WaitTx(client, tx1, "Approve Auction Contract's allowance")
 	// allB, err := MDAI.Allowance(&bind.CallOpts{}, bidT.From, auction_addr)
 	// log.Printf("Auction contract orig allowance: %s", allB)
 
-	tx2, _ := auction_contract.Bid(bidT, big.NewInt(int64(auction_id)), big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
+	tx2, err := auction_contract.Bid(bidT, big.NewInt(int64(auction_id)), big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB))
+	if err != nil {
+		log.Fatalf("Failed to bid: %v", err)
+	}
 	receipt2 := ecomm.WaitTx(client, tx2, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.AuctionID, auction_addr))
 
 	// valueB, err = MDAI.BalanceOf(&bind.CallOpts{}, auction_addr)

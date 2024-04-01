@@ -45,6 +45,16 @@ type HighestBidIncreased struct {
 	Raw         types.Log // Blockchain specific contextual infos
 }
 
+type BidTooLow struct {
+	AuctionId   *big.Int
+	Id          string
+	Bidder      common.Address
+	BidAmount   *big.Int
+	HighestBid  *big.Int
+	AuctionType string
+	Raw         types.Log // Blockchain specific contextual infos
+}
+
 type WithdrawBid struct {
 	AuctionId *big.Int
 	Id        string
