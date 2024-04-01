@@ -13,7 +13,7 @@ Projector
 Freezer
 Video Camera
 Hammer
-Photocopier
+Photocopiera
 Cheetah
 Lawn Mower
 E-reader

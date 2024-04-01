@@ -37,7 +37,7 @@ func load_bidder_key(name string) string {
 }
 
 // also no relayer involved, 'locally' make bid
-func bidAuction(auction_id int, amount *big.Int, bid_key string) {
+func bidAuction(auction_id int, amount *big.Int, bid_key, platform string) {
 	t := time.Now()
 
 	var contract_info ecomm.ContractInfo
@@ -102,7 +102,7 @@ func bidAuction(auction_id int, amount *big.Int, bid_key string) {
 	ecomm.UpdateLog(logInfoFile, a.AssetID, ecomm.BidEvent, keyWords, total_cost, note)
 }
 
-func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key string) {
+func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key, platform string) {
 	t := time.Now()
 
 	var contract_info ecomm.ContractInfo
@@ -159,7 +159,7 @@ func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key string) {
 
 }
 
-func withdraw(auction_id int, bid_key string) {
+func withdraw(auction_id int, bid_key, platform string) {
 	t := time.Now()
 	client := ethClient
 
@@ -195,7 +195,7 @@ func withdraw(auction_id int, bid_key string) {
 	/////////////
 }
 
-func check_winner(auction_id int, bid_key string) {
+func check_winner(auction_id int, bid_key, platform string) {
 	client := ethClient
 	bidT, err := cclib.NewTransactor(bid_key, password)
 	check(err)
@@ -301,9 +301,10 @@ func sign_auction_result(auction_id int) {
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Sign Auction Result on Auction ID: %d through contract: %s", auction.AuctionID, auction_addr))
 
 	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.CommitAuctionResultEvent, "", receipt.GasUsed, auction.HighestBidPlatform)
+
 }
 
-func provide_feedback(auction_id int, feedback string, bid_key string) {
+func provide_feedback(auction_id int, feedback string, bid_key, platform string) {
 	// @reset timer
 	t := time.Now()
 	cclib.LastEventTimestamp.Set(t, timeInfoFile)

@@ -27,6 +27,8 @@ contract EnglishAuction {
 
     // Events that will be emitted on changes.
     event HighestBidIncreased(uint auctionId, string id, address bidder, uint bidAmount, string auctionType);
+    event BidTooLow(uint auctionId, uint bidAmount, uint highestBid, string message);
+
     event WithdrawBid(uint auctionId, string id, address bidder, uint amount);
     event DecisionMade(uint auctionId, address winner, uint amount, string id, bool prcd, string jsonString);
     event AwaitResponse(uint auctionId, address winner);
@@ -60,8 +62,10 @@ contract EnglishAuction {
         require(keccak256(abi.encodePacked(status[auctionId])) == keccak256(abi.encodePacked("open")), "Contract not in OPEN status");
 
         // Check that the bid is higher than the current highest bid
-        require(bidAmount > highestBid[auctionId], "There already is a higher bid.");
-
+        if (bidAmount <= highestBid[auctionId]) {
+            emit BidTooLow(auctionId, bidAmount, highestBid[auctionId], "Bid is not high enough");
+            return; // Exit the function
+        }
         // Attempt to transfer the tokens from the bidder to the contract
         bool transferSuccessful = token.transferFrom(msg.sender, address(this), bidAmount);
         
