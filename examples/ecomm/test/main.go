@@ -81,18 +81,20 @@ func main() {
 		//asset_name := asset_names[s]
 		createTesting(s, *batch_size)
 		var sleep_time int
-		sleep_time = *batch_size * 7
+		sleep_time = *batch_size * 10
 		time.Sleep(time.Duration(sleep_time) * time.Second)
 
 		auction_infos, _ = ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		s = len(auction_infos)
 		bidTesting(auction_infos, s, *batch_size)
 
-		time.Sleep(time.Duration(sleep_time) * time.Second)
-		closeTesting(s, *batch_size)
+		last_id := auction_infos[s-1].AuctionID
 
 		time.Sleep(time.Duration(sleep_time*2) * time.Second)
-		commitTesting(s, *batch_size)
+		closeTesting(last_id, *batch_size)
+
+		time.Sleep(time.Duration(sleep_time*2) * time.Second)
+		commitTesting(last_id, *batch_size)
 
 	case "create":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
@@ -209,85 +211,80 @@ func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 	accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
 	//log.Println(len(auction_infos), s, batch_size)
 
-	auctions := auction_infos[s-batch_size-1 : s]
-	counter := len(auctions) * batch_size
+	auctions := auction_infos[s-batch_size : s]
+	counter := len(auctions) * batch_size * (len(accounts) - 1 - 7)
+	log.Printf("counter: %d", counter)
 
 	var auc_ind, acc_ind, auction_id int
-	for i := 0; i < counter; i++ {
-		wg.Add(1)            // Increment the WaitGroup counter
-		go func(index int) { // Launch a goroutine for each create operation
-			defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
-			auc_ind = index % len(auctions)
-			acc_ind = index%8 + 1
-			auction_id = auctions[auc_ind].AuctionID
+	for index := 1; index <= counter; index++ {
+		// wg.Add(1)            // Increment the WaitGroup counter
+		// go func(index int) { // Launch a goroutine for each create operation
+		// 	defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
+		auc_ind = index % len(auctions)
+		acc_ind = index%8 + 1
+		//log.Printf("aucc_ind %d, acc_ind %d", auc_ind, acc_ind)
+		auction_id = auctions[auc_ind].AuctionID
 
-			platform := "quo"
-			userID := accounts[acc_ind].UserID
-			bid_key := load_bidder_key(userID)
-			// //log.Printf("User %s places bid %d MDAI for asset %d on %s platform", userID, i*5, size-i, platform)
+		platform := "quo"
+		userID := accounts[acc_ind].UserID
+		bid_key := load_bidder_key(userID)
+		// //log.Printf("User %s places bid %d MDAI for asset %d on %s platform", userID, i*5, size-i, platform)
 
-			bidAuction(auction_id, big.NewInt(int64(index+1)), bid_key, platform)
-
-			platform = "eth"
-			// userID := accounts[acc_ind].UserID
-			// bid_key := load_bidder_key(userID)
-			//log.Printf("User %s places bid %d MDAI for asset %d on %s platform", userID, i*3, size-i, platform)
-			bidAuction(auction_id, big.NewInt(int64(index+1)), bid_key, platform)
-
-		}(i) // Pass asset_name as an argument to the goroutine
+		bidAuction(auction_id, big.NewInt(int64(index+1)), bid_key, platform)
+		//time.Sleep( * time.Second)
+		platform = "eth"
+		userID = accounts[9-acc_ind].UserID
+		bid_key = load_bidder_key(userID)
+		//log.Printf("User %s places bid %d MDAI for asset %d on %s platform", userID, i*3, size-i, platform)
+		bidAuction(auction_id, big.NewInt(int64(counter-index)), bid_key, platform)
+		//time.Sleep(1 * time.Second)
+		// }(i) // Pass asset_name as an argument to the goroutine
 	}
 
 	wg.Wait() // Wait for all goroutines to finish
 	log.Println("All bids have been placed.")
 }
 
-func closeTesting(s, batch_size int) {
+func closeTesting(last_id, batch_size int) {
 	var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines to finish
 	//log.Println(len(asset_names), s, batch_size)
-	for i := s - batch_size; i < s; i++ {
-		wg.Add(1)                // Increment the WaitGroup counter
-		go func(auctionID int) { // Launch a goroutine for each create operation
-			defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
-			close(auctionID)
-		}(i) // Pass asset_name as an argument to the goroutine
+	for i := last_id - batch_size + 1; i <= last_id; i++ {
+		// wg.Add(1)                // Increment the WaitGroup counter
+		// go func(auctionID int) { // Launch a goroutine for each create operation
+		// 	defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
+		close(i)
+		// }(i) // Pass asset_name as an argument to the goroutine
 	}
 
 	wg.Wait() // Wait for all goroutines to finish
 	log.Println("All auctions have been closed.")
 }
 
-func commitTesting(s, batch_size int) {
-	var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines to finish
+func commitTesting(last_id, batch_size int) {
 	accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
-	var bidKeys []string
-	//var platform string
 
-	for i := s - batch_size; i < s; i++ {
-		wg.Add(1)                // Increment the WaitGroup counter
-		go func(auctionID int) { // Launch a goroutine for each create operation
-			defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
-			auction, _ := assetClient.GetAuction(auctionID)
+	var platform string
 
-			for j := 1; j < 9; j++ {
-				if auction.HighestBidder != accounts[j].Address.String() {
-					bidKey := load_bidder_key(accounts[j].UserID)
-					bidKeys = append(bidKeys, bidKey)
-				}
-			}
+	for i := last_id - batch_size + 1; i <= last_id; i++ {
+		// wg.Add(1)                // Increment the WaitGroup counter
+		// go func(auctionID int) { // Launch a goroutine for each create operation
+		// 	defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
 
-			// for _, bidKey := range bidKeys {
-			// 	platform = "quo"
-			// 	withdraw(auctionID, bidKey, platform)
-			// 	platform = "eth"
-			// 	withdraw(auctionID, bidKey, platform)
-			// }
-
-			sign_auction_result(auctionID)
-		}(i) // Pass asset_name as an argument to the goroutine
+		sign_auction_result(i)
+		// }(i) // Pass asset_name as an argument to the goroutine
 	}
-
-	wg.Wait() // Wait for all goroutines to finish
 	log.Println("All auction results have been committed.")
+
+	for i := 1; i < 9; i++ {
+		bidKey := load_bidder_key(accounts[i].UserID)
+		platform = "quo"
+		withdraw(last_id, bidKey, platform)
+		platform = "eth"
+		withdraw(last_id, bidKey, platform)
+	}
+	log.Println("All bidders have withdrawed unsuccessfull bids.")
+	//wg.Wait() // Wait for all goroutines to finish
+
 }
 
 func load_auctioneer(name string) string {

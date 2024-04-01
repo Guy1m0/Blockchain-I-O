@@ -19,7 +19,7 @@ func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreased, bid 
 	asset, _ := assetClient.GetAsset(eventPayload.Id)
 	keyWords := fmt.Sprintf("%s_%s_%s", bid.Platform, eventPayload.Bidder.String()[36:], amount)
 	//eventID := eventPayload.Id + "_" + bid.Platform + "_" + eventPayload.Bidder.String()[36:]
-	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidEvent, keyWords, t, "", 0)
+	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidEvent, keyWords, t, "Highest bid increased to "+eventPayload.BidAmount.String(), 0)
 
 	bid.BidAmount = eventPayload.BidAmount.String()
 	bid.Bidder = eventPayload.Bidder
@@ -44,7 +44,7 @@ func handleBidTooLowEvent(eventPayload ecomm.BidTooLow, bid ecomm.Bid, t time.Ti
 	amount := new(big.Int).Div(eventPayload.BidAmount, ecomm.DecimalB).String()
 	asset, _ := assetClient.GetAsset(eventPayload.Id)
 	keyWords := fmt.Sprintf("%s_%s_%s", bid.Platform, eventPayload.Bidder.String()[36:], amount)
-	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidEvent, keyWords, t, "Bid too low with amount"+eventPayload.BidAmount.String(), 0)
+	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidEvent, keyWords, t, "Bid too low with amount "+eventPayload.BidAmount.String(), 0)
 
 	bid.BidAmount = eventPayload.BidAmount.String()
 	bid.Bidder = eventPayload.Bidder

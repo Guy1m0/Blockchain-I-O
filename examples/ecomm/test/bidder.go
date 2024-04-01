@@ -100,12 +100,12 @@ func bidAuction(auction_id int, amount *big.Int, bid_key, platform string) {
 	// valueB, err = MDAI.BalanceOf(&bind.CallOpts{}, auction_addr)
 	// log.Printf("Auction contract after balance: %s", valueB)
 
-	note := "Cost: " + strconv.FormatUint(receipt1.GasUsed, 10)
-	note += " + " + strconv.FormatUint(receipt2.GasUsed, 10)
-	note += " Bid: MDAI " + big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB).String()
+	// note := "Cost: " + strconv.FormatUint(receipt1.GasUsed, 10)
+	// note += " + " + strconv.FormatUint(receipt2.GasUsed, 10)
+	// note += " Bid: MDAI " + big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB).String()
 
 	total_cost := receipt1.GasUsed + receipt2.GasUsed
-	ecomm.UpdateLog(logInfoFile, a.AssetID, ecomm.BidEvent, keyWords, total_cost, note)
+	ecomm.UpdateLog(logInfoFile, a.AssetID, ecomm.BidEvent, keyWords, total_cost, "")
 }
 
 func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key, platform string) {

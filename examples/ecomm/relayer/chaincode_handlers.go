@@ -343,12 +343,12 @@ func handleCloseAuctionEvent(eventPayload []byte) error {
 	receipt2 := ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Change Auction %d status to 'ENDING'", result.AuctionID))
 
 	cost := receipt1.GasUsed
-	note := "ETH:" + strconv.FormatUint(cost, 10)
+	//note := "ETH:" + strconv.FormatUint(cost, 10)
 	cost += receipt2.GasUsed
-	note += " QUO:" + strconv.FormatUint(receipt2.GasUsed, 10)
+	//note += " QUO:" + strconv.FormatUint(receipt2.GasUsed, 10)
 
 	t := time.Now()
-	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.AuctionClosingEvent, "", t, note, cost)
+	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.AuctionClosingEvent, "", t, "", cost)
 
 	payloadJSON, _ := json.Marshal(result)
 	wrapper := ecomm.EventWrapper{Type: "Close Auction", Result: payloadJSON}
