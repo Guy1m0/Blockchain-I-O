@@ -271,10 +271,10 @@ func setup() {
 		_, err = fabric_ERC20.Transfer(bidT.From.Hex(), "0")
 		check(err)
 		log.Printf("Receive MDAI for 'Bidder%d' on Etherrum", i)
-		ecomm.TransferToken(ethClient, eth_ERC20, rootT, bidT.From, 300)
+		ecomm.TransferToken(ethClient, eth_ERC20, rootT, bidT.From, 100000)
 
 		log.Printf("Receive MDAI for 'Bidder%d' on Quo", i)
-		ecomm.TransferToken(quoClient, quo_ERC20, rootT, bidT.From, 300)
+		ecomm.TransferToken(quoClient, quo_ERC20, rootT, bidT.From, 100000)
 
 		ecomm.AddUserToFile(userInfoFile, ecomm.UserInfo{
 			UserID:  "Bidder " + strconv.Itoa(i),

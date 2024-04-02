@@ -5,3 +5,4 @@ vendor
 /examples/ecomm/cli/wallet/appUser.id
 /examples/ecomm/relayer/wallet/appUser.id
 /examples/ecomm/test/wallet/appUser.id
+/examples/ecomm/test/test

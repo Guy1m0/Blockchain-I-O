@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -91,7 +92,7 @@ func main() {
 		//asset_name := asset_names[s]
 		createTesting(s, *batch_size)
 		var sleep_time int
-		sleep_time = 15
+		sleep_time = *batch_size * 10
 		time.Sleep(time.Duration(sleep_time) * time.Second)
 
 		auction_infos, _ = ecomm.ReadAuctionsFromFile(auctionInfoFile)
@@ -100,10 +101,10 @@ func main() {
 
 		last_id := auction_infos[s-1].AuctionID
 
-		time.Sleep(time.Duration(sleep_time) * time.Second)
+		time.Sleep(15 * time.Second)
 		closeTesting(last_id, *batch_size)
 
-		time.Sleep(time.Duration(sleep_time) * time.Second)
+		time.Sleep(15 * time.Second)
 		commitTesting(last_id, *batch_size)
 
 		log.Printf("Testing execution took %s \n", time.Since(start))
@@ -225,9 +226,10 @@ func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 
 	auctions := auction_infos[s-batch_size : s]
 	counter := len(auctions) * batch_size * (len(accounts) - 1)
+
 	//log.Printf("counter: %d", counter)
 
-	var auc_ind, acc_ind, auction_id, offset int
+	var auc_ind, acc_ind, auction_id, bidAmount int
 	for index := 1; index <= counter; index++ {
 		auc_ind = index % len(auctions)
 		acc_ind = index%8 + 1
@@ -237,15 +239,17 @@ func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 		userID := accounts[acc_ind].UserID
 		bid_key := load_bidder_key(userID)
 
-		offset = (batch_size+1)%2 + batch_size%8
-		bidAuction(auction_id, big.NewInt(int64(index+1+offset)), bid_key, platform)
+		bidAmount = int(index/batch_size+(batch_size+1)%2) / 2
+		bidAuction(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
 
+		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))) * time.Second)
 		platform = "eth"
 		userID = accounts[9-acc_ind].UserID
 		bid_key = load_bidder_key(userID)
 
-		offset = (batch_size)%2 + batch_size%8
-		bidAuction(auction_id, big.NewInt(int64(counter-index+offset)), bid_key, platform)
+		bidAmount = int(index/batch_size+batch_size%2) / 2
+		bidAuction(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
+		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))) * time.Second)
 
 	}
 
