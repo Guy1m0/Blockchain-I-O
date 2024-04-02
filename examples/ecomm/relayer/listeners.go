@@ -161,7 +161,7 @@ func startListeningForAuctionEvents(auction_addr common.Address, auction_abi str
 			}
 			// call handler
 			handleHighestBidIncreasedEvent(event, result, t)
-			fmt.Printf("New highest bid for auction %s with amount %s by bidder %s\n", event.AuctionId, event.BidAmount.String(), event.Bidder.Hex())
+			//fmt.Printf("New highest bid for auction %s with amount %s by bidder %s\n", event.AuctionId, event.BidAmount.String(), event.Bidder.Hex())
 		case contractAbi.Events["BidTooLow"].ID.Hex():
 			t := time.Now()
 			var event ecomm.BidTooLow
@@ -174,7 +174,7 @@ func startListeningForAuctionEvents(auction_addr common.Address, auction_abi str
 			}
 			// call handler
 			handleBidTooLowEvent(event, result, t)
-			fmt.Printf("Bid too low for auction %s with amount %s by bidder %s\n", event.AuctionId, event.BidAmount.String(), event.Bidder.Hex())
+			//fmt.Printf("Bid too low for auction %s with amount %s by bidder %s\n", event.AuctionId, event.BidAmount.String(), event.Bidder.Hex())
 
 		case contractAbi.Events["WithdrawBid"].ID.Hex():
 			t := time.Now()

@@ -146,20 +146,6 @@ func handleDecisionMadeEvent(eventPayload ecomm.DecisionMade, t time.Time) error
 	_, err = assetClient.FinAuction(result, proceed)
 	check(err)
 
-	// transfer token to original owner
-	// if proceed {
-	// 	fabric_ERC20_contract := ecomm.NewErc20Client(fabric_ERC20)
-	// 	auction, _ := assetClient.GetAuction(result.AuctionID)
-	// 	asset, _ := assetClient.GetAsset(auction.AssetID)
-
-	// 	amt := result.HighestBid
-	// 	//amt, _ := new(big.Int).SetString(result.HighestBid, 10)
-	// 	//big.NewInt(int64(result.HighestBid))
-	// 	quotient := new(big.Int).Div(&amt, ecomm.DecimalB)
-	// 	fabric_ERC20_contract.Transfer(asset.Owner, quotient.String())
-	// }
-
-	//t := time.Now()
 	return nil
 }
 

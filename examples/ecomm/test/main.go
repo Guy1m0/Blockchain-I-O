@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -45,6 +46,10 @@ var (
 	auc_type          = "english"
 	support_auc_types = []string{"english", "dutch", "cb1p", "cb2p", "all"}
 
+	logCSVPath = "../tmp/log.csv"
+
+	defaultHeaders = "AssetID,Event,KeyWords,StartTime,EndTime,KafkaReceived,GasCost,Note,TimeElapsed,KafkaTime\n"
+
 	//bid_key string
 	//auc_key  = "../../keys/key1"
 )
@@ -74,6 +79,11 @@ func main() {
 
 	switch *command {
 	case "test":
+		start := time.Now()
+		log.Println("Initialize Log files")
+		err := reset_log()
+		check(err)
+
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		check(err)
 
@@ -81,7 +91,7 @@ func main() {
 		//asset_name := asset_names[s]
 		createTesting(s, *batch_size)
 		var sleep_time int
-		sleep_time = *batch_size * 10
+		sleep_time = 15
 		time.Sleep(time.Duration(sleep_time) * time.Second)
 
 		auction_infos, _ = ecomm.ReadAuctionsFromFile(auctionInfoFile)
@@ -90,11 +100,13 @@ func main() {
 
 		last_id := auction_infos[s-1].AuctionID
 
-		time.Sleep(time.Duration(sleep_time*2) * time.Second)
+		time.Sleep(time.Duration(sleep_time) * time.Second)
 		closeTesting(last_id, *batch_size)
 
-		time.Sleep(time.Duration(sleep_time*2) * time.Second)
+		time.Sleep(time.Duration(sleep_time) * time.Second)
 		commitTesting(last_id, *batch_size)
+
+		log.Printf("Testing execution took %s \n", time.Since(start))
 
 	case "create":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
@@ -212,33 +224,29 @@ func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 	//log.Println(len(auction_infos), s, batch_size)
 
 	auctions := auction_infos[s-batch_size : s]
-	counter := len(auctions) * batch_size * (len(accounts) - 1 - 7)
-	log.Printf("counter: %d", counter)
+	counter := len(auctions) * batch_size * (len(accounts) - 1)
+	//log.Printf("counter: %d", counter)
 
-	var auc_ind, acc_ind, auction_id int
+	var auc_ind, acc_ind, auction_id, offset int
 	for index := 1; index <= counter; index++ {
-		// wg.Add(1)            // Increment the WaitGroup counter
-		// go func(index int) { // Launch a goroutine for each create operation
-		// 	defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
 		auc_ind = index % len(auctions)
 		acc_ind = index%8 + 1
-		//log.Printf("aucc_ind %d, acc_ind %d", auc_ind, acc_ind)
 		auction_id = auctions[auc_ind].AuctionID
 
 		platform := "quo"
 		userID := accounts[acc_ind].UserID
 		bid_key := load_bidder_key(userID)
-		// //log.Printf("User %s places bid %d MDAI for asset %d on %s platform", userID, i*5, size-i, platform)
 
-		bidAuction(auction_id, big.NewInt(int64(index+1)), bid_key, platform)
-		//time.Sleep( * time.Second)
+		offset = (batch_size+1)%2 + batch_size%8
+		bidAuction(auction_id, big.NewInt(int64(index+1+offset)), bid_key, platform)
+
 		platform = "eth"
 		userID = accounts[9-acc_ind].UserID
 		bid_key = load_bidder_key(userID)
-		//log.Printf("User %s places bid %d MDAI for asset %d on %s platform", userID, i*3, size-i, platform)
-		bidAuction(auction_id, big.NewInt(int64(counter-index)), bid_key, platform)
-		//time.Sleep(1 * time.Second)
-		// }(i) // Pass asset_name as an argument to the goroutine
+
+		offset = (batch_size)%2 + batch_size%8
+		bidAuction(auction_id, big.NewInt(int64(counter-index+offset)), bid_key, platform)
+
 	}
 
 	wg.Wait() // Wait for all goroutines to finish
@@ -246,17 +254,9 @@ func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 }
 
 func closeTesting(last_id, batch_size int) {
-	var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines to finish
-	//log.Println(len(asset_names), s, batch_size)
 	for i := last_id - batch_size + 1; i <= last_id; i++ {
-		// wg.Add(1)                // Increment the WaitGroup counter
-		// go func(auctionID int) { // Launch a goroutine for each create operation
-		// 	defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
 		close(i)
-		// }(i) // Pass asset_name as an argument to the goroutine
 	}
-
-	wg.Wait() // Wait for all goroutines to finish
 	log.Println("All auctions have been closed.")
 }
 
@@ -266,12 +266,7 @@ func commitTesting(last_id, batch_size int) {
 	var platform string
 
 	for i := last_id - batch_size + 1; i <= last_id; i++ {
-		// wg.Add(1)                // Increment the WaitGroup counter
-		// go func(auctionID int) { // Launch a goroutine for each create operation
-		// 	defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
-
 		sign_auction_result(i)
-		// }(i) // Pass asset_name as an argument to the goroutine
 	}
 	log.Println("All auction results have been committed.")
 
@@ -283,7 +278,6 @@ func commitTesting(last_id, batch_size int) {
 		withdraw(last_id, bidKey, platform)
 	}
 	log.Println("All bidders have withdrawed unsuccessfull bids.")
-	//wg.Wait() // Wait for all goroutines to finish
 
 }
 
@@ -329,4 +323,27 @@ func readNamesFromFile(filePath string) ([]string, error) {
 	}
 
 	return names, nil
+}
+
+func reset_log() error {
+	// Ensure the directory exists
+	dir := filepath.Dir(logCSVPath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
+	// Open (or create) the file in write mode to reset it or create a new one
+	file, err := os.Create(logCSVPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// Write the column headers back to the file
+	_, err = file.WriteString(defaultHeaders)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -13,16 +13,19 @@ import (
 var mu sync.Mutex
 
 type EventLog struct {
-	AssetID       string
-	Event         string
-	KeyWords      string
+	AssetID  string
+	Event    string
+	KeyWords string
+
 	StartTime     time.Time
 	EndTime       time.Time
 	KafkaReceived time.Time
-	Cost          uint64
-	Note          string
-	TimeElapsed   time.Duration
-	KafkaTime     time.Duration
+
+	GasCost uint64
+	Note    string
+
+	TimeElapsed time.Duration
+	KafkaTime   time.Duration
 }
 
 func (e EventLog) toSlice() []string {
@@ -33,7 +36,7 @@ func (e EventLog) toSlice() []string {
 		e.StartTime.String(),
 		e.EndTime.String(),
 		e.KafkaReceived.String(),
-		strconv.FormatUint(e.Cost, 10),
+		strconv.FormatUint(e.GasCost, 10),
 		e.Note,
 		e.TimeElapsed.String(),
 		e.KafkaTime.String(),
@@ -83,7 +86,7 @@ func LogEvent(filePath, assetID, event, keyWords string, record_time time.Time, 
 		event_log.KeyWords = keyWords
 
 		event_log.StartTime = record_time
-		event_log.Cost = cost
+		event_log.GasCost = cost
 		event_log.Note = note
 
 		//log.Println("Save time:", event_log.StartTime)
@@ -91,14 +94,16 @@ func LogEvent(filePath, assetID, event, keyWords string, record_time time.Time, 
 		records = append(records, event_log.toSlice())
 	} else {
 		event_log = EventLog{
-			AssetID:       records[existingIndex][0],
-			Event:         records[existingIndex][1],
-			KeyWords:      records[existingIndex][2],
+			AssetID:  records[existingIndex][0],
+			Event:    records[existingIndex][1],
+			KeyWords: records[existingIndex][2],
+
 			StartTime:     parseTime(records[existingIndex][3]),
 			EndTime:       parseTime(records[existingIndex][4]),
 			KafkaReceived: parseTime(records[existingIndex][5]),
-			Cost:          parseCost(records[existingIndex][6]),
-			Note:          records[existingIndex][7],
+
+			GasCost: parseCost(records[existingIndex][6]),
+			Note:    records[existingIndex][7],
 		}
 
 		//log.Println("StartTime: ", event_log.StartTime, "from: ", records[existingIndex][2])
@@ -110,7 +115,7 @@ func LogEvent(filePath, assetID, event, keyWords string, record_time time.Time, 
 		}
 
 		if cost > 0 {
-			event_log.Cost = cost
+			event_log.GasCost = cost
 		}
 		if note != "" {
 			event_log.Note = note

@@ -74,7 +74,6 @@ func PrintTokenBalance(token *stable_coin.StableCoin, address common.Address, to
 	)
 }
 func WaitTx(client *ethclient.Client, tx *types.Transaction, label string) *types.Receipt {
-	fmt.Println(label + "...")
 	receipt, err := bind.WaitMined(context.Background(), client, tx)
 	check(err)
 
@@ -83,9 +82,10 @@ func WaitTx(client *ethclient.Client, tx *types.Transaction, label string) *type
 		status = "Success"
 	} else {
 		status = "Fail"
+		fmt.Println(label + "...")
+		log.Printf("Transaction mined in block: %d with status: %s and cost: %d\n", receipt.BlockNumber, status, receipt.GasUsed)
 	}
 
-	log.Printf("Transaction mined in block: %d with status: %s and cost: %d\n", receipt.BlockNumber, status, receipt.GasUsed)
 	return receipt
 }
 

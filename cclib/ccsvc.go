@@ -73,7 +73,7 @@ func (svc *CCService) Publish(event string, payload []byte) error {
 	//LogEventToFile(event, payload)
 	//data, err := unmarshalPayload(event, payload)
 
-	log.Printf("Published event: %s\n", event)
+	//log.Printf("Published event: %s\n", event)
 	return nil
 }
 
@@ -243,7 +243,7 @@ func (svc *CCService) listenKafkaConsumer(consumer *consumergroup.ConsumerGroup)
 		if !ok {
 			continue
 		}
-		log.Printf("[Kafka] Received event: %s\n", message.Topic)
+		//log.Printf("[Kafka] Received event: %s\n", message.Topic)
 		go handler(message.Value)
 		consumer.CommitUpto(message)
 	}
