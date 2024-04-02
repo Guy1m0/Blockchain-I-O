@@ -11,6 +11,7 @@ import (
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/cb1p_auction"
+	"github.com/Guy1m0/Blockchain-I-O/contracts/cb2p_auction"
 	"github.com/Guy1m0/Blockchain-I-O/contracts/english_auction"
 
 	//"github.com/Guy1m0/Blockchain-I-O/contracts/eth_auction"
@@ -154,17 +155,57 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 }
 
 func handleRevealAuctionEvent(eventPayload []byte) error {
-	t := time.Now()
-
 	var result ecomm.Auction
 	err := json.Unmarshal(eventPayload, &result)
 	check(err)
 
-	auction, err := assetClient.GetAuction(result.AuctionID)
+	log.Println("[ETH/QUO] Change contract state")
+	authT, err := cclib.NewTransactor(root_key, password)
 	check(err)
-	log.Println("[fabric] Reveal Auction with ID:", result.AuctionID)
 
-	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.RevealAuctionEvent, "", t, "", 0)
+	var eth_auction_contract, quo_auction_contract ecomm.AuctionContractCloseBid
+	eth_auction_addr := common.HexToAddress(result.EthAddr)
+	quo_auction_addr := common.HexToAddress(result.QuorumAddr)
+
+	// load auction contract
+	switch result.AucType {
+	case "cb1p":
+		eth_auction_contract, err = cb1p_auction.NewCb1pAuction(eth_auction_addr, ethClient)
+		check(err)
+
+		quo_auction_contract, err = cb1p_auction.NewCb1pAuction(quo_auction_addr, quoClient)
+		check(err)
+	case "cb2p":
+		eth_auction_contract, err = cb2p_auction.NewCb2pAuction(eth_auction_addr, ethClient)
+		check(err)
+
+		quo_auction_contract, err = cb2p_auction.NewCb2pAuction(quo_auction_addr, quoClient)
+		check(err)
+	default:
+		log.Fatalf("Auction type error")
+	}
+
+	// Change Auction Contract on Eth
+	tx, _ := eth_auction_contract.RevealAuction(authT, big.NewInt(int64(result.AuctionID)))
+	receipt1 := ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Change Auction %d status to 'Reveal'", result.AuctionID))
+
+	// Change Auction Contract on Quo
+	tx, _ = quo_auction_contract.RevealAuction(authT, big.NewInt(int64(result.AuctionID)))
+	receipt2 := ecomm.WaitTx(quoClient, tx, fmt.Sprintf("Change Auction %d status to 'Reveal'", result.AuctionID))
+
+	cost := receipt1.GasUsed
+	//note := "ETH:" + strconv.FormatUint(cost, 10)
+	cost += receipt2.GasUsed
+	//note += " QUO:" + strconv.FormatUint(receipt2.GasUsed, 10)
+
+	t := time.Now()
+	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.RevealAuctionEvent, result.AucType, t, "", cost)
+
+	payloadJSON, _ := json.Marshal(result)
+	wrapper := ecomm.EventWrapper{Type: "Reveal Auction", Result: payloadJSON}
+	payload, _ := json.Marshal(wrapper)
+
+	err = ccsvc.Publish(ecomm.RevealAuctionEvent, payload)
 
 	return err
 }
@@ -443,6 +484,14 @@ func chainCodeEvent(eventPayload []byte) {
 		event = ecomm.AuctionStartingEvent
 		assetId = auction.AssetID
 		keyWords = auction.AucType
+	case "Reveal Auction":
+		var auction ecomm.Auction
+		err = json.Unmarshal(wrapper.Result, &auction)
+		check(err)
+
+		event = ecomm.RevealAuctionEvent
+		assetId = auction.AssetID
+		keyWords = auction.AucType
 	case "Cancel Auction":
 		var auction ecomm.Auction
 		err = json.Unmarshal(wrapper.Result, &auction)
@@ -477,6 +526,7 @@ func chainCodeEvent(eventPayload []byte) {
 	default:
 		log.Fatalf("Unknown type: %s\n", wrapper.Type)
 	}
+	//time.Sleep(5 * time.Second)
 	//log.Println("Kafka received event:", event, "with ID:", eventID)
 	//cclib.LogEventToFile(logInfoFile, ecomm.KafkaReceivedEvent, payload, t, timeInfoFile)
 	ecomm.LogEvent(logInfoFile, assetId, event, keyWords, t, "", 0)

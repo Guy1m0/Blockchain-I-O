@@ -160,14 +160,18 @@ func main() {
 		log.Printf("Make bidHash on %s platforms with UserID: %s", platform, userID)
 		bidAuctionH(auction_info.AuctionID, big.NewInt(4), bid_key, platform)
 
-		platform = "quo"
-		log.Printf("Make bidHash on %s platforms with UserID: %s", platform, userID)
-		bidAuctionH(auction_info.AuctionID, big.NewInt(5), bid_key, platform)
+		// platform = "quo"
+		// log.Printf("Make bidHash on %s platforms with UserID: %s", platform, userID)
+		// bidAuctionH(auction_info.AuctionID, big.NewInt(5), bid_key, platform)
 
-	case "revealA":
-		return
 	case "reveal":
-		return
+		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
+		index := len(auction_infos) - 1
+		auction_info := auction_infos[index]
+		//ccsvc.Register(ecomm.AuctionClosingEvent, autoCommit)
+		//ccsvc.Start(true)
+
+		reveal(auction_info.AuctionID)
 	case "close":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		index := len(auction_infos) - 1

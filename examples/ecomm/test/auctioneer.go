@@ -28,27 +28,21 @@ func create(asset_name string, auc_type string, usr_name string) {
 }
 
 func reveal(auctionID int) {
-	// t := time.Now()
-	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	t := time.Now()
 
-	// a, err := assetClient.GetAuction(auctionID)
-	// check(err)
+	a, err := assetClient.GetAuction(auctionID)
+	check(err)
 
-	// if a.Status != "open" {
-	// 	err = fmt.Errorf("auction status error")
-	// 	check(err)
-	// }
+	if a.Status != "open" {
+		err = fmt.Errorf("auction status error")
+		check(err)
+	}
 
-	// log.Println("[fabric] Reveal auction")
-	// _, err = assetClient.CloseAuction(auctionID)
-	// check(err)
+	log.Println("[fabric] Reveal Auction")
+	_, err = assetClient.RevealAuction(auctionID)
+	check(err)
 
-	// payload, _ := json.Marshal(a)
-	// t = time.Now()
-	// cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
-
-	// //@reset
-	// cclib.LastEventTimestamp.Set(t, timeInfoFile)
+	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.RevealAuctionEvent, a.AucType, t, "", 0)
 }
 
 func cancel(auctionID int) {
@@ -71,7 +65,6 @@ func cancel(auctionID int) {
 
 func close(auctionID int) {
 	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 
 	a, err := assetClient.GetAuction(auctionID)
 	check(err)
@@ -86,10 +79,6 @@ func close(auctionID int) {
 	check(err)
 
 	//payload, _ := json.Marshal(a)
-	t = time.Now()
 	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.DetermineWinnerEvent, "", t, "", 0)
 	//cclib.LogEventToFile(logInfoFile, ecomm.AuctionClosingEvent, payload, t, timeInfoFile)
-
-	//@reset
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
 }

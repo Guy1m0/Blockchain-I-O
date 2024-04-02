@@ -137,7 +137,7 @@ contract ClosedBidFirstPriceAuction {
         emit AwaitResponse(auctionId, highestBidder[auctionId]);
     }
 
-        function pay(uint auctionId) public {
+    function pay(uint auctionId) public {
         // Use hash to check status
         require(keccak256(abi.encodePacked(status[auctionId])) == keccak256(abi.encodePacked("closing")), "Contract not in Closing status");
         require(msg.sender == owner, "Only owner can burn bidder's payment");

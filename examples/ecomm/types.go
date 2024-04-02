@@ -95,7 +95,7 @@ type Bid struct {
 
 type BidHash struct {
 	Bidder      common.Address `json:"bidder"`
-	BidHash     []byte         `json:"bidHash"`
+	BidHash     [32]byte       `json:"bidHash"`
 	AuctionAddr common.Address `json:"auctionAddr"`
 
 	Platform string `json:"platform"`

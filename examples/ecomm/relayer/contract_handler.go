@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -32,7 +33,7 @@ func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreased, bid 
 	// asset, _ := assetClient.GetAsset(eventPayload.Id)
 	// auction, _ := assetClient.GetAuction(asset.PendingAuctionID)
 	// fmt.Println("find auction in new bid: ", auction.ID, "status: ", auction.Status)
-
+	//time.Sleep(1 * time.Second)
 	ccsvc.Publish(ecomm.BidEvent, payload)
 	return nil
 }
@@ -65,16 +66,16 @@ func handleBidTooLowEvent(eventPayload ecomm.BidTooLow, bid ecomm.Bid, t time.Ti
 // Smart Contract handler
 func handleNewBidHashEvent(eventPayload ecomm.NewBidHash, bidHash ecomm.BidHash, t time.Time) error {
 	log.Printf("[%s] NewBidHash Event", strings.ToUpper(bidHash.Platform))
+	//log.Print("[Relayer] bidHash", bidHash.BidHash)
 
-	//amount := new(big.Int).Div(eventPayload.BidAmount, ecomm.DecimalB).String()
-	//eventID := eventPayload.Id + "_" + bidHash.Platform + "_" + eventPayload.Bidder.String()[36:]
 	asset, _ := assetClient.GetAsset(eventPayload.Id)
-	keyWords := fmt.Sprintf("%s_%s_%s", bidHash.Platform, eventPayload.Bidder.String()[36:], string(bidHash.BidHash[8:]))
-	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidHashEvent, keyWords, t, "", 0)
 
 	bidHash.BidHash = eventPayload.BidHash
 	bidHash.Bidder = eventPayload.Bidder
 	bidHash.AssetID = eventPayload.Id
+
+	keyWords := fmt.Sprintf("%s_%s_%s", bidHash.Platform, eventPayload.Bidder.String()[36:], hex.EncodeToString(bidHash.BidHash[:])[60:])
+	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidHashEvent, keyWords, t, "", 0)
 
 	payloadJSON, _ := json.Marshal(bidHash)
 	wrapper := ecomm.EventWrapper{Type: "BidHash", Result: payloadJSON}
@@ -186,9 +187,10 @@ func smartContractEvent(eventPayload []byte) {
 		var bidHash ecomm.BidHash
 		err = json.Unmarshal(wrapper.Result, &bidHash)
 		check(err)
+		//log.Println("[kafka] bidhash: ", bidHash.BidHash)
 		assetId = bidHash.AssetID
-		event = ecomm.WithdrawEvent
-		keyWords = fmt.Sprintf("%s_%s_%s", bidHash.Platform, bidHash.Bidder.String()[36:], string(bidHash.BidHash[8:]))
+		event = ecomm.BidHashEvent
+		keyWords = fmt.Sprintf("%s_%s_%s", bidHash.Platform, bidHash.Bidder.String()[36:], hex.EncodeToString(bidHash.BidHash[:])[60:])
 
 	case "Commit":
 		var result ecomm.AuctionResult

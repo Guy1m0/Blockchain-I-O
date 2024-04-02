@@ -171,6 +171,7 @@ func startListeningForAuctionEvents(auction_addr common.Address, auction_abi str
 			// call handler
 			handleBidTooLowEvent(event, result, t)
 			//fmt.Printf("Bid too low for auction %s with amount %s by bidder %s\n", event.AuctionId, event.BidAmount.String(), event.Bidder.Hex())
+		case contractAbi.Events["RevealAuction"].ID.Hex():
 
 		case contractAbi.Events["WithdrawBid"].ID.Hex():
 			t := time.Now()

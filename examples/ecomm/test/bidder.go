@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -48,6 +49,10 @@ func bidAuction(auction_id int, amount *big.Int, bid_key, platform string) {
 	a, err := assetClient.GetAuction(auction_id)
 	check(err)
 
+	if a.AucType != "english" {
+		log.Fatalf("Incorrect auction type %s", a.AucType)
+	}
+
 	auction_addr := common.HexToAddress(a.EthAddr)
 	// @todo: require platform either is 'quo' or 'eth'
 	if platform != "eth" {
@@ -75,7 +80,7 @@ func bidAuction(auction_id int, amount *big.Int, bid_key, platform string) {
 
 	//eventID := fmt.Sprintf("%s_%s_%s_%s", a.AssetID, platform, bidT.From.String()[36:], amount)
 	keyWords := fmt.Sprintf("%s_%s_%s", platform, bidT.From.String()[36:], amount)
-	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.BidEvent, keyWords, t, "", 0)
+	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.BidEvent, keyWords, t, "1", 0)
 
 	// @todo: Make approve and bid in a single transaction
 	// Approve amount of bid through ERC20 contract
@@ -105,6 +110,7 @@ func bidAuction(auction_id int, amount *big.Int, bid_key, platform string) {
 	// note += " Bid: MDAI " + big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB).String()
 
 	total_cost := receipt1.GasUsed + receipt2.GasUsed
+	//fmt.Print(total_cost)
 	ecomm.UpdateLog(logInfoFile, a.AssetID, ecomm.BidEvent, keyWords, total_cost, "")
 }
 
@@ -116,21 +122,22 @@ func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key, platform string) {
 	//erc20_address := contract_info.EthERC20
 	client := ethClient
 
-	a, err := assetClient.GetAuction(auction_id)
+	auction, err := assetClient.GetAuction(auction_id)
 	check(err)
+	if auction.AucType == "english" {
+		log.Fatalf("Incorrect auction id which only support %s", auction.AucType)
+	}
 
-	auction_addr := common.HexToAddress(a.EthAddr)
-	// @todo: require platform either is 'quo' or 'eth'
+	auction_addr := common.HexToAddress(auction.EthAddr)
 	if platform != "eth" {
-		auction_addr = common.HexToAddress(a.QuorumAddr)
+		auction_addr = common.HexToAddress(auction.QuorumAddr)
 		client = quoClient
-		//erc20_address = contract_info.QuoERC20
 	}
 
 	var auction_contract ecomm.AuctionContractCloseBid
 	//var auction_contract_close_bid ecomm.AuctionContractCloseBid
 
-	switch auc_type {
+	switch auction.AucType {
 	case "cb1p":
 		auction_contract, err = cb1p_auction.NewCb1pAuction(auction_addr, client)
 	case "cb2p":
@@ -138,31 +145,29 @@ func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key, platform string) {
 		// case "cb1p":
 		// 	auction_contract_cb, err = cb1p_auction.NewCb1pAuction(auction_addr, client)
 	default:
-		log.Printf("Incorrect Auction Type!")
+		log.Fatalf("Incorrect Auction Type!")
 		return
 	}
-
 	check(err)
 
 	bidT, err := cclib.NewTransactor(bid_key, "password")
 	check(err)
 
-	keyWords := fmt.Sprintf("%s_%s_%s", platform, bidT.From.String()[36:], bidAmount)
-	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.BidEvent, keyWords, t, "", 0)
-
-	// Compute the hash of the bid amount
-	// Solidity equivalent: keccak256(abi.encodePacked(bidAmount))
 	bidHash := crypto.Keccak256Hash(bidAmount.Bytes())
-
 	// Convert bidHash to [32]byte to match the Go binding's expectation
 	var bidHashArray [32]byte
 	copy(bidHashArray[:], bidHash.Bytes())
 
+	//log.Println("[Biddeer] bidHash:", bidHashArray)
+
+	keyWords := fmt.Sprintf("%s_%s_%s", platform, bidT.From.String()[36:], hex.EncodeToString(bidHashArray[:])[60:])
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.BidHashEvent, keyWords, t, "", 0)
+	// Compute the hash of the bid amount
+	// Solidity equivalent: keccak256(abi.encodePacked(bidAmount))
+
 	tx, _ := auction_contract.Bid(bidT, big.NewInt(int64(auction_id)), bidHashArray)
-	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.AuctionID, auction_addr))
-
-	fmt.Println("Transaction receipt:", receipt)
-
+	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", auction.AuctionID, auction_addr))
+	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.BidHashEvent, keyWords, receipt.GasUsed, "")
 }
 
 func withdraw(auction_id int, bid_key, platform string) {
@@ -194,7 +199,7 @@ func withdraw(auction_id int, bid_key, platform string) {
 	tx, err := auction_contract.Withdraw(bidT, big.NewInt(int64(auction_id)))
 	check(err)
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Withdraw bid on Auction ID: %d through contract: %s", auction.AuctionID, auction_addr))
-	log.Printf("Gas: %d", receipt.GasUsed)
+	//log.Printf("Gas: %d", receipt.GasUsed)
 	ecomm.UpdateLog(logInfoFile, "NA", ecomm.WithdrawEvent, keyWords, receipt.GasUsed, "")
 	//debugTransaction(tx)
 	// log

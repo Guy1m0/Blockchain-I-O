@@ -14,12 +14,12 @@ Freezer
 Video Camera
 Hammer
 Photocopiera
-Cheetah
+Cheetahs
 Lawn Mower
 E-reader
 Sewing Machine
-Drone
-Inverter
+Drones
+Inverters
 Lathe
 Dishwasher
 Stove
@@ -102,4 +102,3 @@ Air Purifiers
 Smartphones
 Game Console
 Circular Saw
-abcd

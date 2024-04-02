@@ -2,7 +2,7 @@ fabric-samples
 vendor
 /examples/ecomm/auctioneer/wallet/appUser.id
 /examples/ecomm/bidder/wallet/appUser.id
-/examples/ecomm/cli/wallet/appUser.id
+./examples/ecomm/cli/wallet/appUser.id
 /examples/ecomm/relayer/wallet/appUser.id
 /examples/ecomm/test/wallet/appUser.id
-/examples/ecomm/test/test
+./examples/ecomm/test/test

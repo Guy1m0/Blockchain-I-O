@@ -158,8 +158,6 @@ func UpdateLog(filePath, assetID, event, keyWords string, cost uint64, note stri
 	if err != nil {
 		return err
 	}
-	var event_log EventLog
-
 	// Check if the event with the given eventID exists
 	var existingIndex = -1
 	for i, record := range records {
@@ -171,28 +169,16 @@ func UpdateLog(filePath, assetID, event, keyWords string, cost uint64, note stri
 	}
 
 	if existingIndex != -1 {
-		event_log = EventLog{
-			AssetID:  records[existingIndex][0],
-			Event:    records[existingIndex][1],
-			KeyWords: records[existingIndex][2],
-
-			StartTime:     parseTime(records[existingIndex][3]),
-			EndTime:       parseTime(records[existingIndex][4]),
-			KafkaReceived: parseTime(records[existingIndex][5]),
-
-			GasCost: parseCost(records[existingIndex][6]),
-			Note:    records[existingIndex][7],
-		}
 
 		if cost != 0 {
-			log.Printf("Update cost %d", cost)
-			event_log.GasCost = cost
+			//log.Printf("Update cost %d", cost)
+			records[existingIndex][6] = strconv.FormatUint(cost, 10)
 		}
 
 		if note != "" {
-			event_log.Note = event_log.Note + note
+			records[existingIndex][7] = records[existingIndex][7] + note
 		}
-		records[existingIndex] = event_log.toSlice()
+
 	} else {
 		log.Printf("[Log] Error when update log for asset %s with %s event", assetID, event)
 	}
@@ -227,6 +213,7 @@ func parseTime(s string) time.Time {
 		fmt.Printf("Failed to parse time: %v\n", err)
 		return time.Time{}
 	}
+
 	return t
 }
 
