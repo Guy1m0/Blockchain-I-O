@@ -21,7 +21,7 @@ import (
 // the logic to execute when an event is received.
 // Fabric relayer
 func startFabricListener(client *ecomm.AssetClient) error {
-	events := []string{"AddAsset", "StartAuction", "DetermineWinner", "CloseAuction", "CancelAuction", "AuctionClosed", "RevealAuction"}
+	events := []string{"AddAsset", "StartAuction", "DetermineWinner", "CloseAuction", "CancelAuction", "AuctionClosed", "EndClosedBid"}
 	var regs []fab.Registration
 	var notifiers []<-chan *fab.CCEvent
 
@@ -73,7 +73,7 @@ func startFabricListener(client *ecomm.AssetClient) error {
 				return err
 			}
 		case event := <-notifiers[6]:
-			err := handleRevealAuctionEvent(event.Payload)
+			err := handleEndClosedBidEvent(event.Payload)
 			if err != nil {
 				return err
 			}
@@ -172,7 +172,12 @@ func startListeningForAuctionEvents(auction_addr common.Address, auction_abi str
 			handleBidTooLowEvent(event, result, t)
 			//fmt.Printf("Bid too low for auction %s with amount %s by bidder %s\n", event.AuctionId, event.BidAmount.String(), event.Bidder.Hex())
 		case contractAbi.Events["RevealAuction"].ID.Hex():
+			//t := time.Now()
+			var event ecomm.RevealAuction
+			err := contractAbi.UnpackIntoInterface(&event, "RevealAuction", vLog.Data)
+			check(err)
 
+			//handleRevealAuctionEvent(event, t)
 		case contractAbi.Events["WithdrawBid"].ID.Hex():
 			t := time.Now()
 			var event ecomm.WithdrawBid

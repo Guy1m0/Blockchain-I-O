@@ -168,19 +168,29 @@ func UpdateLog(filePath, assetID, event, keyWords string, cost uint64, note stri
 		}
 	}
 
-	if existingIndex != -1 {
-
-		if cost != 0 {
-			//log.Printf("Update cost %d", cost)
-			records[existingIndex][6] = strconv.FormatUint(cost, 10)
+	for existingIndex == -1 {
+		headers := []string{
+			"AssetID", "Event", "KeyWords", "StartTime", "EndTime", "TimeElapsed", "KafkaReceived", "KafkaTime", "GasCost", "Note",
 		}
-
-		if note != "" {
-			records[existingIndex][7] = records[existingIndex][7] + note
-		}
-
-	} else {
+		records[0] = headers
 		log.Printf("[Log] Error when update log for asset %s with %s event", assetID, event)
+
+		for i, record := range records {
+			if record[0] == assetID && record[1] == event && record[2] == keyWords {
+				//fmt.Println("Find record: ", record)
+				existingIndex = i
+				break
+			}
+		}
+	}
+
+	if cost != 0 {
+		//log.Printf("Update cost %d", cost)
+		records[existingIndex][6] = strconv.FormatUint(cost, 10)
+	}
+
+	if note != "" {
+		records[existingIndex][7] = records[existingIndex][7] + note
 	}
 
 	file.Truncate(0)

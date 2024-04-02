@@ -154,7 +154,7 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 	return err
 }
 
-func handleRevealAuctionEvent(eventPayload []byte) error {
+func handleEndClosedBidEvent(eventPayload []byte) error {
 	var result ecomm.Auction
 	err := json.Unmarshal(eventPayload, &result)
 	check(err)

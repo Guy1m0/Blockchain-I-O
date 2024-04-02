@@ -54,6 +54,11 @@ type NewBidHash struct {
 	Raw         types.Log // Blockchain specific contextual infos
 }
 
+type RevealAuction struct {
+	AuctionId *big.Int
+	Raw       types.Log // Blockchain specific contextual infos
+}
+
 type BidTooLow struct {
 	AuctionId   *big.Int
 	Id          string

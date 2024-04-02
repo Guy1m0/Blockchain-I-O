@@ -27,6 +27,8 @@ contract ClosedBidFirstPriceAuction {
     // Events that will be emitted on changes.
     event NewBidHash(uint auctionId, string id, address bidder, bytes32 bidHash, string auctionType);
     event HighestBidIncreased(uint auctionId, string id, address bidder, uint amount);
+    event BidTooLow(uint auctionId, string id, address bidder, uint bidAmount, uint highestBid, string auctionType);
+
     event RevealAuction(uint auctionId);
     event WithdrawBid(uint auctionId, string id, address bidder, uint amount);
     event DecisionMade(uint auctionId, address winner, uint amount, string id, bool prcd, string jsonString);
@@ -75,11 +77,13 @@ contract ClosedBidFirstPriceAuction {
 
     function reveal(uint auctionId, uint bidAmount) public {
         // Use hash to check status
-        require(keccak256(abi.encodePacked(status[auctionId])) == keccak256(abi.encodePacked("reveal")), "Contract not in OPEN status");
+        require(keccak256(abi.encodePacked(status[auctionId])) == keccak256(abi.encodePacked("reveal")), "Contract not in REVEAL status");
 
         // Check that the bid is higher than the current highest bid
-        require(bidAmount > highestBid[auctionId], "There already is a higher bid.");
-
+        if (bidAmount <= highestBid[auctionId]) {
+            emit BidTooLow(auctionId, asset_id[auctionId], msg.sender, bidAmount, highestBid[auctionId], auction_type);
+            return; // Exit the function
+        }
         // Check that the bid amount corresponds to the hash 
         require(keccak256(abi.encodePacked(bidAmount)) == bidHashes[auctionId][msg.sender]);
 

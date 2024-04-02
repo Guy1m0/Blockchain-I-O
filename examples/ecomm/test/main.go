@@ -172,6 +172,14 @@ func main() {
 		//ccsvc.Start(true)
 
 		reveal(auction_info.AuctionID)
+	case "revealAmt":
+		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
+		index := len(auction_infos) - 1
+		auction_info := auction_infos[index]
+		//ccsvc.Register(ecomm.AuctionClosingEvent, autoCommit)
+		//ccsvc.Start(true)
+
+		reveal(auction_info.AuctionID)
 	case "close":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		index := len(auction_infos) - 1

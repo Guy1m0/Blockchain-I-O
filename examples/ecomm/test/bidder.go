@@ -170,6 +170,10 @@ func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key, platform string) {
 	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.BidHashEvent, keyWords, receipt.GasUsed, "")
 }
 
+func revealBid() {
+	return
+}
+
 func withdraw(auction_id int, bid_key, platform string) {
 	t := time.Now()
 	client := ethClient
