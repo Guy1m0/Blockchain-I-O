@@ -3,6 +3,7 @@ package ecomm
 import (
 	"encoding/csv"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -56,6 +57,7 @@ func LogEvent(filePath, assetID, event, keyWords string, record_time time.Time, 
 
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
+
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +144,7 @@ func LogEvent(filePath, assetID, event, keyWords string, record_time time.Time, 
 	return &event_log, nil
 }
 
-func UpdateLog(filePath, assetID, eventName, keyWords string, cost uint64, note string) error {
+func UpdateLog(filePath, assetID, event, keyWords string, cost uint64, note string) error {
 	mu.Lock()
 	defer mu.Unlock()
 	// 1. Open the CSV file
@@ -152,27 +154,45 @@ func UpdateLog(filePath, assetID, eventName, keyWords string, cost uint64, note 
 
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
-	check(err)
 
-	// 2. Find the correct row using eventName and eventID
-	for _, record := range records {
-		if record[0] == assetID && record[1] == eventName && record[2] == keyWords {
-			// 3. Update the cost
-			if cost != 0 {
-				record[6] = strconv.FormatUint(cost, 10)
-			}
-			if note != "" {
-				record[7] = note
-			}
+	if err != nil {
+		return err
+	}
+	var event_log EventLog
 
-			// Write back to the CSV file
-			writer := csv.NewWriter(file)
-			err := writer.WriteAll(records)
-			check(err)
-			writer.Flush()
+	// Check if the event with the given eventID exists
+	var existingIndex = -1
+	for i, record := range records {
+		if record[0] == assetID && record[1] == event && record[2] == keyWords {
+			//fmt.Println("Find record: ", record)
+			existingIndex = i
 			break
 		}
 	}
+
+	if existingIndex != -1 {
+		event_log = EventLog{
+			AssetID:  records[existingIndex][0],
+			Event:    records[existingIndex][1],
+			KeyWords: records[existingIndex][2],
+
+			StartTime:     parseTime(records[existingIndex][3]),
+			EndTime:       parseTime(records[existingIndex][4]),
+			KafkaReceived: parseTime(records[existingIndex][5]),
+		}
+
+		if cost != 0 {
+			event_log.GasCost = cost
+		}
+
+		if note != "" {
+			event_log.Note = event_log.Note + note
+		}
+
+	} else {
+		log.Printf("[Log] Error when update log for asset %s with %s event", assetID, event)
+	}
+
 	file.Truncate(0)
 	file.Seek(0, 0)
 
@@ -180,6 +200,7 @@ func UpdateLog(filePath, assetID, eventName, keyWords string, cost uint64, note 
 	if err := writer.WriteAll(records); err != nil {
 		return err
 	}
+
 	return nil
 }
 
