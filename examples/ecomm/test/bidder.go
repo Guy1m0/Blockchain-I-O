@@ -182,9 +182,9 @@ func withdraw(auction_id int, bid_key, platform string) {
 	check(err)
 	//eventID := auction.AssetID + "_" + platform + "_" + bidT.From.String()[36:]
 	//@todo withdraw bidAmount
-	keyWords := fmt.Sprintf("%s_%s", platform, bidT.From.String()[36:])
+	keyWords := fmt.Sprintf("%s_%s_%s", auction.AucType, platform, bidT.From.String()[36:])
 
-	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.WithdrawEvent, keyWords, t, "", 0)
+	ecomm.LogEvent(logInfoFile, "NA", ecomm.WithdrawEvent, keyWords, t, "", 0)
 
 	// same interface for all 4 kinds auction contracts
 	// @todo support all 4 auctions
@@ -194,8 +194,8 @@ func withdraw(auction_id int, bid_key, platform string) {
 	tx, err := auction_contract.Withdraw(bidT, big.NewInt(int64(auction_id)))
 	check(err)
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Withdraw bid on Auction ID: %d through contract: %s", auction.AuctionID, auction_addr))
-
-	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.WithdrawEvent, keyWords, receipt.GasUsed, "")
+	log.Printf("Gas: %d", receipt.GasUsed)
+	ecomm.UpdateLog(logInfoFile, "NA", ecomm.WithdrawEvent, keyWords, receipt.GasUsed, "")
 	//debugTransaction(tx)
 	// log
 	/////////////
@@ -240,7 +240,7 @@ func sign_auction_result(auction_id int) {
 	auction, err := assetClient.GetAuction(auction_id)
 	check(err)
 
-	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.CommitAuctionResultEvent, "", t, "", 0)
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.CommitAuctionResultEvent, auction.HighestBidder[36:], t, "", 0)
 
 	var bidKey string
 	inval_addr := true
@@ -306,7 +306,7 @@ func sign_auction_result(auction_id int) {
 	check(err)
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Sign Auction Result on Auction ID: %d through contract: %s", auction.AuctionID, auction_addr))
 
-	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.CommitAuctionResultEvent, "", receipt.GasUsed, auction.HighestBidPlatform)
+	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.CommitAuctionResultEvent, bidT.From.String()[36:], receipt.GasUsed, auction.HighestBidPlatform)
 
 }
 

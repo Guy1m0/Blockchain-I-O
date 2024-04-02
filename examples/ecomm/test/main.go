@@ -9,11 +9,9 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
-	"github.com/Guy1m0/Blockchain-I-O/cclib"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -35,9 +33,8 @@ var (
 	ethClient   *ethclient.Client
 	quoClient   *ethclient.Client
 	assetClient *ecomm.AssetClient
-	ccsvc       *cclib.CCService
 
-	zkNodes = "localhost:2181"
+	// zkNodes = "localhost:2181"
 	//platform = "eth"
 
 	//aucT        *bind.TransactOpts
@@ -64,7 +61,7 @@ func main() {
 	assetClient = ecomm.NewAssetClient()
 	asset_names, err = readNamesFromFile(assetNamesFile)
 	check(err)
-	ccsvc, _ = cclib.NewEventService(strings.Split(zkNodes, ","), "relayer") //zookeeper node
+	// ccsvc, _ = cclib.NewEventService(strings.Split(zkNodes, ","), "relayer") //zookeeper node
 
 	command := flag.String("c", "", "command")
 	batch_size := flag.Int("s", 3, "Batch size for testing")
@@ -149,7 +146,24 @@ func main() {
 		bidAuction(auction_info.AuctionID, big.NewInt(0), bid_key, platform)
 
 	case "bidH":
-		return
+		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
+		index := len(auction_infos) - 1
+		if index == -1 {
+			index = 0
+		}
+		auction_info := auction_infos[index]
+
+		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
+		platform := "eth"
+		userID := accounts[2].UserID
+		bid_key := load_bidder_key(userID)
+		log.Printf("Make bidHash on %s platforms with UserID: %s", platform, userID)
+		bidAuctionH(auction_info.AuctionID, big.NewInt(4), bid_key, platform)
+
+		platform = "quo"
+		log.Printf("Make bidHash on %s platforms with UserID: %s", platform, userID)
+		bidAuctionH(auction_info.AuctionID, big.NewInt(5), bid_key, platform)
+
 	case "revealA":
 		return
 	case "reveal":
@@ -172,7 +186,7 @@ func main() {
 		platform := "eth"
 		userID := accounts[1].UserID
 		bid_key := load_bidder_key(userID)
-		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
+		log.Printf("Withdraw bid on %s platforms with UserID: %s", platform, userID)
 		withdraw(auction_info.AuctionID, bid_key, platform)
 	case "withQ":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
@@ -184,15 +198,8 @@ func main() {
 		platform := "quo"
 		userID := accounts[2].UserID
 		bid_key := load_bidder_key(userID)
-		log.Printf("Make bid on %s platforms with UserID: %s", platform, userID)
+		log.Printf("Withdraw bid on %s platforms with UserID: %s", platform, userID)
 		withdraw(auction_info.AuctionID, bid_key, platform)
-	//	withdraw()
-	// case "cancel":
-	// 	id_, _ := strconv.Atoi(*id)
-	// 	cancel(id_)
-	// case "check":
-	// 	id_, _ := strconv.Atoi(*id)
-	// 	check_status(id_)
 	case "commit":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		index := len(auction_infos) - 1

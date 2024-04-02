@@ -19,7 +19,7 @@ func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreased, bid 
 	asset, _ := assetClient.GetAsset(eventPayload.Id)
 	keyWords := fmt.Sprintf("%s_%s_%s", bid.Platform, eventPayload.Bidder.String()[36:], amount)
 	//eventID := eventPayload.Id + "_" + bid.Platform + "_" + eventPayload.Bidder.String()[36:]
-	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidEvent, keyWords, t, "Highest bid increased to "+eventPayload.BidAmount.String(), 0)
+	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidEvent, keyWords, t, "Highest bid increased to "+amount, 0)
 
 	bid.BidAmount = eventPayload.BidAmount.String()
 	bid.Bidder = eventPayload.Bidder
@@ -44,7 +44,7 @@ func handleBidTooLowEvent(eventPayload ecomm.BidTooLow, bid ecomm.Bid, t time.Ti
 	amount := new(big.Int).Div(eventPayload.BidAmount, ecomm.DecimalB).String()
 	asset, _ := assetClient.GetAsset(eventPayload.Id)
 	keyWords := fmt.Sprintf("%s_%s_%s", bid.Platform, eventPayload.Bidder.String()[36:], amount)
-	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidEvent, keyWords, t, "Bid too low with amount "+eventPayload.BidAmount.String(), 0)
+	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidEvent, keyWords, t, "Bid too low with amount "+amount, 0)
 
 	bid.BidAmount = eventPayload.BidAmount.String()
 	bid.Bidder = eventPayload.Bidder
@@ -92,14 +92,15 @@ func handleWithdrawBidEvent(eventPayload ecomm.WithdrawBid, bid ecomm.Bid, t tim
 	log.Printf("[%s] WithdrawBid Event", strings.ToUpper(bid.Platform))
 
 	amount := new(big.Int).Div(eventPayload.Amount, ecomm.DecimalB).String()
-	asset, _ := assetClient.GetAsset(eventPayload.Id)
-	keyWords := fmt.Sprintf("%s_%s", bid.Platform, eventPayload.Bidder.String()[36:])
+	auction, _ := assetClient.GetAuction(int(eventPayload.AuctionId.Int64()))
+	keyWords := fmt.Sprintf("%s_%s_%s", auction.AucType, bid.Platform, eventPayload.Bidder.String()[36:])
 	//eventID := eventPayload.Id + "_" + bid.Platform + "_" + eventPayload.Bidder.String()[36:]
-	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.WithdrawEvent, keyWords, t, "Withdraw: MDAI "+eventPayload.Amount.String(), 0)
+	ecomm.LogEvent(logInfoFile, "NA", ecomm.WithdrawEvent, keyWords, t, "Withdraw: "+amount, 0)
 
 	bid.BidAmount = amount
 	bid.Bidder = eventPayload.Bidder
 	bid.AssetID = eventPayload.Id
+	bid.AuctionID = auction.AuctionID
 
 	//ecomm.UpdateLog(logInfoFile, ecomm.WithdrawEvent, eventID, "", 0, "Withdraw: MDAI "+amount)
 
@@ -126,10 +127,10 @@ func handleDecisionMadeEvent(eventPayload ecomm.DecisionMade, t time.Time) error
 	check(err)
 
 	log.Printf("[%s] Decesion Made Event", strings.ToUpper(result.Platform))
-
+	//bidT.From.String()[36:]
 	proceed := eventPayload.Prcd
 	if proceed {
-		ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.CommitAuctionResultEvent, "", t, "", 0)
+		ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.CommitAuctionResultEvent, auction.HighestBidder[36:], t, "", 0)
 		payloadJSON, _ := json.Marshal(result)
 		wrapper := ecomm.EventWrapper{Type: "Commit", Result: payloadJSON}
 		payload_, _ := json.Marshal(wrapper)
@@ -176,10 +177,10 @@ func smartContractEvent(eventPayload []byte) {
 		err = json.Unmarshal(wrapper.Result, &bid)
 		check(err)
 
-		event = ecomm.BidEvent
-		assetId = bid.AssetID
+		assetId = "NA"
 		event = ecomm.WithdrawEvent
-		keyWords = fmt.Sprintf("%s_%s", bid.Platform, bid.Bidder.String()[36:])
+		auction, _ := assetClient.GetAuction(bid.AuctionID)
+		keyWords = fmt.Sprintf("%s_%s_%s", auction.AucType, bid.Platform, bid.Bidder.String()[36:])
 
 	case "BidHash":
 		var bidHash ecomm.BidHash
@@ -197,6 +198,7 @@ func smartContractEvent(eventPayload []byte) {
 		event = ecomm.CommitAuctionResultEvent
 		auction, _ := assetClient.GetAuction(result.AuctionID)
 		assetId = auction.AssetID
+		keyWords = auction.HighestBidder[36:]
 
 	default:
 		fmt.Printf("Unknown type: %s\n", wrapper.Type)

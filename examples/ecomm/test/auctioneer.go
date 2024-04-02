@@ -24,7 +24,7 @@ func create(asset_name string, auc_type string, usr_name string) {
 	_, err := assetClient.AddAsset(asset_name, aucT.From.Hex(), auc_type)
 	check(err)
 
-	ecomm.LogEvent(logInfoFile, asset_name, ecomm.AssetAddingEvent, "", t, "", 0)
+	ecomm.LogEvent(logInfoFile, asset_name, ecomm.AssetAddingEvent, auc_type, t, "", 0)
 }
 
 func reveal(auctionID int) {

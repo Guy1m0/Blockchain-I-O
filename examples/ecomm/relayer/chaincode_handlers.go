@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/big"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
@@ -35,10 +36,10 @@ func handleAddAssetEvent(eventPayload []byte) error {
 
 	auc_type := result.AucType
 	//fmt.Println("Auc Type:", auc_type)
-	ecomm.LogEvent(logInfoFile, assetID, ecomm.AssetAddingEvent, "", t, "", 0)
+	ecomm.LogEvent(logInfoFile, assetID, ecomm.AssetAddingEvent, auc_type, t, "", 0)
 
-	payloadJSON, _ := json.Marshal(asset)
-	wrapper := ecomm.EventWrapper{Type: "Asset", Result: payloadJSON}
+	//payloadJSON, _ := json.Marshal(asset)
+	wrapper := ecomm.EventWrapper{Type: "Asset", Result: eventPayload}
 	payload, _ := json.Marshal(wrapper)
 
 	// @todo: change this payload to be AssetAddingEventPayload?
@@ -268,7 +269,7 @@ func handleDetWinnerEvent(eventPayload []byte) error {
 		highestBidder, _ = quo_auction_contract.HighestBidder(&bind.CallOpts{}, big.NewInt(int64(result.AuctionID)))
 	}
 	t := time.Now()
-	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.DetermineWinnerEvent, "", t, "", 0)
+	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.DetermineWinnerEvent, "", t, fmt.Sprintf("Highest Bidder: %s on Platform: %s", highestBidder, strings.ToUpper(highestBidPlatform)), 0)
 
 	args := ecomm.CloseAuctionArgs{
 		AuctionID: result.AuctionID,
@@ -427,13 +428,13 @@ func chainCodeEvent(eventPayload []byte) {
 
 	switch wrapper.Type {
 	case "Asset":
-		var asset ecomm.Asset
+		var asset ecomm.AssetAddingEventPayload
 		err = json.Unmarshal(wrapper.Result, &asset)
 		check(err)
 
 		event = ecomm.AssetAddingEvent
-		assetId = asset.ID
-
+		assetId = asset.AssetID
+		keyWords = asset.AucType
 	case "Start Auction":
 		var auction ecomm.Auction
 		err = json.Unmarshal(wrapper.Result, &auction)
@@ -450,7 +451,6 @@ func chainCodeEvent(eventPayload []byte) {
 		event = ecomm.CancelAuctionEvent
 		assetId = auction.AssetID
 	case "Determine Winner":
-
 		var args ecomm.CloseAuctionArgs
 		err = json.Unmarshal(wrapper.Result, &args)
 		check(err)
@@ -459,7 +459,7 @@ func chainCodeEvent(eventPayload []byte) {
 
 		event = ecomm.DetermineWinnerEvent
 		assetId = auction.AssetID
-		log.Printf("assetId: %s, keywords: %s", assetId, keyWords)
+		//log.Printf("assetId: %s, keywords: %s", assetId, keyWords)
 	case "Close Auction":
 		var auction ecomm.Auction
 		err = json.Unmarshal(wrapper.Result, &auction)

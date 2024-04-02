@@ -17,10 +17,6 @@ import (
 	"github.com/hyperledger/fabric-sdk-go/pkg/common/providers/fab"
 )
 
-const (
-	timeInfoFile = "../timer"
-)
-
 // sets up the event listener, and handleEvent, which contains
 // the logic to execute when an event is received.
 // Fabric relayer

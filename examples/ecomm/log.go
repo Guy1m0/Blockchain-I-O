@@ -179,16 +179,20 @@ func UpdateLog(filePath, assetID, event, keyWords string, cost uint64, note stri
 			StartTime:     parseTime(records[existingIndex][3]),
 			EndTime:       parseTime(records[existingIndex][4]),
 			KafkaReceived: parseTime(records[existingIndex][5]),
+
+			GasCost: parseCost(records[existingIndex][6]),
+			Note:    records[existingIndex][7],
 		}
 
 		if cost != 0 {
+			log.Printf("Update cost %d", cost)
 			event_log.GasCost = cost
 		}
 
 		if note != "" {
 			event_log.Note = event_log.Note + note
 		}
-
+		records[existingIndex] = event_log.toSlice()
 	} else {
 		log.Printf("[Log] Error when update log for asset %s with %s event", assetID, event)
 	}
