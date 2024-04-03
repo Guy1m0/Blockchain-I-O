@@ -170,6 +170,8 @@ func handleEndClosedBidEvent(eventPayload []byte) error {
 	ccsvc.Publish(ecomm.EndClosedBidEvent, payload)
 
 	t = time.Now()
+	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.AuctionRevealingEvent, result.AucType, t, "", 0)
+
 	log.Println("[ETH/QUO] Change contract state")
 	authT, err := cclib.NewTransactor(root_key, password)
 	check(err)
@@ -195,8 +197,6 @@ func handleEndClosedBidEvent(eventPayload []byte) error {
 	default:
 		log.Fatalf("Auction type error")
 	}
-
-	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.AuctionRevealingEvent, result.AucType, t, "", 0)
 
 	// Change Auction Contract on Eth
 	tx, _ := eth_auction_contract.RevealAuction(authT, big.NewInt(int64(result.AuctionID)))

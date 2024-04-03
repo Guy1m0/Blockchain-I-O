@@ -95,6 +95,12 @@ func LogEvent(filePath, assetID, event, keyWords string, record_time time.Time, 
 
 		records = append(records, event_log.toSlice())
 	} else {
+
+		timeElapsed, err := time.ParseDuration(records[existingIndex][8])
+		check(err)
+		kafkaTime, err := time.ParseDuration(records[existingIndex][9])
+		check(err)
+
 		event_log = EventLog{
 			AssetID:  records[existingIndex][0],
 			Event:    records[existingIndex][1],
@@ -106,6 +112,9 @@ func LogEvent(filePath, assetID, event, keyWords string, record_time time.Time, 
 
 			GasCost: parseCost(records[existingIndex][6]),
 			Note:    records[existingIndex][7],
+
+			TimeElapsed: timeElapsed,
+			KafkaTime:   kafkaTime,
 		}
 
 		//log.Println("StartTime: ", event_log.StartTime, "from: ", records[existingIndex][2])
@@ -167,31 +176,62 @@ func UpdateLog(filePath, assetID, event, keyWords string, cost uint64, note stri
 			break
 		}
 	}
+	var event_log EventLog
+	if existingIndex == -1 {
+		log.Fatalf("Error in updatelog")
+	} else {
 
-	for existingIndex == -1 {
-		headers := []string{
-			"AssetID", "Event", "KeyWords", "StartTime", "EndTime", "TimeElapsed", "KafkaReceived", "KafkaTime", "GasCost", "Note",
+		timeElapsed, err := time.ParseDuration(records[existingIndex][8])
+		check(err)
+		kafkaTime, err := time.ParseDuration(records[existingIndex][9])
+		check(err)
+
+		event_log = EventLog{
+			AssetID:  records[existingIndex][0],
+			Event:    records[existingIndex][1],
+			KeyWords: records[existingIndex][2],
+
+			StartTime:     parseTime(records[existingIndex][3]),
+			EndTime:       parseTime(records[existingIndex][4]),
+			KafkaReceived: parseTime(records[existingIndex][5]),
+
+			//GasCost: records[existingIndex][6],
+			Note: records[existingIndex][7],
+
+			TimeElapsed: timeElapsed,
+			KafkaTime:   kafkaTime,
+
+			// GasCost: parseCost(records[existingIndex][6]),
+			// Note:    records[existingIndex][7],
 		}
-		records[0] = headers
-		log.Printf("[Log] Error when update log for asset %s with %s event", assetID, event)
 
-		for i, record := range records {
-			if record[0] == assetID && record[1] == event && record[2] == keyWords {
-				//fmt.Println("Find record: ", record)
-				existingIndex = i
-				break
-			}
+		if cost != 0 {
+			//log.Printf("Update cost %d", cost)
+			event_log.GasCost = cost
 		}
+
+		if note != "" {
+			event_log.Note = event_log.Note + records[existingIndex][7] + note
+		}
+
+		records[existingIndex] = event_log.toSlice()
 	}
 
-	if cost != 0 {
-		//log.Printf("Update cost %d", cost)
-		records[existingIndex][6] = strconv.FormatUint(cost, 10)
-	}
+	// for existingIndex == -1 {
+	// 	headers := []string{
+	// 		"AssetID", "Event", "KeyWords", "StartTime", "EndTime", "TimeElapsed", "KafkaReceived", "KafkaTime", "GasCost", "Note",
+	// 	}
+	// 	records[0] = headers
+	// 	log.Printf("[Log] Error when update log for asset %s with %s event", assetID, event)
 
-	if note != "" {
-		records[existingIndex][7] = records[existingIndex][7] + note
-	}
+	// 	for i, record := range records {
+	// 		if record[0] == assetID && record[1] == event && record[2] == keyWords {
+	// 			//fmt.Println("Find record: ", record)
+	// 			existingIndex = i
+	// 			break
+	// 		}
+	// 	}
+	// }
 
 	file.Truncate(0)
 	file.Seek(0, 0)
