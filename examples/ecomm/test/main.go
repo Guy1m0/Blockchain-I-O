@@ -311,17 +311,17 @@ func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 		userID := accounts[acc_ind].UserID
 		bid_key := load_bidder_key(userID)
 
-		bidAmount = int(index/batch_size+(batch_size+1)%2) / 2
+		bidAmount = int(index / batch_size)
 		bidAuction(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
 
-		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))) * time.Second)
+		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
 		platform = "eth"
 		userID = accounts[9-acc_ind].UserID
 		bid_key = load_bidder_key(userID)
 
-		bidAmount = int(index/batch_size+batch_size%2) / 2
+		bidAmount = int((counter - index + 1) / batch_size)
 		bidAuction(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
-		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))) * time.Second)
+		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
 
 	}
 
