@@ -68,7 +68,7 @@ func close(auctionID int) {
 	a, err := assetClient.GetAuction(auctionID)
 	check(err)
 
-	if a.Status != "open" {
+	if (a.Status != "open") && (a.Status != "reveal") {
 		err = fmt.Errorf("auction status error")
 		check(err)
 	}

@@ -128,7 +128,7 @@ contract ClosedBidFirstPriceAuction {
     function closeAuction(uint auctionId, bool not_winner_platform) public {
         require(msg.sender == owner, "Only owner can change contract's status");
         // Use hash to check status
-        require(keccak256(abi.encodePacked(status[auctionId])) == keccak256(abi.encodePacked("open")), "Contract not in OPEN status");
+        require(keccak256(abi.encodePacked(status[auctionId])) == keccak256(abi.encodePacked("reveal")), "Contract not in OPEN status");
 
         status[auctionId] = "ending";
         if (not_winner_platform || highestBid[auctionId] == 0){

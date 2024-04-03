@@ -87,7 +87,7 @@ func main() {
 
 		s := len(auction_infos)
 		//asset_name := asset_names[s]
-		createTesting(s, *batch_size)
+		createTesting(s, *batch_size) // still using thread
 
 		var sleep_time int
 		sleep_time = *batch_size * 15
@@ -98,6 +98,44 @@ func main() {
 		bidTesting(auction_infos, s, *batch_size)
 
 		last_id := auction_infos[s-1].AuctionID
+
+		time.Sleep(15 * time.Second)
+		closeTesting(last_id, *batch_size)
+
+		time.Sleep(15 * time.Second)
+		commitTesting(last_id, *batch_size)
+
+		log.Printf("Testing execution took %s \n", time.Since(start))
+
+	case "testCb":
+		auc_type = "cb1p"
+
+		start := time.Now()
+		log.Println("Initialize Log files")
+		err := reset_log()
+		check(err)
+
+		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
+		check(err)
+
+		s := len(auction_infos)
+		//asset_name := asset_names[s]
+		createTesting(s, *batch_size)
+		// still using thread, which needs such sleep
+		var sleep_time int
+		sleep_time = *batch_size * 15
+		time.Sleep(time.Duration(sleep_time) * time.Second)
+
+		auction_infos, _ = ecomm.ReadAuctionsFromFile(auctionInfoFile)
+		s = len(auction_infos)
+		bidHTesting(auction_infos, s, *batch_size)
+
+		last_id := auction_infos[s-1].AuctionID
+		time.Sleep(15 * time.Second)
+		revealTesting(last_id, *batch_size)
+
+		time.Sleep(15 * time.Second)
+		revealBidTesting(auction_infos, s, *batch_size)
 
 		time.Sleep(15 * time.Second)
 		closeTesting(last_id, *batch_size)
@@ -255,7 +293,6 @@ func createTesting(s, batch_size int) {
 }
 
 func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
-	var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines to finish
 	accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
 	//log.Println(len(auction_infos), s, batch_size)
 
@@ -288,13 +325,91 @@ func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 
 	}
 
-	wg.Wait() // Wait for all goroutines to finish
+	log.Println("All bids have been placed.")
+}
+
+func revealBidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
+	accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
+	//log.Println(len(auction_infos), s, batch_size)
+
+	auctions := auction_infos[s-batch_size : s]
+	counter := len(auctions) * batch_size * (len(accounts) - 1)
+
+	//log.Printf("counter: %d", counter)
+
+	var auc_ind, acc_ind, auction_id, bidAmount int
+	for index := 1; index <= counter; index++ {
+		auc_ind = index % len(auctions)
+		acc_ind = index%8 + 1
+		auction_id = auctions[auc_ind].AuctionID
+
+		platform := "quo"
+		userID := accounts[acc_ind].UserID
+		bid_key := load_bidder_key(userID)
+
+		bidAmount = int(index/batch_size+(batch_size+1)%2) / 2
+		revealBid(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
+
+		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
+		platform = "eth"
+		userID = accounts[9-acc_ind].UserID
+		bid_key = load_bidder_key(userID)
+
+		bidAmount = int(index/batch_size+batch_size%2) / 2
+		revealBid(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
+		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
+
+	}
+
+	log.Println("All bids have been placed.")
+}
+
+func bidHTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
+	accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
+	//log.Println(len(auction_infos), s, batch_size)
+
+	auctions := auction_infos[s-batch_size : s]
+	counter := len(auctions) * batch_size * (len(accounts) - 1)
+
+	//log.Printf("counter: %d", counter)
+
+	var auc_ind, acc_ind, auction_id, bidAmount int
+	for index := 1; index <= counter; index++ {
+		auc_ind = index % len(auctions)
+		acc_ind = index%8 + 1
+		auction_id = auctions[auc_ind].AuctionID
+
+		platform := "quo"
+		userID := accounts[acc_ind].UserID
+		bid_key := load_bidder_key(userID)
+
+		bidAmount = int(index/batch_size+(batch_size+1)%2) / 2
+		bidAuctionH(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
+
+		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
+		platform = "eth"
+		userID = accounts[9-acc_ind].UserID
+		bid_key = load_bidder_key(userID)
+
+		bidAmount = int(index/batch_size+batch_size%2) / 2
+		bidAuctionH(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
+		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
+
+	}
+
 	log.Println("All bids have been placed.")
 }
 
 func closeTesting(last_id, batch_size int) {
 	for i := last_id - batch_size + 1; i <= last_id; i++ {
 		close(i)
+	}
+	log.Println("All auctions have been closed.")
+}
+
+func revealTesting(last_id, batch_size int) {
+	for i := last_id - batch_size + 1; i <= last_id; i++ {
+		reveal(i)
 	}
 	log.Println("All auctions have been closed.")
 }
@@ -306,11 +421,12 @@ func commitTesting(last_id, batch_size int) {
 
 	for i := last_id - batch_size + 1; i <= last_id; i++ {
 		sign_auction_result(i)
+		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))) * time.Second)
 	}
 	log.Println("All auction results have been committed.")
 
-	time.Sleep(15 * time.Second)
-	closeTesting(last_id, batch_size)
+	// time.Sleep(15 * time.Second)
+	// closeTesting(last_id, batch_size)
 
 	for i := 1; i < 9; i++ {
 		bidKey := load_bidder_key(accounts[i].UserID)
@@ -318,6 +434,7 @@ func commitTesting(last_id, batch_size int) {
 		withdraw(last_id, bidKey, platform)
 		platform = "eth"
 		withdraw(last_id, bidKey, platform)
+		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))) * time.Second)
 	}
 	log.Println("All bidders have withdrawed unsuccessfull bids.")
 

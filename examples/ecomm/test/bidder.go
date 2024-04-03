@@ -150,7 +150,7 @@ func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key, platform string) {
 
 	bidAmount.Mul(bidAmount, ecomm.DecimalB)
 	bidHash := solsha3.SoliditySHA3(solsha3.Uint256(bidAmount))
-	log.Printf("Calculated hash of uint(%s): %s", bidAmount, hex.EncodeToString(bidHash[:]))
+	//log.Printf("Calculated hash of uint(%s): %s", bidAmount, hex.EncodeToString(bidHash[:]))
 
 	// Convert bidHash to [32]byte to match the Go binding's expectation
 	var bidHashArray [32]byte

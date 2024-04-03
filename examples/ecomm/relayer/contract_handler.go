@@ -70,7 +70,7 @@ func handleNewBidHashEvent(eventPayload ecomm.NewBidHash, bidHash ecomm.BidHash,
 	bidHash.Bidder = eventPayload.Bidder
 	bidHash.AssetID = eventPayload.Id
 
-	log.Printf("Hash of uint(4): %s", hex.EncodeToString(bidHash.BidHash[:]))
+	//log.Printf("Hash of uint(4): %s", hex.EncodeToString(bidHash.BidHash[:]))
 
 	keyWords := fmt.Sprintf("%s_%s_%s", bidHash.Platform, eventPayload.Bidder.String()[36:], hex.EncodeToString(bidHash.BidHash[:])[60:])
 	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidHashEvent, keyWords, t, "", 0)

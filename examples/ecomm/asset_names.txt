@@ -88,7 +88,7 @@ Oven
 Wind Turbine
 Dehumidifier
 Space Heater
-Coffee Maker
+Coffee Makers
 Toaster
 Leaf Blower
 Grinder

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"log"
@@ -17,11 +16,8 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/contracts/stable_coin"
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/olekukonko/tablewriter"
-
-	solsha3 "github.com/miguelmota/go-solidity-sha3"
 )
 
 const (
@@ -143,10 +139,10 @@ func test() {
 	// } else {
 	// 	log.Printf("Balance: %s", valueB.String())
 	// }
-	hash := solsha3.SoliditySHA3(
-		solsha3.Uint256(big.NewInt(0).Mul(big.NewInt(1), ecomm.DecimalB)), //8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b
-	)
-	fmt.Println(hex.EncodeToString(hash)) // b10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6
+	// hash := solsha3.SoliditySHA3(
+	// 	solsha3.Uint256(big.NewInt(0).Mul(big.NewInt(1), ecomm.DecimalB)), //8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b
+	// )
+	// fmt.Println(hex.EncodeToString(hash)) // b10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6
 
 }
 
@@ -273,7 +269,7 @@ func setup() {
 	})
 
 	var bidT *bind.TransactOpts
-	for i := 1; i < 3; i++ {
+	for i := 1; i < 9; i++ {
 		bidT, err = cclib.NewTransactor(fmt.Sprintf("%skey%s", keyFolder, strconv.Itoa(i+1)), password)
 		check(err)
 		log.Printf("Setup account for 'Bidder%d' on Fabric", i)
@@ -404,22 +400,6 @@ func load_ERC20() (*stable_coin.StableCoin, *stable_coin.StableCoin, *ecomm.Erc2
 	fabric_ERC20 := ecomm.NewErc20Client(contract_info.FabricTokenName)
 
 	return eth_ERC20, quo_ERC20, fabric_ERC20
-}
-
-func calculateSolidityKeccak256(input *big.Int) string {
-	// Ensure 32-byte representation, zero-padded if necessary
-	// h := sha3.NewLegacyKeccak256()
-
-	// var bidHashArray [32]byte
-	// copy(bidHashArray[:], input.Bytes())
-
-	// h.Write(bidHashArray)
-	// hash := h.Sum(nil)
-
-	hash := crypto.Keccak256(input.Bytes())
-
-	// Return as a hex string
-	return hex.EncodeToString(hash)
 }
 
 func check(err error) {
