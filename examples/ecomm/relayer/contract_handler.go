@@ -30,10 +30,6 @@ func handleHighestBidIncreasedEvent(eventPayload ecomm.HighestBidIncreased, bid 
 	wrapper := ecomm.EventWrapper{Type: "Bid", Result: payloadJSON}
 	payload, _ := json.Marshal(wrapper)
 
-	// asset, _ := assetClient.GetAsset(eventPayload.Id)
-	// auction, _ := assetClient.GetAuction(asset.PendingAuctionID)
-	// fmt.Println("find auction in new bid: ", auction.ID, "status: ", auction.Status)
-	//time.Sleep(1 * time.Second)
 	ccsvc.Publish(ecomm.BidEvent, payload)
 	return nil
 }
@@ -74,6 +70,8 @@ func handleNewBidHashEvent(eventPayload ecomm.NewBidHash, bidHash ecomm.BidHash,
 	bidHash.Bidder = eventPayload.Bidder
 	bidHash.AssetID = eventPayload.Id
 
+	log.Printf("Hash of uint(4): %s", hex.EncodeToString(bidHash.BidHash[:]))
+
 	keyWords := fmt.Sprintf("%s_%s_%s", bidHash.Platform, eventPayload.Bidder.String()[36:], hex.EncodeToString(bidHash.BidHash[:])[60:])
 	ecomm.LogEvent(logInfoFile, asset.ID, ecomm.BidHashEvent, keyWords, t, "", 0)
 
@@ -86,6 +84,21 @@ func handleNewBidHashEvent(eventPayload ecomm.NewBidHash, bidHash ecomm.BidHash,
 	// fmt.Println("find auction in new bid: ", auction.ID, "status: ", auction.Status)
 
 	ccsvc.Publish(ecomm.BidEvent, payload)
+	return nil
+}
+
+func handleRevealAuctionEvent(eventPayload ecomm.RevealAuction, t time.Time) error {
+	log.Printf("[QUO/ETH] RevealAuction Event")
+
+	auction, _ := assetClient.GetAuction(int(eventPayload.AuctionId.Int64()))
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.AuctionRevealingEvent, auction.AucType, t, "", 0)
+
+	payloadJSON, _ := json.Marshal(auction)
+	wrapper := ecomm.EventWrapper{Type: "Reveal", Result: payloadJSON}
+	payload, _ := json.Marshal(wrapper)
+
+	ccsvc.Publish(ecomm.AuctionRevealingEvent, payload)
+
 	return nil
 }
 
@@ -192,6 +205,13 @@ func smartContractEvent(eventPayload []byte) {
 		event = ecomm.BidHashEvent
 		keyWords = fmt.Sprintf("%s_%s_%s", bidHash.Platform, bidHash.Bidder.String()[36:], hex.EncodeToString(bidHash.BidHash[:])[60:])
 
+	case "Reveal":
+		var auction ecomm.Auction
+		err = json.Unmarshal(wrapper.Result, &auction)
+		check(err)
+
+		event = ecomm.AuctionRevealingEvent
+		keyWords = auction.AucType
 	case "Commit":
 		var result ecomm.AuctionResult
 		err = json.Unmarshal(wrapper.Result, &result)

@@ -65,7 +65,7 @@ func main() {
 
 	command := flag.String("c", "", "command")
 	batch_size := flag.Int("s", 3, "Batch size for testing")
-
+	amount_ := flag.String("amt", "3", "Bid amount")
 	// asset := flag.String("ast", "", "Asset name")
 	//b := flag.String("id", "", "Auction ID")
 	flag.StringVar(&usr_name, "usr", usr_name, "Load User/auctioneer Information")
@@ -88,8 +88,9 @@ func main() {
 		s := len(auction_infos)
 		//asset_name := asset_names[s]
 		createTesting(s, *batch_size)
+
 		var sleep_time int
-		sleep_time = *batch_size * 10
+		sleep_time = *batch_size * 15
 		time.Sleep(time.Duration(sleep_time) * time.Second)
 
 		auction_infos, _ = ecomm.ReadAuctionsFromFile(auctionInfoFile)
@@ -155,31 +156,46 @@ func main() {
 
 		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
 		platform := "eth"
-		userID := accounts[2].UserID
+		userID := accounts[1].UserID
 		bid_key := load_bidder_key(userID)
+
+		amount := new(big.Int)
+		amount.SetString(*amount_, 10)
+
 		log.Printf("Make bidHash on %s platforms with UserID: %s", platform, userID)
-		bidAuctionH(auction_info.AuctionID, big.NewInt(4), bid_key, platform)
+		bidAuctionH(auction_info.AuctionID, amount, bid_key, platform)
 
 		// platform = "quo"
 		// log.Printf("Make bidHash on %s platforms with UserID: %s", platform, userID)
-		// bidAuctionH(auction_info.AuctionID, big.NewInt(5), bid_key, platform)
+		// bidAuctionH(auction_info.AuctionID, big.NewInt(3), bid_key, platform)
 
 	case "reveal":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		index := len(auction_infos) - 1
 		auction_info := auction_infos[index]
-		//ccsvc.Register(ecomm.AuctionClosingEvent, autoCommit)
-		//ccsvc.Start(true)
 
 		reveal(auction_info.AuctionID)
-	case "revealAmt":
+	case "revealBid":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		index := len(auction_infos) - 1
 		auction_info := auction_infos[index]
-		//ccsvc.Register(ecomm.AuctionClosingEvent, autoCommit)
-		//ccsvc.Start(true)
 
-		reveal(auction_info.AuctionID)
+		accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
+
+		platform := "eth"
+		userID := accounts[1].UserID
+		bid_key := load_bidder_key(userID)
+
+		amount := new(big.Int)
+		amount.SetString(*amount_, 10)
+
+		log.Printf("Reveal bid on %s platforms with UserID: %s", platform, userID)
+		revealBid(auction_info.AuctionID, amount, bid_key, platform)
+
+		// platform = "quo"
+		// log.Printf("Reveal bid on %s platforms with UserID: %s", platform, userID)
+		// revealBid(auction_info.AuctionID, big.NewInt(3), bid_key, platform)
+
 	case "close":
 		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		index := len(auction_infos) - 1
@@ -292,6 +308,9 @@ func commitTesting(last_id, batch_size int) {
 		sign_auction_result(i)
 	}
 	log.Println("All auction results have been committed.")
+
+	time.Sleep(15 * time.Second)
+	closeTesting(last_id, batch_size)
 
 	for i := 1; i < 9; i++ {
 		bidKey := load_bidder_key(accounts[i].UserID)

@@ -83,7 +83,6 @@ func handleAddAssetEvent(eventPayload []byte) error {
 
 // fabric relayer
 func handleStartAuctionEvent(eventPayload []byte) error {
-	//t := time.Now()
 	var result ecomm.StartAuctionEventPayload
 	var tx *types.Transaction
 	var receipt1, receipt2 *types.Receipt
@@ -95,7 +94,6 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 
 	auction, err := assetClient.GetAuction(result.ID)
 	check(err)
-
 	// ethAddr := auction.EthAddr
 	// quoAddr := auction.QuorumAddr
 
@@ -155,10 +153,23 @@ func handleStartAuctionEvent(eventPayload []byte) error {
 }
 
 func handleEndClosedBidEvent(eventPayload []byte) error {
+	log.Printf("[fabric] End ClosedBid")
+	t := time.Now()
+
 	var result ecomm.Auction
 	err := json.Unmarshal(eventPayload, &result)
 	check(err)
 
+	log.Println(result.AssetID, ecomm.EndClosedBidEvent, result.AucType)
+	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.EndClosedBidEvent, result.AucType, t, "", 0)
+
+	payloadJSON, _ := json.Marshal(result)
+	wrapper := ecomm.EventWrapper{Type: "End ClosedBid", Result: payloadJSON}
+	payload, _ := json.Marshal(wrapper)
+
+	ccsvc.Publish(ecomm.EndClosedBidEvent, payload)
+
+	t = time.Now()
 	log.Println("[ETH/QUO] Change contract state")
 	authT, err := cclib.NewTransactor(root_key, password)
 	check(err)
@@ -185,6 +196,8 @@ func handleEndClosedBidEvent(eventPayload []byte) error {
 		log.Fatalf("Auction type error")
 	}
 
+	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.AuctionRevealingEvent, result.AucType, t, "", 0)
+
 	// Change Auction Contract on Eth
 	tx, _ := eth_auction_contract.RevealAuction(authT, big.NewInt(int64(result.AuctionID)))
 	receipt1 := ecomm.WaitTx(ethClient, tx, fmt.Sprintf("Change Auction %d status to 'Reveal'", result.AuctionID))
@@ -198,14 +211,10 @@ func handleEndClosedBidEvent(eventPayload []byte) error {
 	cost += receipt2.GasUsed
 	//note += " QUO:" + strconv.FormatUint(receipt2.GasUsed, 10)
 
-	t := time.Now()
-	ecomm.LogEvent(logInfoFile, result.AssetID, ecomm.RevealAuctionEvent, result.AucType, t, "", cost)
+	//t := time.Now()
+	ecomm.UpdateLog(logInfoFile, result.AssetID, ecomm.AuctionRevealingEvent, result.AucType, cost, "")
 
-	payloadJSON, _ := json.Marshal(result)
-	wrapper := ecomm.EventWrapper{Type: "Reveal Auction", Result: payloadJSON}
-	payload, _ := json.Marshal(wrapper)
-
-	err = ccsvc.Publish(ecomm.RevealAuctionEvent, payload)
+	err = ccsvc.Publish(ecomm.AuctionRevealingEvent, payload)
 
 	return err
 }
@@ -484,12 +493,12 @@ func chainCodeEvent(eventPayload []byte) {
 		event = ecomm.AuctionStartingEvent
 		assetId = auction.AssetID
 		keyWords = auction.AucType
-	case "Reveal Auction":
+	case "End ClosedBid":
 		var auction ecomm.Auction
 		err = json.Unmarshal(wrapper.Result, &auction)
 		check(err)
 
-		event = ecomm.RevealAuctionEvent
+		event = ecomm.EndClosedBidEvent
 		assetId = auction.AssetID
 		keyWords = auction.AucType
 	case "Cancel Auction":

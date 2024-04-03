@@ -18,8 +18,9 @@ import (
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+
+	solsha3 "github.com/miguelmota/go-solidity-sha3"
 )
 
 func load_bidder_key(name string) string {
@@ -37,7 +38,6 @@ func load_bidder_key(name string) string {
 	return "../../keys/key2"
 }
 
-// also no relayer involved, 'locally' make bid
 func bidAuction(auction_id int, amount *big.Int, bid_key, platform string) {
 	t := time.Now()
 
@@ -80,7 +80,7 @@ func bidAuction(auction_id int, amount *big.Int, bid_key, platform string) {
 
 	//eventID := fmt.Sprintf("%s_%s_%s_%s", a.AssetID, platform, bidT.From.String()[36:], amount)
 	keyWords := fmt.Sprintf("%s_%s_%s", platform, bidT.From.String()[36:], amount)
-	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.BidEvent, keyWords, t, "1", 0)
+	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.BidEvent, keyWords, t, "", 0)
 
 	// @todo: Make approve and bid in a single transaction
 	// Approve amount of bid through ERC20 contract
@@ -101,13 +101,6 @@ func bidAuction(auction_id int, amount *big.Int, bid_key, platform string) {
 		log.Fatalf("Failed to bid: %v", err)
 	}
 	receipt2 := ecomm.WaitTx(client, tx2, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", a.AuctionID, auction_addr))
-
-	// valueB, err = MDAI.BalanceOf(&bind.CallOpts{}, auction_addr)
-	// log.Printf("Auction contract after balance: %s", valueB)
-
-	// note := "Cost: " + strconv.FormatUint(receipt1.GasUsed, 10)
-	// note += " + " + strconv.FormatUint(receipt2.GasUsed, 10)
-	// note += " Bid: MDAI " + big.NewInt(0).Mul(big.NewInt(amount.Int64()), ecomm.DecimalB).String()
 
 	total_cost := receipt1.GasUsed + receipt2.GasUsed
 	//fmt.Print(total_cost)
@@ -134,6 +127,8 @@ func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key, platform string) {
 		client = quoClient
 	}
 
+	// auction_contract, err := cb1p_auction.NewCb1pAuction(auction_addr, client)
+	// check(err)
 	var auction_contract ecomm.AuctionContractCloseBid
 	//var auction_contract_close_bid ecomm.AuctionContractCloseBid
 
@@ -142,8 +137,8 @@ func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key, platform string) {
 		auction_contract, err = cb1p_auction.NewCb1pAuction(auction_addr, client)
 	case "cb2p":
 		auction_contract, err = cb2p_auction.NewCb2pAuction(auction_addr, client)
-		// case "cb1p":
-		// 	auction_contract_cb, err = cb1p_auction.NewCb1pAuction(auction_addr, client)
+	// case "cb1p":
+	// 	auction_contract_cb, err = cb1p_auction.NewCb1pAuction(auction_addr, client)
 	default:
 		log.Fatalf("Incorrect Auction Type!")
 		return
@@ -153,25 +148,89 @@ func bidAuctionH(auction_id int, bidAmount *big.Int, bid_key, platform string) {
 	bidT, err := cclib.NewTransactor(bid_key, "password")
 	check(err)
 
-	bidHash := crypto.Keccak256Hash(bidAmount.Bytes())
+	bidAmount.Mul(bidAmount, ecomm.DecimalB)
+	bidHash := solsha3.SoliditySHA3(solsha3.Uint256(bidAmount))
+	log.Printf("Calculated hash of uint(%s): %s", bidAmount, hex.EncodeToString(bidHash[:]))
+
 	// Convert bidHash to [32]byte to match the Go binding's expectation
 	var bidHashArray [32]byte
-	copy(bidHashArray[:], bidHash.Bytes())
-
-	//log.Println("[Biddeer] bidHash:", bidHashArray)
+	copy(bidHashArray[:], bidHash)
 
 	keyWords := fmt.Sprintf("%s_%s_%s", platform, bidT.From.String()[36:], hex.EncodeToString(bidHashArray[:])[60:])
 	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.BidHashEvent, keyWords, t, "", 0)
-	// Compute the hash of the bid amount
-	// Solidity equivalent: keccak256(abi.encodePacked(bidAmount))
 
 	tx, _ := auction_contract.Bid(bidT, big.NewInt(int64(auction_id)), bidHashArray)
 	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", auction.AuctionID, auction_addr))
 	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.BidHashEvent, keyWords, receipt.GasUsed, "")
 }
 
-func revealBid() {
-	return
+func revealBid(auction_id int, amount *big.Int, bid_key, platform string) {
+	t := time.Now()
+
+	var contract_info ecomm.ContractInfo
+	ecomm.ReadJsonFile(contractInfoFile, &contract_info)
+	erc20_address := contract_info.EthERC20
+	client := ethClient
+
+	auction, err := assetClient.GetAuction(auction_id)
+	check(err)
+	if auction.AucType == "english" {
+		log.Fatalf("Incorrect auction id which only support %s", auction.AucType)
+	}
+
+	auction_addr := common.HexToAddress(auction.EthAddr)
+	// @todo: require platform either is 'quo' or 'eth'
+	if platform != "eth" {
+		auction_addr = common.HexToAddress(auction.QuorumAddr)
+		client = quoClient
+		erc20_address = contract_info.QuoERC20
+	}
+	//auction_contract, err := cb1p_auction.NewCb1pAuction(auction_addr, client)
+	var auction_contract ecomm.AuctionContractCloseBid
+	//var auction_contract_close_bid ecomm.AuctionContractCloseBid
+
+	switch auction.AucType {
+	case "cb1p":
+		auction_contract, err = cb1p_auction.NewCb1pAuction(auction_addr, client)
+	case "cb2p":
+		auction_contract, err = cb2p_auction.NewCb2pAuction(auction_addr, client)
+	default:
+		log.Fatalf("Incorrect Auction Type!")
+		return
+	}
+	check(err)
+
+	bidT, err := cclib.NewTransactor(bid_key, "password")
+	check(err)
+
+	//eventID := fmt.Sprintf("%s_%s_%s_%s", a.AssetID, platform, bidT.From.String()[36:], amount)
+	keyWords := fmt.Sprintf("%s_%s_%s", platform, bidT.From.String()[36:], amount)
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.BidEvent, keyWords, t, "", 0)
+	amount.Mul(amount, ecomm.DecimalB)
+
+	// @todo: Make approve and bid in a single transaction
+	// Approve amount of bid through ERC20 contract
+	MDAI, _ := stable_coin.NewStableCoin(erc20_address, client)
+	// valueB, err := MDAI.BalanceOf(&bind.CallOpts{}, auction_addr)
+	// log.Printf("Auction contract orig balance: %s", valueB)
+
+	tx1, err := MDAI.Approve(bidT, auction_addr, amount)
+	if err != nil {
+		log.Fatalf("Failed to approve: %v", err)
+	}
+	receipt1 := ecomm.WaitTx(client, tx1, "Approve Auction Contract's allowance")
+	// allB, err := MDAI.Allowance(&bind.CallOpts{}, bidT.From, auction_addr)
+	// log.Printf("Auction contract orig allowance: %s", allB)
+
+	tx2, err := auction_contract.Reveal(bidT, big.NewInt(int64(auction_id)), amount)
+	if err != nil {
+		log.Fatalf("Failed to bid: %v", err)
+	}
+	receipt2 := ecomm.WaitTx(client, tx2, fmt.Sprintf("Bid on Auction ID: %d through contract: %s", auction.AuctionID, auction_addr))
+
+	total_cost := receipt1.GasUsed + receipt2.GasUsed
+	//fmt.Print(total_cost)
+	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.BidEvent, keyWords, total_cost, "")
 }
 
 func withdraw(auction_id int, bid_key, platform string) {
@@ -365,23 +424,6 @@ func provide_feedback(auction_id int, feedback string, bid_key, platform string)
 	})
 
 	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
-}
-
-func autoCommit(eventPayload []byte) {
-	var wrapper ecomm.EventWrapper
-	// var event, assetId, keyWords string
-
-	err := json.Unmarshal([]byte(eventPayload), &wrapper)
-	check(err)
-
-	switch wrapper.Type {
-	case "Close Auction":
-		var auction ecomm.Auction
-		err = json.Unmarshal(wrapper.Result, &auction)
-		check(err)
-
-		sign_auction_result(auction.AuctionID)
-	}
 }
 
 func check(err error) {

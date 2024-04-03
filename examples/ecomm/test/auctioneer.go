@@ -32,17 +32,16 @@ func reveal(auctionID int) {
 
 	a, err := assetClient.GetAuction(auctionID)
 	check(err)
+	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.EndClosedBidEvent, a.AucType, t, "", 0)
 
 	if a.Status != "open" {
 		err = fmt.Errorf("auction status error")
 		check(err)
 	}
 
-	log.Println("[fabric] Reveal Auction")
-	_, err = assetClient.RevealAuction(auctionID)
+	log.Println("[fabric] End ClosedBid")
+	_, err = assetClient.EndClosedBid(auctionID)
 	check(err)
-
-	ecomm.LogEvent(logInfoFile, a.AssetID, ecomm.RevealAuctionEvent, a.AucType, t, "", 0)
 }
 
 func cancel(auctionID int) {

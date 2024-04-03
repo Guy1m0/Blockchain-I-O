@@ -81,7 +81,7 @@ func main() {
 	ccsvc.Register(ecomm.AssetAddingEvent, chainCodeEvent)
 	ccsvc.Register(ecomm.AuctionStartingEvent, chainCodeEvent)
 
-	ccsvc.Register(ecomm.RevealAuctionEvent, chainCodeEvent)
+	ccsvc.Register(ecomm.EndClosedBidEvent, chainCodeEvent)
 
 	ccsvc.Register(ecomm.DetermineWinnerEvent, chainCodeEvent)
 	ccsvc.Register(ecomm.AuctionClosingEvent, chainCodeEvent)

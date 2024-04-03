@@ -26,7 +26,9 @@ contract ClosedBidFirstPriceAuction {
 
     // Events that will be emitted on changes.
     event NewBidHash(uint auctionId, string id, address bidder, bytes32 bidHash, string auctionType);
-    event HighestBidIncreased(uint auctionId, string id, address bidder, uint amount);
+    //event HighestBidIncreased(uint auctionId, string id, address bidder, uint amount);
+    event HighestBidIncreased(uint auctionId, string id, address bidder, uint bidAmount, string auctionType);
+
     event BidTooLow(uint auctionId, string id, address bidder, uint bidAmount, uint highestBid, string auctionType);
 
     event RevealAuction(uint auctionId);
@@ -101,7 +103,8 @@ contract ClosedBidFirstPriceAuction {
         // Update the highest bid and highest bidder
         highestBidder[auctionId] = msg.sender;
         highestBid[auctionId] = bidAmount;
-        emit HighestBidIncreased(auctionId, asset_id[auctionId], msg.sender, bidAmount);
+        emit HighestBidIncreased(auctionId, asset_id[auctionId], msg.sender, bidAmount, auction_type);
+
     }
 
 

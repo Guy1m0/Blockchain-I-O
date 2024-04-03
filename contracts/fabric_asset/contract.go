@@ -119,7 +119,7 @@ func (cc *SmartContract) StartAuction(
 	return nil
 }
 
-func (cc *SmartContract) RevealAuction(
+func (cc *SmartContract) EndClosedBid(
 	ctx contractapi.TransactionContextInterface, IDStr string,
 ) error {
 
@@ -141,7 +141,7 @@ func (cc *SmartContract) RevealAuction(
 	if err != nil {
 		return fmt.Errorf("error marshalling event: %v", err)
 	}
-	err = ctx.GetStub().SetEvent("RevealAuction", []byte(eventPayload))
+	err = ctx.GetStub().SetEvent("EndClosedBid", []byte(eventPayload))
 	if err != nil {
 		return fmt.Errorf("error setting event: %v", err)
 	}
