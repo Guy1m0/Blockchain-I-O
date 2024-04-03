@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"log"
@@ -18,6 +19,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/olekukonko/tablewriter"
+
+	solsha3 "github.com/miguelmota/go-solidity-sha3"
 )
 
 const (
@@ -139,10 +142,10 @@ func test() {
 	// } else {
 	// 	log.Printf("Balance: %s", valueB.String())
 	// }
-	// hash := solsha3.SoliditySHA3(
-	// 	solsha3.Uint256(big.NewInt(0).Mul(big.NewInt(1), ecomm.DecimalB)), //8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b
-	// )
-	// fmt.Println(hex.EncodeToString(hash)) // b10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6
+	hash := solsha3.SoliditySHA3(
+		solsha3.Uint256(big.NewInt(0).Mul(big.NewInt(1), ecomm.DecimalB)), //8a35acfbc15ff81a39ae7d344fd709f28e8600b4aa8c65c6b64bfe7fe36bd19b
+	)
+	fmt.Println(hex.EncodeToString(hash)) // b10e2d527612073b26eecdfd717e6a320cf44b4afac2b0732d9fcbe2b7fa0cf6
 
 }
 
