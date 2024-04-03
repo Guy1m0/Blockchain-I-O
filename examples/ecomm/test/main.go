@@ -333,12 +333,12 @@ func revealBidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 	//log.Println(len(auction_infos), s, batch_size)
 
 	auctions := auction_infos[s-batch_size : s]
-	counter := len(auctions) * (len(accounts) - 1)
+	counter := len(auctions) * (len(accounts) - 1) * batch_size
 
 	//log.Printf("counter: %d", counter)
 
 	var auc_ind, acc_ind, auction_id, bidAmount int
-	for index := (len(accounts)-1)*(batch_size*len(auctions)-1) + 1; index <= counter*batch_size; index++ {
+	for index := counter - (len(accounts) - 1) + 1; index <= counter; index++ {
 		auc_ind = index % len(auctions)
 		acc_ind = index%8 + 1
 		auction_id = auctions[auc_ind].AuctionID
