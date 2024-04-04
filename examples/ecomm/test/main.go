@@ -9,7 +9,6 @@ import (
 	"math/big"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/examples/ecomm"
@@ -89,9 +88,9 @@ func main() {
 		//asset_name := asset_names[s]
 		createTesting(s, *batch_size) // still using thread
 
-		var sleep_time int
-		sleep_time = *batch_size * 15
-		time.Sleep(time.Duration(sleep_time) * time.Second)
+		// var sleep_time int
+		// sleep_time = *batch_size * 15
+		// time.Sleep(time.Duration(sleep_time) * time.Second)
 
 		auction_infos, _ = ecomm.ReadAuctionsFromFile(auctionInfoFile)
 		s = len(auction_infos)
@@ -142,6 +141,9 @@ func main() {
 
 		time.Sleep(15 * time.Second)
 		commitTesting(last_id, *batch_size)
+
+		time.Sleep(15 * time.Second)
+		feedbackTesting(last_id, *batch_size)
 
 		log.Printf("Testing execution took %s \n", time.Since(start))
 
@@ -272,23 +274,31 @@ func main() {
 		auction_info := auction_infos[index]
 
 		sign_auction_result(auction_info.AuctionID)
+
+	case "feedback":
+		auction_infos, _ := ecomm.ReadAuctionsFromFile(auctionInfoFile)
+		index := len(auction_infos) - 1
+		auction_info := auction_infos[index]
+
+		provide_feedback(auction_info.AuctionID, 5, "abcd")
 	default:
 		fmt.Println("command not found")
 	}
 }
 
 func createTesting(s, batch_size int) {
-	var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines to finish
+	//var wg sync.WaitGroup // Use a WaitGroup to wait for all goroutines to finish
 	//log.Println(len(asset_names), s, batch_size)
 	for _, asset_name := range asset_names[s : s+batch_size] {
-		wg.Add(1)                    // Increment the WaitGroup counter
-		go func(asset_name string) { // Launch a goroutine for each create operation
-			defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
-			create(asset_name, auc_type, usr_name)
-		}(asset_name) // Pass asset_name as an argument to the goroutine
+		// wg.Add(1)                    // Increment the WaitGroup counter
+		// go func(asset_name string) { // Launch a goroutine for each create operation
+		// 	defer wg.Done() // Decrement the WaitGroup counter when the goroutine completes
+		create(asset_name, auc_type, usr_name)
+		time.Sleep(7 * time.Second)
+		// }(asset_name) // Pass asset_name as an argument to the goroutine
 	}
 
-	wg.Wait() // Wait for all goroutines to finish
+	//wg.Wait() // Wait for all goroutines to finish
 	log.Println("All assets have been added.")
 }
 
@@ -311,7 +321,7 @@ func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 		userID := accounts[acc_ind].UserID
 		bid_key := load_bidder_key(userID)
 
-		bidAmount = int(index / batch_size)
+		bidAmount = int(index/batch_size) + batch_size%2 + 1
 		bidAuction(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
 
 		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
@@ -319,7 +329,7 @@ func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 		userID = accounts[9-acc_ind].UserID
 		bid_key = load_bidder_key(userID)
 
-		bidAmount = int((counter - index + 1) / batch_size)
+		bidAmount = int(index/batch_size) + (batch_size+1)%2 + 1
 		bidAuction(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
 		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
 
@@ -438,6 +448,14 @@ func commitTesting(last_id, batch_size int) {
 	}
 	log.Println("All bidders have withdrawed unsuccessfull bids.")
 
+}
+
+func feedbackTesting(last_id, batch_size int) {
+	for i := last_id - batch_size + 1; i <= last_id; i++ {
+		provide_feedback(i, i%5, "only used for testing")
+		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))) * time.Second)
+	}
+	log.Println("All feedbacks have been provided.")
 }
 
 func load_auctioneer(name string) string {

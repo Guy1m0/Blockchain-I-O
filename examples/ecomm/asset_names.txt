@@ -81,15 +81,15 @@ Laptop
 Burrito
 Jigsaw
 Generator
-Pliers
-Mixer
-Bear
-Oven
-Wind Turbine
-Dehumidifier
-Space Heater
-Coffee Makers
-Toaster
+Plier
+Mixers
+Bears
+Ovens
+Wind Turbines
+Dehumidifiers
+Space Heaters
+Coffee Maker
+Toasters
 Leaf Blower
 Grinder
 Workbench

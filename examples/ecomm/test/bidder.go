@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log"
 	"math/big"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Guy1m0/Blockchain-I-O/cclib"
@@ -269,39 +267,39 @@ func withdraw(auction_id int, bid_key, platform string) {
 	/////////////
 }
 
-func check_winner(auction_id int, bid_key, platform string) {
-	client := ethClient
-	bidT, err := cclib.NewTransactor(bid_key, password)
-	check(err)
+// func check_winner(auction_id int, bid_key, platform string) {
+// 	client := ethClient
+// 	bidT, err := cclib.NewTransactor(bid_key, password)
+// 	check(err)
 
-	// Get Auction Contract deployed on Eth/Quo
-	//assetClient := ecomm.NewAssetClient() // return Fabric asset contract
-	a, err := assetClient.GetAuction(auction_id)
-	check(err)
+// 	// Get Auction Contract deployed on Eth/Quo
+// 	//assetClient := ecomm.NewAssetClient() // return Fabric asset contract
+// 	a, err := assetClient.GetAuction(auction_id)
+// 	check(err)
 
-	auction_addr := common.HexToAddress(a.EthAddr)
-	if platform != "eth" {
-		auction_addr = common.HexToAddress(a.QuorumAddr)
-		client = quoClient
-	}
+// 	auction_addr := common.HexToAddress(a.EthAddr)
+// 	if platform != "eth" {
+// 		auction_addr = common.HexToAddress(a.QuorumAddr)
+// 		client = quoClient
+// 	}
 
-	auction_contract, err := english_auction.NewEnglishAuction(auction_addr, client)
-	check(err)
+// 	auction_contract, err := english_auction.NewEnglishAuction(auction_addr, client)
+// 	check(err)
 
-	// Check winner
-	highestBidder, err := auction_contract.HighestBidder(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
-	check(err)
+// 	// Check winner
+// 	highestBidder, err := auction_contract.HighestBidder(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
+// 	check(err)
 
-	if bidT.From == highestBidder {
-		fmt.Println("Waiting your response (abt/prcd) for Auction", auction_id)
-	} else {
-		fmt.Println("highest bidder:", highestBidder.Hex())
-	}
+// 	if bidT.From == highestBidder {
+// 		fmt.Println("Waiting your response (abt/prcd) for Auction", auction_id)
+// 	} else {
+// 		fmt.Println("highest bidder:", highestBidder.Hex())
+// 	}
 
-	highestBid, err := auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
-	check(err)
-	fmt.Println("highest bid:", highestBid)
-}
+// 	highestBid, err := auction_contract.HighestBid(&bind.CallOpts{}, big.NewInt(int64(auction_id)))
+// 	check(err)
+// 	fmt.Println("highest bid:", highestBid)
+// }
 
 func sign_auction_result(auction_id int) {
 	t := time.Now()
@@ -378,52 +376,69 @@ func sign_auction_result(auction_id int) {
 
 }
 
-func provide_feedback(auction_id int, feedback string, bid_key, platform string) {
+func provide_feedback(auction_id, score int, feedback string) {
 	// @reset timer
 	t := time.Now()
-	cclib.LastEventTimestamp.Set(t, timeInfoFile)
-
-	parts := strings.SplitN(feedback, "@", 2)
-	score, err := strconv.Atoi(parts[0])
+	auction, err := assetClient.GetAuction(auction_id)
 	check(err)
 
-	if len(parts) == 1 {
-		feedback = ""
-	} else {
-		feedback = parts[1]
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.ProvideFeedbackEvent, auction.HighestBidder[36:], t, "", 0)
+
+	var bidKey string
+	inval_addr := true
+	accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
+
+	for i := 1; i < 9; i++ {
+		if auction.HighestBidder == accounts[i].Address.String() {
+			bidKey = load_bidder_key(accounts[i].UserID)
+			inval_addr = false
+			break
+		}
 	}
 
-	client := ethClient
-	a, err := assetClient.GetAuction(auction_id)
-	check(err)
+	if inval_addr {
+		log.Fatalf("Invalid winner address%s", auction.HighestBidder)
+	}
 
-	auction_addr := common.HexToAddress(a.EthAddr)
-	if platform != "eth" {
-		auction_addr = common.HexToAddress(a.QuorumAddr)
+	var auction_addr common.Address
+	var client *ethclient.Client
+	if auction.HighestBidPlatform == "eth" {
+		auction_addr = common.HexToAddress(auction.EthAddr)
+		client = ethClient
+	} else {
+		auction_addr = common.HexToAddress(auction.QuorumAddr)
 		client = quoClient
 	}
 
-	bidT, err := cclib.NewTransactor(bid_key, "password")
-	check(err)
+	var auction_contract ecomm.AuctionContract
+	// load auction contract
+	switch auction.AucType {
+	case "english":
+		auction_contract, err = english_auction.NewEnglishAuction(auction_addr, client)
+		check(err)
+	case "dutch":
+	case "cb1p":
+		auction_contract, err = cb1p_auction.NewCb1pAuction(auction_addr, client)
+		check(err)
+	case "cb2p":
+	default:
+		log.Fatalf("Auction type error")
+	}
 
-	// log
-	payload, _ := json.Marshal(a)
-	cclib.LogEventToFile(logInfoFile, ecomm.ProvideFeedbackEvent, payload, t, timeInfoFile)
-
-	auction_contract, err := english_auction.NewEnglishAuction(auction_addr, client)
+	bidT, err := cclib.NewTransactor(bidKey, "password")
 	check(err)
 
 	tx, _ := auction_contract.ProvideFeedback(bidT, big.NewInt(int64(auction_id)), big.NewInt(int64(score)), feedback)
-	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Provide feedback on Auction ID: %d", a.AuctionID))
-	t = time.Now()
+	receipt := ecomm.WaitTx(client, tx, fmt.Sprintf("Provide feedback on Auction ID: %d", auction.AuctionID))
+	//t = time.Now()
 
-	payload, _ = json.Marshal(&ecomm.Tx{
-		Platform: platform,
-		Type:     "Feedback",
-		Hash:     receipt.TxHash,
-	})
-
-	cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
+	// payload, _ = json.Marshal(&ecomm.Tx{
+	// 	Platform: platform,
+	// 	Type:     "Feedback",
+	// 	Hash:     receipt.TxHash,
+	// })
+	ecomm.UpdateLog(logInfoFile, auction.AssetID, ecomm.ProvideFeedbackEvent, auction.HighestBidder[36:], receipt.GasUsed, "")
+	// cclib.LogEventToFile(logInfoFile, ecomm.TransactionMinedEvent, payload, t, timeInfoFile)
 }
 
 func check(err error) {

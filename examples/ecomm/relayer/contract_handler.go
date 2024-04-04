@@ -164,6 +164,20 @@ func handleDecisionMadeEvent(eventPayload ecomm.DecisionMade, t time.Time) error
 	return nil
 }
 
+func handleRateAuctionEvent(eventPayload ecomm.RateAuction, t time.Time) error {
+	auction, err := assetClient.GetAuction(int(eventPayload.AuctionId.Int64()))
+	check(err)
+
+	ecomm.LogEvent(logInfoFile, auction.AssetID, ecomm.ProvideFeedbackEvent, auction.HighestBidder[36:], t, "", 0)
+
+	payloadJSON, _ := json.Marshal(auction)
+	wrapper := ecomm.EventWrapper{Type: "Feedback", Result: payloadJSON}
+	payload, _ := json.Marshal(wrapper)
+
+	ccsvc.Publish(ecomm.ProvideFeedbackEvent, payload)
+	return nil
+}
+
 func smartContractEvent(eventPayload []byte) {
 	t := time.Now()
 	var wrapper ecomm.EventWrapper
@@ -220,6 +234,14 @@ func smartContractEvent(eventPayload []byte) {
 		event = ecomm.CommitAuctionResultEvent
 		auction, _ := assetClient.GetAuction(result.AuctionID)
 		assetId = auction.AssetID
+		keyWords = auction.HighestBidder[36:]
+
+	case "Feedback":
+		var auction ecomm.Auction
+		err = json.Unmarshal(wrapper.Result, &auction)
+		check(err)
+
+		event = ecomm.ProvideFeedbackEvent
 		keyWords = auction.HighestBidder[36:]
 
 	default:

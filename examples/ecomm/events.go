@@ -99,4 +99,5 @@ type RateAuction struct {
 	Id        string
 	Rating    *big.Int
 	Review    string
+	Raw       types.Log // Blockchain specific contextual infos
 }

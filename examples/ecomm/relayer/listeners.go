@@ -219,6 +219,19 @@ func startListeningForAuctionEvents(auction_addr common.Address, auction_abi str
 			// sub.Unsubscribe()
 			// return
 			// break
+		case contractAbi.Events["RateAuction"].ID.Hex():
+			t := time.Now()
+			var event ecomm.RateAuction
+			err := contractAbi.UnpackIntoInterface(&event, "DecisionMade", vLog.Data)
+			check(err)
+
+			// call handler
+			handleRateAuctionEvent(event, t)
+			//fmt.Printf("Decision Made: Winner %s, Amount %s, ID %s\n", event.Winner.Hex(), event.Amount.String(), event.Id)
+			// // Unsubscribe and break out of the loop
+			// sub.Unsubscribe()
+			// return
+			// break
 		}
 	}
 }
