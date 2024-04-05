@@ -1,4 +1,4 @@
-Steak
+Steaks
 Bandsaw
 Chicken
 Dryer
@@ -46,26 +46,26 @@ Ladder
 Food Processor
 Flashlight
 Lion
-Drill Press
-Wheelbarrow
-Blender
-Pressure Washer
-VR Headset
-Chainsaw
-Utility Knife
-Tape Measure
-Tablet
-Range Hood
-Hedge Trimmer
-Solar Panel
-Robot
-Screwdriver
-Toaster Oven
-Grill
-Giraffe
-Microwave
-Deep Fryer
-Fries
+Drill Pres
+Wheelbarrows
+Blenders
+Pressure Washers
+VR Headsets
+Chainsaws
+Utility Knifes
+Tape Measures
+Tablets
+Range Hoods
+Hedge Trimmers
+Solar Panels
+Robots
+Screwdrivers
+Toaster Ovens
+Grills
+Giraffes
+Microwaves
+Deep Fryers
+Friess
 Computer
 Tiger
 Air Conditioner

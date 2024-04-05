@@ -304,71 +304,34 @@ func createTesting(s, batch_size int) {
 
 func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 	accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
-	//log.Println(len(auction_infos), s, batch_size)
 
 	auctions := auction_infos[s-batch_size : s]
-	counter := len(auctions) * batch_size * (len(accounts) - 1)
+	counter := batch_size * (len(accounts) - 1)
 
-	//log.Printf("counter: %d", counter)
+	var acc_ind, auction_id, bidAmount int
+	for j, auction := range auctions {
+		for index := 1; index <= counter; index++ {
+			acc_ind = (index+j)%8 + 1
+			auction_id = auction.AuctionID
 
-	var auc_ind, acc_ind, auction_id, bidAmount int
-	for index := 1; index <= counter; index++ {
-		auc_ind = index % len(auctions)
-		acc_ind = index%8 + 1
-		auction_id = auctions[auc_ind].AuctionID
+			platform := "quo"
+			userID := accounts[acc_ind].UserID
+			bid_key := load_bidder_key(userID)
 
-		platform := "quo"
-		userID := accounts[acc_ind].UserID
-		bid_key := load_bidder_key(userID)
+			bidAmount = index + batch_size%2 + 1
+			bidAuction(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
 
-		bidAmount = int(index/batch_size) + batch_size%2 + 1
-		bidAuction(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
+			time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
+			platform = "eth"
+			acc_ind = (acc_ind+j)%8 + 1
+			userID = accounts[acc_ind].UserID
+			bid_key = load_bidder_key(userID)
 
-		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
-		platform = "eth"
-		userID = accounts[9-acc_ind].UserID
-		bid_key = load_bidder_key(userID)
+			bidAmount = index + (batch_size+1)%2 + 1
+			bidAuction(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
+			time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
 
-		bidAmount = int(index/batch_size) + (batch_size+1)%2 + 1
-		bidAuction(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
-		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
-
-	}
-
-	log.Println("[Test] All bids have been placed.")
-}
-
-func revealBidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
-	accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
-	//log.Println(len(auction_infos), s, batch_size)
-
-	auctions := auction_infos[s-batch_size : s]
-	counter := len(auctions) * (len(accounts) - 1) * batch_size
-
-	//log.Printf("counter: %d", counter)
-
-	var auc_ind, acc_ind, auction_id, bidAmount int
-	for index := counter - (len(accounts) - 1) + 1; index <= counter; index++ {
-		auc_ind = index % len(auctions)
-		acc_ind = index%8 + 1
-		auction_id = auctions[auc_ind].AuctionID
-
-		platform := "quo"
-		userID := accounts[acc_ind].UserID
-		bid_key := load_bidder_key(userID)
-
-		bidAmount = int(index/batch_size) + batch_size%2 + 1
-		revealBid(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
-
-		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
-		platform = "eth"
-		userID = accounts[9-acc_ind].UserID
-		bid_key = load_bidder_key(userID)
-
-		bidAmount = int(index/batch_size) + (batch_size+1)%2 + 1
-		revealBid(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
-		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
-
+		}
 	}
 
 	log.Println("[Test] All bids have been placed.")
@@ -377,38 +340,101 @@ func revealBidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 func bidHTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 	accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
 	//log.Println(len(auction_infos), s, batch_size)
+	counter := (len(accounts) - 1) * batch_size
+	auctions := auction_infos[s-batch_size : s]
+
+	var acc_ind, auction_id, bidAmount int
+	for j, auction := range auctions {
+		for index := 1; index <= counter; index++ {
+			acc_ind = (index+j)%8 + 1
+			auction_id = auction.AuctionID
+
+			platform := "quo"
+			userID := accounts[acc_ind].UserID
+			bid_key := load_bidder_key(userID)
+
+			bidAmount = index + batch_size%2 + 1
+			bidAuctionH(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
+
+			time.Sleep(1 * time.Second)
+			platform = "eth"
+			acc_ind = (acc_ind+j)%8 + 1
+			userID = accounts[acc_ind].UserID
+			bid_key = load_bidder_key(userID)
+
+			bidAmount = index + (batch_size+1)%2 + 1
+			bidAuctionH(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
+			time.Sleep(2 * time.Second)
+
+		}
+	}
+	log.Println("[Test] All bids have been placed.")
+}
+
+func revealBidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
+	accounts, _ := ecomm.ReadUsersFromFile(userInfoFile)
+	//log.Println(len(auction_infos), s, batch_size)
 
 	auctions := auction_infos[s-batch_size : s]
-	counter := len(auctions) * batch_size * (len(accounts) - 1)
+	counter := (len(accounts) - 1) * batch_size
 
-	//log.Printf("counter: %d", counter)
+	var acc_ind, auction_id, bidAmount int
+	for j, auction := range auctions {
+		for index := counter - (len(accounts) - 1) + 1; index <= counter; index++ {
+			acc_ind = (index+j)%8 + 1
+			auction_id = auction.AuctionID
 
-	var auc_ind, acc_ind, auction_id, bidAmount int
-	for index := 1; index <= counter; index++ {
-		auc_ind = index % len(auctions)
-		acc_ind = index%8 + 1
-		auction_id = auctions[auc_ind].AuctionID
+			platform := "quo"
+			userID := accounts[acc_ind].UserID
+			bid_key := load_bidder_key(userID)
 
-		platform := "quo"
-		userID := accounts[acc_ind].UserID
-		bid_key := load_bidder_key(userID)
+			bidAmount = index + batch_size%2 + 1
+			revealBid(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
 
-		bidAmount = int(index/batch_size) + batch_size%2 + 1
-		bidAuctionH(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
+			time.Sleep(2 * time.Second)
+			platform = "eth"
+			acc_ind = (acc_ind+j)%8 + 1
+			userID = accounts[acc_ind].UserID
+			bid_key = load_bidder_key(userID)
 
-		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
-		platform = "eth"
-		userID = accounts[9-acc_ind].UserID
-		bid_key = load_bidder_key(userID)
+			bidAmount = index + (batch_size+1)%2 + 1
+			revealBid(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
+			time.Sleep(3 * time.Second)
 
-		bidAmount = int(index/batch_size) + (batch_size+1)%2 + 1
-		bidAuctionH(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
-		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
-
+		}
 	}
 
 	log.Println("[Test] All bids have been placed.")
 }
+
+//
+// counter := len(auctions) * batch_size * (len(accounts) - 1)
+
+// //log.Printf("counter: %d", counter)
+
+// var auc_ind, acc_ind, auction_id, bidAmount int
+// for index := 1; index <= counter; index++ {
+// 	auc_ind = index % len(auctions)
+// 	acc_ind = index%8 + 1
+// 	auction_id = auctions[auc_ind].AuctionID
+
+// 	platform := "quo"
+// 	userID := accounts[acc_ind].UserID
+// 	bid_key := load_bidder_key(userID)
+
+// 	bidAmount = int(index/batch_size) + batch_size%2 + 1
+// 	bidAuctionH(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
+
+// 	time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
+// 	platform = "eth"
+// 	userID = accounts[9-acc_ind].UserID
+// 	bid_key = load_bidder_key(userID)
+
+// 	bidAmount = int(index/batch_size) + (batch_size+1)%2 + 1
+// 	bidAuctionH(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
+// 	time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
+
+// }
 
 func closeTesting(last_id, batch_size int) {
 	for i := last_id - batch_size + 1; i <= last_id; i++ {
