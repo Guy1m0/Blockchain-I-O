@@ -241,6 +241,7 @@ func smartContractEvent(eventPayload []byte) {
 		err = json.Unmarshal(wrapper.Result, &auction)
 		check(err)
 
+		assetId = auction.AssetID
 		event = ecomm.ProvideFeedbackEvent
 		keyWords = auction.HighestBidder[36:]
 

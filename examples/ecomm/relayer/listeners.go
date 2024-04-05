@@ -222,7 +222,7 @@ func startListeningForAuctionEvents(auction_addr common.Address, auction_abi str
 		case contractAbi.Events["RateAuction"].ID.Hex():
 			t := time.Now()
 			var event ecomm.RateAuction
-			err := contractAbi.UnpackIntoInterface(&event, "DecisionMade", vLog.Data)
+			err := contractAbi.UnpackIntoInterface(&event, "RateAuction", vLog.Data)
 			check(err)
 
 			// call handler

@@ -151,7 +151,6 @@ contract ClosedBidFirstPriceAuction {
 
         if (highestBid[auctionId] > 0) {
             token.transferFrom(address(this), address(0), highestBid[auctionId]);
-            highestBidder[auctionId] = address(0);
             highestBid[auctionId] = 0;
         }
 
@@ -193,8 +192,10 @@ contract ClosedBidFirstPriceAuction {
         score[asset_owner[auctionId]].push(_score);
         feedback[asset_owner[auctionId]].push(_feedback);
 
-        emit RateAuction(auctionId, asset_id[auctionId], _score, _feedback);
         status[auctionId] = "closed";
+        highestBidder[auctionId] = address(0);
+
+        emit RateAuction(auctionId, asset_id[auctionId], _score, _feedback);
     }
 
     function checkAverageScore(uint auctionId) public view returns (int) {

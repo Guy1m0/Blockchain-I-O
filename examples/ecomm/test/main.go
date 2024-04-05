@@ -41,7 +41,7 @@ var (
 
 	usr_name          = "auctioneer 1"
 	auc_type          = "english"
-	support_auc_types = []string{"english", "dutch", "cb1p", "cb2p", "all"}
+	support_auc_types = []string{"english", "dutch", "cb1p", "cb2p", "[Test] All"}
 
 	logCSVPath = "../tmp/log.csv"
 
@@ -299,7 +299,7 @@ func createTesting(s, batch_size int) {
 	}
 
 	//wg.Wait() // Wait for all goroutines to finish
-	log.Println("All assets have been added.")
+	log.Println("[Test] All assets have been added.")
 }
 
 func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
@@ -335,7 +335,7 @@ func bidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 
 	}
 
-	log.Println("All bids have been placed.")
+	log.Println("[Test] All bids have been placed.")
 }
 
 func revealBidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
@@ -357,7 +357,7 @@ func revealBidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 		userID := accounts[acc_ind].UserID
 		bid_key := load_bidder_key(userID)
 
-		bidAmount = int(index/batch_size+(batch_size+1)%2) / 2
+		bidAmount = int(index/batch_size) + batch_size%2 + 1
 		revealBid(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
 
 		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
@@ -365,13 +365,13 @@ func revealBidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 		userID = accounts[9-acc_ind].UserID
 		bid_key = load_bidder_key(userID)
 
-		bidAmount = int(index/batch_size+batch_size%2) / 2
+		bidAmount = int(index/batch_size) + (batch_size+1)%2 + 1
 		revealBid(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
 		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
 
 	}
 
-	log.Println("All bids have been placed.")
+	log.Println("[Test] All bids have been placed.")
 }
 
 func bidHTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
@@ -393,7 +393,7 @@ func bidHTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 		userID := accounts[acc_ind].UserID
 		bid_key := load_bidder_key(userID)
 
-		bidAmount = int(index/batch_size+(batch_size+1)%2) / 2
+		bidAmount = int(index/batch_size) + batch_size%2 + 1
 		bidAuctionH(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
 
 		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
@@ -401,27 +401,27 @@ func bidHTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 		userID = accounts[9-acc_ind].UserID
 		bid_key = load_bidder_key(userID)
 
-		bidAmount = int(index/batch_size+batch_size%2) / 2
+		bidAmount = int(index/batch_size) + (batch_size+1)%2 + 1
 		bidAuctionH(auction_id, big.NewInt(int64(bidAmount)), bid_key, platform)
 		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))+1) * time.Second)
 
 	}
 
-	log.Println("All bids have been placed.")
+	log.Println("[Test] All bids have been placed.")
 }
 
 func closeTesting(last_id, batch_size int) {
 	for i := last_id - batch_size + 1; i <= last_id; i++ {
 		close(i)
 	}
-	log.Println("All auctions have been closed.")
+	log.Println("[Test] All auctions have been closed.")
 }
 
 func revealTesting(last_id, batch_size int) {
 	for i := last_id - batch_size + 1; i <= last_id; i++ {
 		reveal(i)
 	}
-	log.Println("All auctions have been closed.")
+	log.Println("[Test] All auctions have been closed.")
 }
 
 func commitTesting(last_id, batch_size int) {
@@ -433,7 +433,7 @@ func commitTesting(last_id, batch_size int) {
 		sign_auction_result(i)
 		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))) * time.Second)
 	}
-	log.Println("All auction results have been committed.")
+	log.Println("[Test] All auction results have been committed.")
 
 	// time.Sleep(15 * time.Second)
 	// closeTesting(last_id, batch_size)
@@ -446,7 +446,7 @@ func commitTesting(last_id, batch_size int) {
 		withdraw(last_id, bidKey, platform)
 		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))) * time.Second)
 	}
-	log.Println("All bidders have withdrawed unsuccessfull bids.")
+	log.Println("[Test] All bidders have withdrawed unsuccessfull bids.")
 
 }
 
@@ -455,7 +455,7 @@ func feedbackTesting(last_id, batch_size int) {
 		provide_feedback(i, i%5, "only used for testing")
 		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))) * time.Second)
 	}
-	log.Println("All feedbacks have been provided.")
+	log.Println("[Test] All feedbacks have been provided.")
 }
 
 func load_auctioneer(name string) string {

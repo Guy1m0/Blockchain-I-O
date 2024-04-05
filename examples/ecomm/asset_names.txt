@@ -7,7 +7,7 @@ Boiler
 Hot Dog
 Furnace
 Sander
-Zebra
+Zebras
 Milling Machine
 Projector
 Freezer

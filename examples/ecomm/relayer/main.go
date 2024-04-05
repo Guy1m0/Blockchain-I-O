@@ -93,6 +93,7 @@ func main() {
 	ccsvc.Register(ecomm.BidHashEvent, smartContractEvent)
 	ccsvc.Register(ecomm.WithdrawEvent, smartContractEvent)
 	ccsvc.Register(ecomm.CommitAuctionResultEvent, smartContractEvent)
+	ccsvc.Register(ecomm.ProvideFeedbackEvent, smartContractEvent)
 
 	err := ccsvc.Start(true)
 	check(err)
