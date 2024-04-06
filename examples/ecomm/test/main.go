@@ -439,6 +439,7 @@ func revealBidTesting(auction_infos []ecomm.AuctionInfo, s, batch_size int) {
 func closeTesting(last_id, batch_size int) {
 	for i := last_id - batch_size + 1; i <= last_id; i++ {
 		close(i)
+		time.Sleep(5 * time.Second)
 	}
 	log.Println("[Test] All auctions have been closed.")
 }
@@ -446,6 +447,7 @@ func closeTesting(last_id, batch_size int) {
 func revealTesting(last_id, batch_size int) {
 	for i := last_id - batch_size + 1; i <= last_id; i++ {
 		reveal(i)
+		time.Sleep(5 * time.Second)
 	}
 	log.Println("[Test] All auctions have been closed.")
 }
@@ -457,7 +459,7 @@ func commitTesting(last_id, batch_size int) {
 
 	for i := last_id - batch_size + 1; i <= last_id; i++ {
 		sign_auction_result(i)
-		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))) * time.Second)
+		time.Sleep(8 * time.Second)
 	}
 	log.Println("[Test] All auction results have been committed.")
 
@@ -470,7 +472,7 @@ func commitTesting(last_id, batch_size int) {
 		withdraw(last_id, bidKey, platform)
 		platform = "eth"
 		withdraw(last_id, bidKey, platform)
-		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))) * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 	log.Println("[Test] All bidders have withdrawed unsuccessfull bids.")
 
@@ -479,7 +481,7 @@ func commitTesting(last_id, batch_size int) {
 func feedbackTesting(last_id, batch_size int) {
 	for i := last_id - batch_size + 1; i <= last_id; i++ {
 		provide_feedback(i, i%5, "only used for testing")
-		time.Sleep(time.Duration(math.Floor(math.Log2(math.Float64frombits(uint64(batch_size))))) * time.Second)
+		time.Sleep(2 * time.Second)
 	}
 	log.Println("[Test] All feedbacks have been provided.")
 }
